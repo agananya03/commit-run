@@ -1,21 +1,21 @@
 {
   "_comment": "SYNTHETIC FALLBACK used only until teammate D ships /data/wallets.json. Roles follow the team plan; amounts are placeholders.",
   "wallets": [
-    { "index": 0, "role": "deployer" },
-    { "index": 1, "role": "watchdog" },
-    { "index": 2, "role": "delegate", "label": "atlas.eth", "mrd": "2000000" },
-    { "index": 3, "role": "delegate", "label": "borealis.eth", "mrd": "1500000" },
-    { "index": 4, "role": "delegate", "label": "cobalt.eth", "mrd": "1200000" },
-    { "index": 5, "role": "delegate", "label": "dune.eth", "mrd": "900000" },
-    { "index": 6, "role": "delegate", "label": "auditooor.eth", "mrd": "700000" },
-    { "index": 7, "role": "delegate", "label": "fjord.eth", "mrd": "500000" },
-    { "index": 8, "role": "proposer", "label": "MIP-12 proposer", "mrd": "50000" },
-    { "index": 9, "role": "recipient", "label": "MIP-12 SDK studio" },
-    { "index": 10, "role": "proposer", "label": "MIP-17 proposer", "mrd": "300000", "usdc": "60000" },
-    { "index": 11, "role": "intermediary", "label": "MIP-17 intermediary" },
-    { "index": 12, "role": "recipient", "label": "MIP-17 recipient" },
-    { "index": 13, "role": "proposer", "label": "kestrel.eth (MIP-21 proposer)", "mrd": "400000", "usdc": "20000" },
-    { "index": 14, "role": "alt_wallet", "label": "MIP-21 alt wallet" },
-    { "index": 15, "role": "hub", "label": "CEX hot wallet", "usdc": "1000000" }
+    {"index":0,"role":"deployer"},
+    {"index":1,"role":"watchdog"},
+    {"index":2,"role":"delegate","label":"atlas.eth","mrd":2000000},
+    {"index":3,"role":"delegate","label":"borealis.eth","mrd":1500000},
+    {"index":4,"role":"delegate","label":"cobalt.eth","mrd":1200000},
+    {"index":5,"role":"delegate","label":"dune.eth","mrd":900000},
+    {"index":6,"role":"delegate","label":"auditooor.eth","mrd":700000},
+    {"index":7,"role":"delegate","label":"fjord.eth","mrd":500000},
+    {"index":8,"role":"proposer","label":"MIP-12 proposer","mrd":50000},
+    {"index":9,"role":"recipient","label":"MIP-12 SDK studio"},
+    {"index":10,"role":"proposer","label":"MIP-17 proposer","mrd":300000,"usdc":60000},
+    {"index":11,"role":"intermediary","label":"MIP-17 intermediary"},
+    {"index":12,"role":"recipient","label":"MIP-17 recipient"},
+    {"index":13,"role":"proposer","label":"kestrel.eth (MIP-21 proposer)","mrd":400000,"usdc":20000},
+    {"index":14,"role":"alt_wallet","label":"MIP-21 alt wallet"},
+    {"index":15,"role":"hub","label":"CEX hot wallet","usdc":1000000}
   ]
 }

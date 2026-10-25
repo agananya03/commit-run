@@ -36,17 +36,17 @@ Env options: `TIMELOCK_DELAY` (seconds, default 60), `SEED_WALLETS` / `SEED_TRAN
 
 ## Seed data format
 
-`deploy:seed` reads two files owned by D. Until they exist, it uses the SYNTHETIC fallback in `scripts/seed/fallback-*.json` and prints a warning. Both are validated with zod (`scripts/seed/format.ts`); extra fields are ignored, so add notes freely. Accounts are **Hardhat account indexes 0–79** of the default mnemonic, never raw addresses.
+`deploy:seed` reads two files owned by D, produced by `data/gen_wallets.py`. Until they exist, it uses the SYNTHETIC fallback in `scripts/seed/fallback-*.json` (same format) and prints a warning. Both are validated with zod (`scripts/seed/format.ts`); extra fields (`synthetic`, `totalMrd`, `count`, notes) are ignored. Accounts are **Hardhat account indexes 0–79** of the default mnemonic, never raw addresses.
 
 ### `/data/wallets.json`
 
 ```json
 {
+  "synthetic": true,
   "wallets": [
-    { "index": 2, "role": "delegate", "label": "atlas.eth", "mrd": "2000000" },
-    { "index": 13, "role": "proposer", "label": "kestrel.eth", "mrd": "400000", "usdc": "20000" },
-    { "index": 14, "role": "alt_wallet", "label": "MIP-21 alt wallet" },
-    { "index": 20, "role": "holder", "mrd": "50000", "delegateTo": 2 }
+    { "index": 2, "role": "delegate", "label": "Aria", "mrd": 3000000 },
+    { "index": 13, "role": "mip21_proposer", "label": "MIP-21 Proposer (Kestrel)", "mrd": 1500000 },
+    { "index": 14, "role": "mip21_alt", "label": "MIP-21 alt wallet", "mrd": 0 }
   ]
 }
 ```
@@ -54,34 +54,37 @@ Env options: `TIMELOCK_DELAY` (seconds, default 60), `SEED_WALLETS` / `SEED_TRAN
 | Field | Required | Meaning |
 |---|---|---|
 | `index` | yes | Hardhat account 0–79, unique |
-| `role` | yes | free text, e.g. deployer, watchdog, delegate, proposer, intermediary, recipient, alt_wallet, hub, holder |
+| `role` | yes | free text, e.g. deployer, watchdog, delegate, mip17_intermediary, cex_hub, whale_coi, holder |
 | `label` | no | display name |
-| `mrd` | no | whole MRD sent from the deployer at seed time (decimal string) |
-| `usdc` | no | USDC minted to the account at seed time (decimal string) |
-| `delegateTo` | no | index that receives this account's voting power; defaults to itself. Only applies when `mrd` is set |
-
-The deployer keeps whatever MRD is not handed out (100M total) and does not delegate it.
+| `mrd` | no | whole MRD sent from the deployer at seed time (number, or decimal string for fractions) |
+| `usdc` | no | whole USDC minted to the account at seed time |
+| `delegateTo` | no | index that receives this account's voting power; defaults to itself. Only applies when `mrd` > 0 |
 
 ### `/data/transfers.json`
 
 ```json
 {
+  "synthetic": true,
   "transfers": [
-    { "from": 10, "to": 11, "token": "ETH", "amount": "2", "blockOffset": 5 },
-    { "from": 11, "to": 12, "token": "USDC", "amount": "39000", "blockOffset": 8 },
-    { "from": 13, "to": 14, "token": "MRD", "amount": "10000", "blockOffset": 12, "timestamp": "2026-10-11T09:00:00Z" }
+    { "id": "tx_90", "blockOffset": 1100, "token": "ETH", "fromIndex": 10, "toIndex": 11, "amount": "25000000000000000000" },
+    { "id": "tx_1", "blockOffset": 101, "token": "USDC", "fromIndex": 38, "toIndex": 54, "amount": "4588000000" }
   ]
 }
 ```
 
 | Field | Required | Meaning |
 |---|---|---|
-| `from`, `to` | yes | Hardhat account indexes |
+| `fromIndex`, `toIndex` | yes | Hardhat account indexes |
 | `token` | yes | `ETH`, `USDC` or `MRD` |
-| `amount` | yes | human units as a decimal string (`"1.9"`, `"39000"`) |
-| `blockOffset` | yes | replay order; empty blocks are mined so the transfer lands at least this many blocks after the replay starts |
+| `amount` | yes | **base units** as an integer string: 6 decimals for USDC (`"4588000000"` = 4,588 USDC), 18 for MRD and ETH |
+| `blockOffset` | yes | replay order; empty blocks are mined so the transfer lands this many blocks after the replay starts |
+| `id` | no | shown in errors and logs |
 | `timestamp` | no | exact block time (ISO 8601); must be later than the chain's latest block |
 
-Rules: transfers replay in `blockOffset` order, from the sender's own account. A transfer the sender can't afford stops the deploy with an error naming the transfer. Fund the sender via `wallets.json` (`usdc`, `mrd`) or an earlier transfer; nothing is minted silently. Every account starts with 10,000 ETH.
+### Replay rules
+
+- Transfers replay in `blockOffset` order (file order breaks ties), each from the sender's own account. Every account starts with 10,000 ETH.
+- **Pre-funding.** Before replaying, the script dry-runs the history and covers balances the data assumes but never creates (e.g. a hub sending USDC it never received). USDC is **minted** to the sender, so it comes from `0x0` and adds no wallet link. MRD has a fixed 100M supply, so the deployer sends it, held back from the largest allocation when the whole supply is handed out. With D's current data that is 506,721 USDC for 41 senders and 172,779 MRD for the CEX hub (#15) and the watchdog (#1), held back from whale #18 (−1.1%). The deploy log prints the totals.
+- The deployer keeps any MRD that is not handed out and does not delegate it.
 
 Owner: C (Parvati).

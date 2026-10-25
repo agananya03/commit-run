@@ -1,0 +1,67 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-21",
+  "riskLevel": "CRITICAL",
+  "action": "reject",
+  "requiredFindings": [
+    {
+      "category": "ownership_change",
+      "severity": "CRITICAL",
+      "said": null,
+      "does": "vault.upgradeToAndCall(VaultV2, reinitializeV2(wallet 14)) reassigns Vault owner from Timelock to wallet index 14"
+    },
+    {
+      "category": "unlimited_approval",
+      "severity": "CRITICAL",
+      "said": null,
+      "does": "treasury.approve(USDC, wallet 14, max) grants unlimited USDC allowance to wallet index 14"
+    },
+    {
+      "category": "new_privileged_function",
+      "severity": "CRITICAL",
+      "said": null,
+      "does": "VaultV2 implementation introduces new backdoor selectors including migrateReserves and reinitializeV2"
+    }
+  ],
+  "contradictions": [
+    {
+      "a": "no change to ownership, roles or reserves",
+      "b": "vault.upgradeToAndCall(VaultV2, reinitializeV2(wallet 14))"
+    },
+    {
+      "a": "The Timelock remains the sole owner of the Vault.",
+      "b": "OwnershipTransferred event sets new owner to wallet index 14"
+    }
+  ],
+  "coiLinks": [
+    {
+      "fromIndex": 13,
+      "toIndex": 14,
+      "path": [13, 14],
+      "minPLink": 0.95
+    },
+    {
+      "fromIndex": 14,
+      "toIndex": 17,
+      "path": [14, 17],
+      "minPLink": 0.90
+    }
+  ],
+  "evidenceRows": [
+    {
+      "effect": "Ownership of 8M USDC Vault transferred to wallet 14 via reinitializeV2",
+      "describedQuote": null,
+      "verdict": "NOT DESCRIBED"
+    },
+    {
+      "effect": "Unlimited approval of Treasury USDC to wallet 14",
+      "describedQuote": null,
+      "verdict": "NOT DESCRIBED"
+    },
+    {
+      "effect": "Gas optimization: SLOAD reduction on deposits and withdrawals",
+      "describedQuote": "deposit(uint256) falls from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas.",
+      "verdict": "supported"
+    }
+  ]
+}

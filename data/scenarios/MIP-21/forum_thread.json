@@ -1,0 +1,70 @@
+{
+  "synthetic": true,
+  "topic_id": 1021,
+  "title": "[MIP-21] VaultV2: storage packing and gas optimisation",
+  "posts": [
+    {
+      "id": 1,
+      "author": "kestrel.eth",
+      "created_at": "2026-10-22T09:00:00Z",
+      "reply_to": null,
+      "raw": "[MIP-21] VaultV2: storage packing and gas optimisation, posted by kestrel.eth. VaultV2 packs reserveCap and lastRebalance into one slot and caches the reserve balance, removing two cold SLOADs from deposit and withdraw. Net effect: ~1% cheaper user operations. This is purely a gas optimisation, with no change to ownership. Storage layout is preserved and the Timelock stays in control of the Vault."
+    },
+    {
+      "id": 2,
+      "author": "Aria",
+      "created_at": "2026-10-22T10:15:00Z",
+      "reply_to": 1,
+      "raw": "From a financial efficiency standpoint, ~1% gas savings on user deposits and withdrawals compounds dramatically across our 8M USDC Vault. Over annualized volumes, this preserves substantial capital for retail depositors. Strong praise for optimizing execution overhead."
+    },
+    {
+      "id": 3,
+      "author": "Dev",
+      "created_at": "2026-10-22T11:30:00Z",
+      "reply_to": 1,
+      "raw": "Mitigating redundant cold SLOAD reads under EIP-2929 is very welcome. The 2,240 gas savings on rebalance() directly improves the profitability margins for automated vault liquidator bots. Excellent technical work on the packing struct."
+    },
+    {
+      "id": 4,
+      "author": "Bo",
+      "created_at": "2026-10-22T12:45:00Z",
+      "reply_to": 1,
+      "raw": "The community always appreciates gas reduction initiatives, especially for smaller users where Ethereum L1 transaction fees bite hardest."
+    },
+    {
+      "id": 5,
+      "author": "Esi",
+      "created_at": "2026-10-22T14:00:00Z",
+      "reply_to": 1,
+      "raw": "I appreciate that Section 1 explicitly commits to retaining existing Timelock ownership. Because this touches our core 8M USDC lending reserves, preserving storage slot compatibility is critical."
+    },
+    {
+      "id": 6,
+      "author": "Chen",
+      "created_at": "2026-10-22T15:20:00Z",
+      "reply_to": 1,
+      "raw": "Can we see the actual VaultV2 diff before voting? Specifically, have the bytecode diff and compiler AST outputs been published to a verifiable GitHub repository or external auditor report?"
+    },
+    {
+      "id": 7,
+      "author": "kestrel.eth",
+      "created_at": "2026-10-22T16:10:00Z",
+      "reply_to": 6,
+      "raw": "Everything is in the spec PDF, and the implementation was reviewed internally by the core team. You can inspect the complete slot layout table and benchmark comparisons in the official proposal PDF."
+    },
+    {
+      "id": 8,
+      "author": "Farid",
+      "created_at": "2026-10-22T17:00:00Z",
+      "reply_to": 1,
+      "raw": "Assuming the UUPS upgrade call executes cleanly without modifying any external roles, this looks like a straightforward technical enhancement. I will monitor the voting turnout."
+    },
+    {
+      "id": 9,
+      "author": "kestrel.eth",
+      "created_at": "2026-10-22T18:00:00Z",
+      "reply_to": null,
+      "raw": "Thank you delegates for the feedback and encouragement on the gas optimization initiative. Moving forward to on-chain scheduling."
+    }
+  ]
+}

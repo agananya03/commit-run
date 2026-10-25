@@ -1,0 +1,21 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-12",
+  "riskLevel": "LOW",
+  "action": "none",
+  "requiredFindings": [],
+  "contradictions": [],
+  "coiLinks": [],
+  "evidenceRows": [
+    {
+      "effect": "Treasury transfer of 400,000 USDC to wallet index 9",
+      "describedQuote": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph indexer.",
+      "verdict": "aligned"
+    },
+    {
+      "effect": "Recipient designation to Meridian Studio Collective",
+      "describedQuote": "The recipient address is wallet index 9, owned and operated by Meridian Studio Collective.",
+      "verdict": "aligned"
+    }
+  ]
+}

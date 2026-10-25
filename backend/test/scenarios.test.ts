@@ -53,6 +53,16 @@ describe("loadScenarios edge cases", () => {
     expect(loadScenarios(join(tmp, "nope"), repoRoot)).toEqual({ plans: [], errors: [] });
   });
 
+  it("reads D's disclosure format (proposerIndex)", () => {
+    const dir = join(tmp, "d-format", "scenarios", "MIP-88");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "disclosure.json"), JSON.stringify({ synthetic: true, proposerIndex: 13, walletIndices: [13], statement: "x" }));
+    writeFileSync(join(dir, "forum_thread.json"), JSON.stringify({ topic_id: 1, title: "[MIP-88] t", posts: [] }));
+    const { plans, errors } = loadScenarios(join(tmp, "d-format"), repoRoot);
+    expect(errors).toEqual([]);
+    expect(plans[0]).toMatchObject({ slug: "MIP-88", title: "[MIP-88] t", proposer: "0x1cbd3b2770909d4e10f157cabc84c7264073c9ec" });
+  });
+
   it("reports a scenario without a proposer instead of crashing the whole seed", () => {
     const dir = join(tmp, "scenarios", "MIP-77");
     mkdirSync(dir, { recursive: true });

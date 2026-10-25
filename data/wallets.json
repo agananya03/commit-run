@@ -1,0 +1,567 @@
+{
+  "synthetic": true,
+  "totalMrd": 100000000,
+  "count": 80,
+  "wallets": [
+    {
+      "synthetic": true,
+      "index": 0,
+      "role": "deployer",
+      "label": "Meridian Deployer",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 1,
+      "role": "watchdog",
+      "label": "Governance Watchdog",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 2,
+      "role": "delegate",
+      "label": "Aria (Data-driven institutional delegate focused on quantitative risk and forensic audit.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 3,
+      "role": "delegate",
+      "label": "Bo (Grassroots community advocate prioritizing decentralization and public goods.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 4,
+      "role": "delegate",
+      "label": "Chen (Security auditor scrutinizing bytecode implementations and storage diffs.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 5,
+      "role": "delegate",
+      "label": "Dev (DeFi yield optimizer seeking maximum capital efficiency and AMM returns.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 6,
+      "role": "delegate",
+      "label": "Esi (Conservative risk purist protecting the 8M USDC Vault against proxy changes.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 7,
+      "role": "delegate",
+      "label": "Farid (Pragmatic core contributor focused on gas optimization and timelock stability.)",
+      "mrd": 3000000
+    },
+    {
+      "synthetic": true,
+      "index": 8,
+      "role": "mip12_proposer",
+      "label": "MIP-12 Proposer",
+      "mrd": 500000
+    },
+    {
+      "synthetic": true,
+      "index": 9,
+      "role": "mip12_recipient",
+      "label": "MIP-12 Recipient (Dev Studio)",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 10,
+      "role": "mip17_proposer",
+      "label": "MIP-17 Proposer (Orion DAO)",
+      "mrd": 1500000
+    },
+    {
+      "synthetic": true,
+      "index": 11,
+      "role": "mip17_intermediary",
+      "label": "MIP-17 Intermediary",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 12,
+      "role": "mip17_recipient",
+      "label": "MIP-17 Recipient (Nexus Labs)",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 13,
+      "role": "mip21_proposer",
+      "label": "MIP-21 Proposer (Kestrel)",
+      "mrd": 1500000
+    },
+    {
+      "synthetic": true,
+      "index": 14,
+      "role": "mip21_alt",
+      "label": "MIP-21 Alt Wallet (Benchmark Runner)",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 15,
+      "role": "cex_hub",
+      "label": "CEX Hub",
+      "mrd": 0
+    },
+    {
+      "synthetic": true,
+      "index": 16,
+      "role": "holder",
+      "label": "Token Holder 16",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 17,
+      "role": "mip21_secondary",
+      "label": "MIP-21 Proposer Secondary Wallet",
+      "mrd": 500000
+    },
+    {
+      "synthetic": true,
+      "index": 18,
+      "role": "whale_coi",
+      "label": "Whale 18 (Secretly Funded COI Delegate)",
+      "mrd": 16000000
+    },
+    {
+      "synthetic": true,
+      "index": 19,
+      "role": "whale_coi",
+      "label": "Whale 19 (Secretly Funded COI Delegate)",
+      "mrd": 15000000
+    },
+    {
+      "synthetic": true,
+      "index": 20,
+      "role": "whale_coi",
+      "label": "Whale 20 (Secretly Funded COI Delegate)",
+      "mrd": 15000000
+    },
+    {
+      "synthetic": true,
+      "index": 21,
+      "role": "whale",
+      "label": "Whale 21",
+      "mrd": 15000000
+    },
+    {
+      "synthetic": true,
+      "index": 22,
+      "role": "holder",
+      "label": "Token Holder 22",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 23,
+      "role": "holder",
+      "label": "Token Holder 23",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 24,
+      "role": "holder",
+      "label": "Token Holder 24",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 25,
+      "role": "holder",
+      "label": "Token Holder 25",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 26,
+      "role": "holder",
+      "label": "Token Holder 26",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 27,
+      "role": "holder",
+      "label": "Token Holder 27",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 28,
+      "role": "holder",
+      "label": "Token Holder 28",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 29,
+      "role": "holder",
+      "label": "Token Holder 29",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 30,
+      "role": "holder",
+      "label": "Token Holder 30",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 31,
+      "role": "holder",
+      "label": "Token Holder 31",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 32,
+      "role": "holder",
+      "label": "Token Holder 32",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 33,
+      "role": "holder",
+      "label": "Token Holder 33",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 34,
+      "role": "holder",
+      "label": "Token Holder 34",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 35,
+      "role": "holder",
+      "label": "Token Holder 35",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 36,
+      "role": "holder",
+      "label": "Token Holder 36",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 37,
+      "role": "holder",
+      "label": "Token Holder 37",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 38,
+      "role": "holder",
+      "label": "Token Holder 38",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 39,
+      "role": "holder",
+      "label": "Token Holder 39",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 40,
+      "role": "holder",
+      "label": "Token Holder 40",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 41,
+      "role": "holder",
+      "label": "Token Holder 41",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 42,
+      "role": "holder",
+      "label": "Token Holder 42",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 43,
+      "role": "holder",
+      "label": "Token Holder 43",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 44,
+      "role": "holder",
+      "label": "Token Holder 44",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 45,
+      "role": "holder",
+      "label": "Token Holder 45",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 46,
+      "role": "holder",
+      "label": "Token Holder 46",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 47,
+      "role": "holder",
+      "label": "Token Holder 47",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 48,
+      "role": "holder",
+      "label": "Token Holder 48",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 49,
+      "role": "holder",
+      "label": "Token Holder 49",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 50,
+      "role": "holder",
+      "label": "Token Holder 50",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 51,
+      "role": "holder",
+      "label": "Token Holder 51",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 52,
+      "role": "holder",
+      "label": "Token Holder 52",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 53,
+      "role": "holder",
+      "label": "Token Holder 53",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 54,
+      "role": "holder",
+      "label": "Token Holder 54",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 55,
+      "role": "holder",
+      "label": "Token Holder 55",
+      "mrd": 288136
+    },
+    {
+      "synthetic": true,
+      "index": 56,
+      "role": "holder",
+      "label": "Token Holder 56",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 57,
+      "role": "holder",
+      "label": "Token Holder 57",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 58,
+      "role": "holder",
+      "label": "Token Holder 58",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 59,
+      "role": "holder",
+      "label": "Token Holder 59",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 60,
+      "role": "holder",
+      "label": "Token Holder 60",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 61,
+      "role": "holder",
+      "label": "Token Holder 61",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 62,
+      "role": "holder",
+      "label": "Token Holder 62",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 63,
+      "role": "holder",
+      "label": "Token Holder 63",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 64,
+      "role": "holder",
+      "label": "Token Holder 64",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 65,
+      "role": "holder",
+      "label": "Token Holder 65",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 66,
+      "role": "holder",
+      "label": "Token Holder 66",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 67,
+      "role": "holder",
+      "label": "Token Holder 67",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 68,
+      "role": "holder",
+      "label": "Token Holder 68",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 69,
+      "role": "holder",
+      "label": "Token Holder 69",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 70,
+      "role": "holder",
+      "label": "Token Holder 70",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 71,
+      "role": "holder",
+      "label": "Token Holder 71",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 72,
+      "role": "holder",
+      "label": "Token Holder 72",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 73,
+      "role": "holder",
+      "label": "Token Holder 73",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 74,
+      "role": "holder",
+      "label": "Token Holder 74",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 75,
+      "role": "holder",
+      "label": "Token Holder 75",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 76,
+      "role": "holder",
+      "label": "Token Holder 76",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 77,
+      "role": "holder",
+      "label": "Token Holder 77",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 78,
+      "role": "holder",
+      "label": "Token Holder 78",
+      "mrd": 288135
+    },
+    {
+      "synthetic": true,
+      "index": 79,
+      "role": "holder",
+      "label": "Token Holder 79",
+      "mrd": 288135
+    }
+  ]
+}

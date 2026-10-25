@@ -72,10 +72,12 @@ export function resolveTitle(forum: Record<string, unknown> | null, slug: string
   return typeof title === "string" && title.trim() ? title.trim() : slug;
 }
 
-/** Proposer from disclosure.json, then onchain_actions.json (field `proposer`). */
+/** Proposer from disclosure.json, then onchain_actions.json: field `proposer` or `proposerIndex` (D's format). */
 export function resolveProposer(dir: string): string | null {
   for (const file of ["disclosure.json", "onchain_actions.json"]) {
-    const address = toAddress(readJson(join(dir, file))?.proposer);
+    const json = readJson(join(dir, file));
+    if (!json || Array.isArray(json)) continue;
+    const address = toAddress(json.proposer) ?? toAddress(json.proposerIndex);
     if (address) return address;
   }
   return null;

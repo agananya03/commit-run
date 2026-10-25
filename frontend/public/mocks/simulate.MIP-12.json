@@ -1,0 +1,43 @@
+{
+  "proposalId": "MIP-12",
+  "success": true,
+  "gasUsed": 45120,
+  "findings": [],
+  "decodedCalls": [
+    {
+      "target": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "contractName": "Treasury",
+      "selector": "0xa9059cbb",
+      "signature": "transfer(address,uint256)",
+      "args": [
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "400000000000"
+      ]
+    }
+  ],
+  "tokenTransfers": [
+    {
+      "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "from": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "to": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+      "amount": "400000000000"
+    }
+  ],
+  "approvals": [],
+  "ownershipChanges": [],
+  "implementationChanges": [],
+  "storageDiffs": [],
+  "events": [
+    {
+      "contract": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "name": "Transfer",
+      "args": {
+        "from": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+        "to": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "value": "400000000000"
+      }
+    }
+  ],
+  "bytecodeHash": "0x12a98f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b810923058a741",
+  "simHash": "0x412a98f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b810923058a7"
+}

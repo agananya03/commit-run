@@ -12,7 +12,7 @@ import { artifacts, ethers, network, upgrades } from "hardhat";
 import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import type { MeridianToken, MockUSDC } from "../typechain-types";
-import { loadSeedData, type Transfers, type Wallets } from "./seed/format";
+import { DECIMALS, loadSeedData, type Prefunding, type SeedTransfer, type SeedWallet } from "./seed/format";
 
 const TIMELOCK_DELAY = Number(process.env.TIMELOCK_DELAY ?? 60);
 const TREASURY_USDC = ethers.parseUnits("20000000", 6);
@@ -81,12 +81,12 @@ async function main(): Promise<void> {
   contracts.VaultV2 = { address: await vaultV2.getAddress(), artifact: "VaultV2" };
 
   // 5. Wallet universe and transfer history.
-  const seed = loadSeedData();
+  const seed = loadSeedData(await token.INITIAL_SUPPLY());
   if (seed.usedFallback) {
     console.warn("WARNING: /data/wallets.json or /data/transfers.json missing; using the SYNTHETIC fallback in scripts/seed/.");
   }
   console.log(`seed: ${seed.sources.wallets}\n      ${seed.sources.transfers}`);
-  await seedWallets(seed.wallets, signers, token, usdc);
+  await seedWallets(seed.wallets, seed.prefunding, signers, token, usdc);
   const replayed = await replayTransfers(seed.transfers, signers, token, usdc);
 
   // 6. deployments/<network>.json (shape = Deployments in /shared/schemas/types.ts).
@@ -112,29 +112,43 @@ async function main(): Promise<void> {
   );
 }
 
-async function seedWallets(wallets: Wallets, signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<void> {
+async function seedWallets(wallets: SeedWallet[], prefunding: Prefunding, signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<void> {
   const deployer = signers[0]!;
   for (const w of wallets) {
     const account = signers[w.index]!;
-    if (w.mrd && w.index !== 0) await (await token.connect(deployer).transfer(account.address, ethers.parseEther(w.mrd))).wait();
-    if (w.usdc) await (await usdc.connect(deployer).mint(account.address, ethers.parseUnits(w.usdc, 6))).wait();
+    if (w.mrd > 0n && w.index !== 0) await (await token.connect(deployer).transfer(account.address, w.mrd)).wait();
+    if (w.usdc > 0n) await (await usdc.connect(deployer).mint(account.address, w.usdc)).wait();
   }
+
+  // Balances the data assumes but never creates: USDC is minted (a mint comes from 0x0, so it adds no wallet
+  // link); MRD comes from the deployer, which held it back from the largest allocation.
+  for (const [index, amount] of prefunding.usdc) await (await usdc.connect(deployer).mint(signers[index]!.address, amount)).wait();
+  for (const [index, amount] of prefunding.mrd) await (await token.connect(deployer).transfer(signers[index]!.address, amount)).wait();
+  const total = (m: Map<number, bigint>) => [...m.values()].reduce((s, x) => s + x, 0n);
+  if (prefunding.usdc.size + prefunding.mrd.size > 0) {
+    console.log(
+      `prefunded ${prefunding.usdc.size} accounts with ${ethers.formatUnits(total(prefunding.usdc), 6)} USDC (mint) and ` +
+        `${prefunding.mrd.size} with ${ethers.formatEther(total(prefunding.mrd))} MRD (from deployer` +
+        `${prefunding.mrdHeldBackFrom !== null ? `, held back from #${prefunding.mrdHeldBackFrom}` : ""})`,
+    );
+  }
+
   // Delegate after all balances are in place, from each holder's own account.
   for (const w of wallets) {
-    if (!w.mrd && w.delegateTo === undefined) continue;
+    if (w.mrd === 0n && w.delegateTo === undefined) continue;
     const delegatee = signers[w.delegateTo ?? w.index]!;
     await (await token.connect(signers[w.index]!).delegate(delegatee.address)).wait();
   }
 }
 
-async function replayTransfers(transfers: Transfers, signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<number> {
-  const ordered = transfers.map((t, i) => ({ ...t, i })).sort((a, b) => a.blockOffset - b.blockOffset || a.i - b.i);
+/** Transfers arrive sorted in replay order (blockOffset, then file position). */
+async function replayTransfers(ordered: SeedTransfer[], signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<number> {
   const startBlock = await ethers.provider.getBlockNumber();
 
   for (const t of ordered) {
     const from = signers[t.from]!;
     const to = signers[t.to]!;
-    const label = `transfer #${t.i} (${t.token} ${t.amount} from #${t.from} to #${t.to})`;
+    const label = `transfer ${t.id ?? `#${t.i}`} (${ethers.formatUnits(t.amount, DECIMALS[t.token])} ${t.token} from #${t.from} to #${t.to})`;
 
     // Each tx is mined in the next block, so mine empty blocks until that block is startBlock + blockOffset.
     const current = await ethers.provider.getBlockNumber();
@@ -151,18 +165,15 @@ async function replayTransfers(transfers: Transfers, signers: HardhatEthersSigne
     }
 
     if (t.token === "ETH") {
-      const value = ethers.parseEther(t.amount);
       const balance = await ethers.provider.getBalance(from.address);
-      if (balance < value) throw new Error(`${label}: account has ${ethers.formatEther(balance)} ETH`);
-      await (await from.sendTransaction({ to: to.address, value })).wait();
+      if (balance < t.amount) throw new Error(`${label}: account has ${ethers.formatEther(balance)} ETH`);
+      await (await from.sendTransaction({ to: to.address, value: t.amount })).wait();
     } else {
       const erc20 = t.token === "USDC" ? usdc : token;
-      const value = t.token === "USDC" ? ethers.parseUnits(t.amount, 6) : ethers.parseEther(t.amount);
       const balance = await erc20.balanceOf(from.address);
-      if (balance < value) {
-        throw new Error(`${label}: account has ${t.token === "USDC" ? ethers.formatUnits(balance, 6) : ethers.formatEther(balance)} ${t.token}; fix the seed data instead of minting here`);
-      }
-      await (await erc20.connect(from).transfer(to.address, value)).wait();
+      // planPrefunding() already covered every shortfall, so this only fires on a bug.
+      if (balance < t.amount) throw new Error(`${label}: account has ${ethers.formatUnits(balance, DECIMALS[t.token])} ${t.token}`);
+      await (await erc20.connect(from).transfer(to.address, t.amount)).wait();
     }
   }
   return ordered.length;

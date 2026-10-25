@@ -1,0 +1,36 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-12",
+  "posts": [
+    {
+      "id": "soc_12_1",
+      "author": "@meridian_studio",
+      "created_at": "2026-09-16T10:00:00Z",
+      "text": "Excited to publish MIP-12 for community review! We are building the official TypeScript SDK and subgraph indexing layer to supercharge Meridian DAO developer tooling."
+    },
+    {
+      "id": "soc_12_2",
+      "author": "@aria_governance",
+      "created_at": "2026-09-16T11:20:00Z",
+      "text": "Thoroughly analyzed the financial scope of MIP-12. At 400K USDC (2.0% treasury), with transparent milestones and clear deliverables, this is a model grant proposal."
+    },
+    {
+      "id": "soc_12_3",
+      "author": "@bo_community",
+      "created_at": "2026-09-16T12:45:00Z",
+      "text": "Grassroots builder tooling is how Meridian wins the long game. Huge shoutout to the community for supporting open-source development."
+    },
+    {
+      "id": "soc_12_4",
+      "author": "@chen_security",
+      "created_at": "2026-09-16T14:15:00Z",
+      "text": "Reviewed the MIP-12 client-side architecture: zero privileged execution, zero timelock admin keys. Clean and safe."
+    },
+    {
+      "id": "soc_12_5",
+      "author": "@dev_yield",
+      "created_at": "2026-09-16T15:30:00Z",
+      "text": "Can't wait to plug our automated liquidity rebalancing bots into the official Meridian subgraph once deployed!"
+    }
+  ]
+}

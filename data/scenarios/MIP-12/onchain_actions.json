@@ -1,0 +1,11 @@
+[
+  {
+    "synthetic": true,
+    "contract": "Treasury",
+    "function": "transfer",
+    "args": [
+      9,
+      "400000000000"
+    ]
+  }
+]

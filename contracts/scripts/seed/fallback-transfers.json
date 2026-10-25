@@ -1,21 +1,18 @@
 {
   "_comment": "SYNTHETIC FALLBACK used only until teammate D ships /data/transfers.json. Contains the two hidden links the COI engine must find plus a little CEX noise.",
   "transfers": [
-    { "from": 15, "to": 2, "token": "USDC", "amount": "10000", "blockOffset": 0 },
-    { "from": 3, "to": 15, "token": "ETH", "amount": "5", "blockOffset": 1 },
-    { "from": 15, "to": 5, "token": "USDC", "amount": "2000", "blockOffset": 2 },
-    { "from": 15, "to": 12, "token": "USDC", "amount": "500", "blockOffset": 3 },
-
-    { "from": 10, "to": 11, "token": "ETH", "amount": "2", "blockOffset": 5 },
-    { "from": 11, "to": 12, "token": "ETH", "amount": "1.9", "blockOffset": 6 },
-    { "from": 10, "to": 11, "token": "USDC", "amount": "40000", "blockOffset": 7 },
-    { "from": 11, "to": 12, "token": "USDC", "amount": "39000", "blockOffset": 8 },
-
-    { "from": 13, "to": 14, "token": "ETH", "amount": "1", "blockOffset": 10 },
-    { "from": 13, "to": 14, "token": "USDC", "amount": "5000", "blockOffset": 11 },
-    { "from": 13, "to": 14, "token": "MRD", "amount": "10000", "blockOffset": 12 },
-
-    { "from": 4, "to": 15, "token": "ETH", "amount": "3", "blockOffset": 14 },
-    { "from": 15, "to": 7, "token": "USDC", "amount": "1500", "blockOffset": 15 }
+    {"id":"fb_1","blockOffset":0,"token":"USDC","fromIndex":15,"toIndex":2,"amount":"10000000000"},
+    {"id":"fb_2","blockOffset":1,"token":"ETH","fromIndex":3,"toIndex":15,"amount":"5000000000000000000"},
+    {"id":"fb_3","blockOffset":2,"token":"USDC","fromIndex":15,"toIndex":5,"amount":"2000000000"},
+    {"id":"fb_4","blockOffset":3,"token":"USDC","fromIndex":15,"toIndex":12,"amount":"500000000"},
+    {"id":"fb_5","blockOffset":5,"token":"ETH","fromIndex":10,"toIndex":11,"amount":"2000000000000000000"},
+    {"id":"fb_6","blockOffset":6,"token":"ETH","fromIndex":11,"toIndex":12,"amount":"1900000000000000000"},
+    {"id":"fb_7","blockOffset":7,"token":"USDC","fromIndex":10,"toIndex":11,"amount":"40000000000"},
+    {"id":"fb_8","blockOffset":8,"token":"USDC","fromIndex":11,"toIndex":12,"amount":"39000000000"},
+    {"id":"fb_9","blockOffset":10,"token":"ETH","fromIndex":13,"toIndex":14,"amount":"1000000000000000000"},
+    {"id":"fb_10","blockOffset":11,"token":"USDC","fromIndex":13,"toIndex":14,"amount":"5000000000"},
+    {"id":"fb_11","blockOffset":12,"token":"MRD","fromIndex":13,"toIndex":14,"amount":"10000000000000000000000"},
+    {"id":"fb_12","blockOffset":14,"token":"ETH","fromIndex":4,"toIndex":15,"amount":"3000000000000000000"},
+    {"id":"fb_13","blockOffset":15,"token":"USDC","fromIndex":15,"toIndex":7,"amount":"1500000000"}
   ]
 }

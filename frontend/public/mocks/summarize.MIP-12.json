@@ -1,0 +1,60 @@
+{
+  "proposalId": "MIP-12",
+  "tldr": "Requests a grant of 400,000 USDC (2.0% of liquid treasury) to fund the core TypeScript SDK and subgraph indexer built by Meridian Studio Collective.",
+  "treasuryImpact": {
+    "amountUsd": 400000,
+    "pctOfTreasury": 2.0,
+    "recipients": ["0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"],
+    "citations": [
+      {
+        "chunkId": "MIP-12:pdf:0",
+        "sha256": "0x892a0e234cf781a9f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b81",
+        "quote": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph indexer.",
+        "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "text": "Requires public RPC read endpoints for Goldsky and Graph node indexers.",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:1",
+          "sha256": "0x321a4f0289be11dae98341209ca41e786b810d0c345b6ad64c9d9d95f8182b81",
+          "quote": "Subgraph deployments will be multi-hosted across redundant RPC endpoints with fallback failover.",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "text": "Maintenance overhead managed under open governance and community bounties.",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:1",
+          "sha256": "0x321a4f0289be11dae98341209ca41e786b810d0c345b6ad64c9d9d95f8182b81",
+          "quote": "The SDK will be licensed under MIT and maintained under open governance with community bounties.",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl12_1",
+      "text": "SDK interacts purely with public client view calls and zero privileged admin keys.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:4",
+          "sha256": "0x983210492cbade10923058a74136209ca41e786b810d0c345b6ad64c9d9d95",
+          "quote": "Zero private keys, zero admin roles, and zero proxy upgrades.",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=5"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.95
+    }
+  ]
+}

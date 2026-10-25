@@ -1,0 +1,77 @@
+{
+  "synthetic": true,
+  "topic_id": 1017,
+  "title": "[MIP-17] Nexus Labs Ecosystem Acceleration & Cross-Chain Liquidity Infrastructure",
+  "posts": [
+    {
+      "id": 1,
+      "author": "proposer_10",
+      "created_at": "2026-10-18T09:00:00Z",
+      "reply_to": null,
+      "raw": "We are proud to present MIP-17, requesting a $5,000,000 USDC allocation from the Meridian Treasury to fund Nexus Labs in building cross-chain liquidity rails and MEV-shielded routing for our lending markets. Recipient address is wallet index 12. We look forward to working with all Meridian delegates."
+    },
+    {
+      "id": 2,
+      "author": "Aria",
+      "created_at": "2026-10-18T10:15:00Z",
+      "reply_to": 1,
+      "raw": "A $5M request represents exactly 25.0% of our entire 20M USDC liquid treasury. Even more alarming, when I examine the itemized budget table in Section 3, the three workstreams total $3,500,000 USDC ($1.5M + $1.2M + $0.8M). Where is the remaining $1,500,000 USDC designated to go?"
+    },
+    {
+      "id": 3,
+      "author": "Bo",
+      "created_at": "2026-10-18T11:20:00Z",
+      "reply_to": 1,
+      "raw": "Our community values transparent public goods funding. Committing a quarter of the DAO treasury to a closed collective without open-source commitments or community bounties feels contrary to Meridian's founding ethos."
+    },
+    {
+      "id": 4,
+      "author": "Chen",
+      "created_at": "2026-10-18T12:45:00Z",
+      "reply_to": 1,
+      "raw": "Can the proposer clarify the exact milestone deliverables and who the ultimate recipient multisig signers are? The proposal contains no delivery dates, no testnet criteria, and completely obscures who controls wallet index 12. We cannot disburse millions of protocol funds to anonymous entities with zero accountability."
+    },
+    {
+      "id": 5,
+      "author": "proposer_10",
+      "created_at": "2026-10-18T14:10:00Z",
+      "reply_to": 4,
+      "raw": "Nexus Labs is an agile research collective and breaking down exact dates would constrain engineering flexibility. The signers are senior domain engineers who maintain operational security to protect the proprietary routing logic. Rest assured the funds will be deployed efficiently."
+    },
+    {
+      "id": 6,
+      "author": "Dev",
+      "created_at": "2026-10-18T15:30:00Z",
+      "reply_to": 5,
+      "raw": "From a yield and liquidity perspective, routing efficiency is attractive, but without audited code, published testnet repos, or verifiable benchmarks, risking 25% of our liquid reserves is unacceptable."
+    },
+    {
+      "id": 7,
+      "author": "Esi",
+      "created_at": "2026-10-18T16:20:00Z",
+      "reply_to": 5,
+      "raw": "Our governance framework dictates that allocations above 1M USDC must utilize milestone-based escrow tranches. Proposing a single lump-sum transfer of 5M USDC directly to an unverified multisig bypasses essential protocol safety checks."
+    },
+    {
+      "id": 8,
+      "author": "Farid",
+      "created_at": "2026-10-18T17:10:00Z",
+      "reply_to": 5,
+      "raw": "The proposer's deflection on both the milestone roadmap and signer identities fails basic governance due diligence. Until concrete deliverables, verifiable escrow signers, and an reconciled budget are submitted, I cannot support this proposal."
+    },
+    {
+      "id": 9,
+      "author": "proposer_10",
+      "created_at": "2026-10-18T18:00:00Z",
+      "reply_to": 8,
+      "raw": "Market conditions in cross-chain DeFi move rapidly. Delaying this vote will cause Meridian to lose market share to competitors. We urge delegates to look at the macro strategic vision and vote FOR."
+    },
+    {
+      "id": 10,
+      "author": "Chen",
+      "created_at": "2026-10-18T18:45:00Z",
+      "reply_to": 9,
+      "raw": "Trust is not a verification model in decentralized finance. The proposer is actively evading legitimate delegate questions on recipient identity and budget discrepancy. I will be voting strongly AGAINST."
+    }
+  ]
+}
