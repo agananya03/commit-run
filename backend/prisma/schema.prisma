@@ -1,0 +1,285 @@
+// ProofOfIntent backend schema (Prisma owns the `public` schema; rag owns `rag`).
+// Conventions: addresses and hashes are 0x-prefixed strings; addresses stored lowercase;
+// uint256 values are Decimal(78,0) (fits 2^256-1) or strings; each pipeline output keeps the
+// full shared type (/shared/schemas/types.ts) in a Json `data` column plus scalars we query on.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProposalStatus {
+  DRAFT
+  INGESTED
+  COMMITTED
+  ACTIVE
+  QUEUED
+  HALTED
+  EXECUTED
+  DEFEATED
+}
+
+enum EvidenceType {
+  forum
+  pdf
+  social
+  onchain
+  disclosure
+}
+
+enum Severity {
+  info
+  low
+  medium
+  high
+  critical
+}
+
+enum FindingCategory {
+  recipient_mismatch
+  amount_mismatch
+  undeclared_action
+  ownership_change
+  unlimited_approval
+  new_privileged_function
+  coi
+  unsupported_claim
+  contradiction
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskAction {
+  none
+  review
+  halt
+}
+
+/// Which payloads a simulation ran on: the proposed calldata, or what was actually queued in the timelock.
+enum SimulationSource {
+  PROPOSED
+  QUEUED
+}
+
+model Proposal {
+  id                 String         @id @default(cuid())
+  slug               String         @unique /// e.g. MIP-21
+  title              String
+  proposer           String         @db.VarChar(42)
+  status             ProposalStatus @default(DRAFT)
+  governorProposalId String? /// uint256 as a decimal string
+  operationId        String?        @db.VarChar(66) /// timelock operation id once queued
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  versions       ProposalVersion[]
+  evidenceFiles  EvidenceFile[]
+  simulationRuns SimulationRun[]
+  findings       Finding[]
+  riskChains     RiskChainRecord[]
+  chainEvents    ChainEvent[]
+
+  @@index([status])
+}
+
+/// One immutable link of the hash chain. versionHash = keccak256(RFC 8785 canonical JSON of canonicalJson).
+model ProposalVersion {
+  id            String   @id @default(cuid())
+  proposalId    String
+  version       Int
+  canonicalJson Json
+  versionHash   String   @db.VarChar(66)
+  prevHash      String   @db.VarChar(66)
+  evidenceRoot  String   @db.VarChar(66)
+  commitTxHash  String?  @db.VarChar(66)
+  createdAt     DateTime @default(now())
+
+  proposal       Proposal          @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  evidenceFiles  EvidenceFile[]
+  summary        Summary?
+  intentSpec     IntentSpecRecord?
+  coiReport      CoiReportRecord?
+  simulationRuns SimulationRun[]
+
+  @@unique([proposalId, version])
+  @@unique([proposalId, versionHash])
+}
+
+/// A source file, content-addressed by sha256 of its bytes. proposalVersionId is null while the file is
+/// staged (ingested but not yet sealed into a version); once a version is built, its files are frozen.
+model EvidenceFile {
+  id                String       @id @default(cuid())
+  proposalId        String
+  proposalVersionId String?
+  type              EvidenceType
+  uri               String /// repo-relative path, e.g. data/scenarios/MIP-21/proposal.pdf
+  sha256            String       @db.VarChar(66)
+  bytes             Int
+  createdAt         DateTime     @default(now())
+
+  proposal        Proposal         @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion ProposalVersion? @relation(fields: [proposalVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalVersionId, type, uri])
+  @@index([proposalId])
+  @@index([sha256])
+}
+
+/// DecisionSummary from rag /summarize.
+model Summary {
+  id                String   @id @default(cuid())
+  proposalVersionId String   @unique
+  data              Json
+  tldr              String
+  amountUsd         Decimal? @db.Decimal(20, 2)
+  pctOfTreasury     Float?
+  unsupportedClaims Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  proposalVersion ProposalVersion @relation(fields: [proposalVersionId], references: [id], onDelete: Cascade)
+}
+
+/// IntentSpec from rag /extract-intent.
+model IntentSpecRecord {
+  id                String   @id @default(cuid())
+  proposalVersionId String   @unique
+  data              Json
+  confidence        Float
+  actionCount       Int
+  createdAt         DateTime @default(now())
+
+  proposalVersion ProposalVersion @relation(fields: [proposalVersionId], references: [id], onDelete: Cascade)
+}
+
+/// SimulationResult from sim /simulate. The watchdog re-simulates the QUEUED payloads, so one
+/// proposal can have several runs; simHash makes each run re-checkable.
+model SimulationRun {
+  id                String           @id @default(cuid())
+  proposalId        String
+  proposalVersionId String?
+  source            SimulationSource @default(PROPOSED)
+  operationId       String?          @db.VarChar(66)
+  forkBlock         Int?
+  data              Json
+  success           Boolean
+  simHash           String           @db.VarChar(66)
+  bytecodeHash      String           @db.VarChar(66)
+  createdAt         DateTime         @default(now())
+
+  proposal        Proposal          @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalVersion ProposalVersion?  @relation(fields: [proposalVersionId], references: [id], onDelete: SetNull)
+  findings        Finding[]
+  riskChains      RiskChainRecord[]
+
+  @@index([proposalId, createdAt])
+}
+
+/// CoiReport from the backend COI engine.
+model CoiReportRecord {
+  id                String   @id @default(cuid())
+  proposalVersionId String   @unique
+  data              Json
+  pCoi              Float
+  signatureValid    Boolean
+  undisclosedLinks  Int
+  createdAt         DateTime @default(now())
+
+  proposalVersion ProposalVersion @relation(fields: [proposalVersionId], references: [id], onDelete: Cascade)
+}
+
+/// One said-vs-does finding from the verdict engine. findingKey is the Finding.id inside its run (f1, f2...).
+model Finding {
+  id              String          @id @default(cuid())
+  proposalId      String
+  simulationRunId String?
+  findingKey      String
+  severity        Severity
+  category        FindingCategory
+  said            String
+  does            String
+  evidence        Json /// Citation[]
+  simRef          String?
+  createdAt       DateTime        @default(now())
+
+  proposal      Proposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+
+  @@unique([simulationRunId, findingKey])
+  @@index([proposalId, severity])
+}
+
+/// RiskChain from the probabilistic evaluation chain.
+model RiskChainRecord {
+  id              String     @id @default(cuid())
+  proposalId      String
+  simulationRunId String?
+  data            Json
+  prior           Float
+  posterior       Float
+  level           RiskLevel
+  action          RiskAction
+  createdAt       DateTime   @default(now())
+
+  proposal      Proposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
+
+  @@index([proposalId, createdAt])
+}
+
+/// Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry.
+model ChainEvent {
+  id          String    @id @default(cuid())
+  proposalId  String?
+  blockNumber Int
+  txHash      String    @db.VarChar(66)
+  logIndex    Int
+  contract    String /// contract name from deployments, e.g. GovernanceGuard
+  address     String    @db.VarChar(42)
+  name        String /// event name, e.g. Flagged
+  args        Json
+  timestamp   DateTime?
+  createdAt   DateTime  @default(now())
+
+  proposal Proposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+
+  @@unique([txHash, logIndex])
+  @@index([proposalId])
+  @@index([blockNumber])
+}
+
+model Wallet {
+  address      String  @id @db.VarChar(42) /// lowercase
+  label        String?
+  role         String?
+  hardhatIndex Int?    @unique
+}
+
+/// ETH and ERC-20 transfers imported from the chain; the input graph for the COI engine.
+/// Native ETH transfers have no log, so they use token = null and logIndex = -1.
+model Transfer {
+  id          String   @id @default(cuid())
+  txHash      String   @db.VarChar(66)
+  logIndex    Int
+  token       String?  @db.VarChar(42) /// null = ETH
+  from        String   @db.VarChar(42) /// lowercase
+  to          String   @db.VarChar(42) /// lowercase
+  amount      Decimal  @db.Decimal(78, 0) /// base units, fits uint256
+  blockNumber Int
+  timestamp   DateTime
+
+  @@unique([txHash, logIndex])
+  @@index([from])
+  @@index([to])
+  @@index([blockNumber])
+}

@@ -79,7 +79,7 @@
         },
         {
           "chunkId": "MIP-21:pdf:0",
-          "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311",
+          "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
           "quote": "The Timelock remains the sole owner of the Vault.",
           "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
         }

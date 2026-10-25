@@ -1,0 +1,28 @@
+{
+  "name": "@meridian/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meridian DAO contracts: governance, treasury, vault, ProposalRegistry, GovernanceGuard.",
+  "scripts": {
+    "node": "npx hardhat node",
+    "fork": "anvil --fork-url http://127.0.0.1:8545 --port 8546 --steps-tracing",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "check:network": "hardhat run scripts/check-network.ts",
+    "deploy:seed": "hardhat run scripts/deploy-seed.ts --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
+    "@types/node": "^26.6.5",
+    "hardhat": "^2.29.1",
+    "hardhat-gas-reporter": "^2.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.6.7"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
+    "@openzeppelin/contracts-upgradeable": "^5.6.1"
+  }
+}

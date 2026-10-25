@@ -32,7 +32,7 @@ With `USE_MOCKS=true` (backend) or `NEXT_PUBLIC_USE_MOCKS=true` (frontend), clie
 | `simulate.MIP-21.json` | sim `POST /simulate` | `SimulationResult` |
 | `deployments.json` | sim `GET /deployments` and `/contracts/deployments/localhost.json` | `Deployments` |
 
-`deployments.json` uses the addresses Hardhat account #0 produces when deploying in this order: MeridianToken, MockUSDC, GuardedTimelock, GovernanceGuard, MeridianGovernor, Treasury, VaultV1, VaultProxy, ProposalRegistry, VaultV2. The ABIs cover only the functions and events the plan uses. Once the real deploy script runs, its `localhost.json` replaces this file.
+`deployments.json` is a copy of the real `/contracts/deployments/localhost.json` written by `npm run deploy:seed` (full ABIs). Hardhat account #0 deploys MeridianToken, MockUSDC, GuardedTimelock (which creates GovernanceGuard itself), MeridianGovernor, Treasury, VaultV1 + VaultProxy, ProposalRegistry; the MIP-21 proposer (#13) deploys VaultV2. The MIP-21 mocks use these addresses, and `bytecodeHash` is the real VaultV2 runtime code hash read from the deployed chain.
 
 ---
 
@@ -78,8 +78,8 @@ Response (full: [`mocks/ingest.MIP-21.json`](mocks/ingest.MIP-21.json), 7 chunks
     "sourceType": "pdf",
     "sourceUri": "pdf://MIP-21/proposal.pdf#page=3",
     "page": 3,
-    "text": "3. Scope. The upgrade replaces the Vault implementation behind the existing UUPS proxy at 0xa513…C853. …The Timelock remains the sole owner of the Vault.",
-    "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311"
+    "text": "3. Scope. The upgrade replaces the Vault implementation behind the existing UUPS proxy at 0x0165…Eb8F. …The Timelock remains the sole owner of the Vault.",
+    "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885"
   }
 ]
 ```
@@ -123,7 +123,7 @@ Body: `{ "proposalId": "MIP-21" }`. Uses forum, PDF and social chunks only, **ne
   "actions": [
     {
       "kind": "upgrade",
-      "target": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "target": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       "description": "Upgrade the Vault to VaultV2 (storage packing / gas optimisation only).",
       "citations": [{ "chunkId": "MIP-21:forum:0", "sha256": "0x3ace…0ebe", "quote": "VaultV2 packs reserveCap and lastRebalance into one slot", "sourceUri": "forum://MIP-21/forum_thread.json#post=1" }]
     }
@@ -172,10 +172,10 @@ Snapshots the Anvil fork (:8546), impersonates the timelock, sends each call, re
 ```json
 {
   "proposalId": "MIP-21",
-  "targets": ["0xa513E6E4b8f2a923D98304ec87F64353C4D5C853", "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"],
+  "targets": ["0x0165878A594ca255338adfa4d48449f69242Eb8F", "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"],
   "values": ["0", "0"],
   "calldatas": [
-    "0x4f1ef2860000000000000000000000008a791620dd6260079bf849dc5567adc3f2fdc31800000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000024be6b99e3000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c709700000000000000000000000000000000000000000000000000000000",
+    "0x4f1ef28600000000000000000000000017f24d3b8bc1150553b54da30b4d993acb88921200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000024be6b99e3000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c709700000000000000000000000000000000000000000000000000000000",
     "0xe1f21c67000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c7097ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
   ]
 }
@@ -186,25 +186,25 @@ Response (full: [`mocks/simulate.MIP-21.json`](mocks/simulate.MIP-21.json)):
   "proposalId": "MIP-21",
   "success": true,
   "decodedCalls": [
-    { "target": "0xa513…C853", "contractName": "Vault (ERC1967Proxy)", "selector": "0x4f1ef286", "signature": "upgradeToAndCall(address,bytes)", "args": ["0x8A791620dd6260079BF849Dc5567aDC3F2FdC318", "0xbe6b99e3…"] },
-    { "target": "0xa513…C853", "contractName": "VaultV2 (delegatecall)", "selector": "0xbe6b99e3", "signature": "reinitializeV2(address)", "args": ["0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097"] },
-    { "target": "0x5FC8…5707", "contractName": "Treasury", "selector": "0xe1f21c67", "signature": "approve(address,address,uint256)", "args": ["0xe7f1…0512", "0xdF3e…7097", "115792089237316195423570985008687907853269984665640564039457584007913129639935"] },
+    { "target": "0x0165…Eb8F", "contractName": "Vault (ERC1967Proxy)", "selector": "0x4f1ef286", "signature": "upgradeToAndCall(address,bytes)", "args": ["0x17F24D3b8Bc1150553b54Da30B4d993AcB889212", "0xbe6b99e3…"] },
+    { "target": "0x0165…Eb8F", "contractName": "VaultV2 (delegatecall)", "selector": "0xbe6b99e3", "signature": "reinitializeV2(address)", "args": ["0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097"] },
+    { "target": "0xDc64…F6C9", "contractName": "Treasury", "selector": "0xe1f21c67", "signature": "approve(address,address,uint256)", "args": ["0xe7f1…0512", "0xdF3e…7097", "115792089237316195423570985008687907853269984665640564039457584007913129639935"] },
     { "target": "0xe7f1…0512", "contractName": "MockUSDC", "selector": "0x095ea7b3", "signature": "approve(address,uint256)", "args": ["0xdF3e…7097", "115792089237316195423570985008687907853269984665640564039457584007913129639935"] }
   ],
   "tokenTransfers": [],
-  "approvals": [{ "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "owner": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707", "spender": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097", "amount": "115792089237316195423570985008687907853269984665640564039457584007913129639935" }],
-  "ownershipChanges": [{ "contract": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853", "role": "owner", "before": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", "after": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097" }],
+  "approvals": [{ "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "owner": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9", "spender": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097", "amount": "115792089237316195423570985008687907853269984665640564039457584007913129639935" }],
+  "ownershipChanges": [{ "contract": "0x0165878A594ca255338adfa4d48449f69242Eb8F", "role": "owner", "before": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", "after": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097" }],
   "implementationChanges": [{
-    "proxy": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-    "before": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-    "after": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    "proxy": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+    "before": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "after": "0x17F24D3b8Bc1150553b54Da30B4d993AcB889212",
     "addedSelectors": [{ "selector": "0x0db4818a", "signature": "migrateReserves(address)" }, { "selector": "0xbe6b99e3", "signature": "reinitializeV2(address)" }],
     "removedSelectors": []
   }],
-  "storageDiffs": [{ "contract": "0xa513…C853", "slot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc", "before": "0x…0165878a…2eb8f", "after": "0x…8a791620…dc318" }],
-  "events": [{ "contract": "0xa513…C853", "name": "OwnershipTransferred", "args": { "previousOwner": "0x9fE4…a6e0", "newOwner": "0xdF3e…7097" } }],
-  "bytecodeHash": "0xb9f07fe7970febb71b3143a636b895a6d6bae3c8bd7d9c37282c7872731005ec",
-  "simHash": "0x9f7f2862df40c4e8446503853311ebc0d590c8372d549cf00dda8d1a73384f62"
+  "storageDiffs": [{ "contract": "0x0165…Eb8F", "slot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc", "before": "0x…5fc8d326…75707", "after": "0x…17f24d3b…89212" }],
+  "events": [{ "contract": "0x0165…Eb8F", "name": "OwnershipTransferred", "args": { "previousOwner": "0x9fE4…a6e0", "newOwner": "0xdF3e…7097" } }],
+  "bytecodeHash": "0x92ff4c77b74114ec60e6d388b53712b4e125417d7277a5b98ea6036c4a4d05d9",
+  "simHash": "0x077c2655f0bbb291f1fbc5af2e71f06e2da54ed28d65f044825bcef8190de7be"
 }
 ```
 - `decodedCalls` includes nested and internal calls (the `reinitializeV2` inside `upgradeToAndCall`, and the USDC `approve` made by the Treasury).
@@ -220,7 +220,7 @@ Response (full: [`mocks/simulate.MIP-21.json`](mocks/simulate.MIP-21.json)):
   "deployBlock": 1,
   "contracts": {
     "MockUSDC": { "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "decimals": 6, "abi": ["…"] },
-    "VaultProxy": { "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853", "abi": ["…"] }
+    "VaultProxy": { "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F", "abi": ["…"] }
   }
 }
 ```
@@ -256,8 +256,8 @@ Full: [`mocks/deployments.json`](mocks/deployments.json). `decimals` appears onl
     "title": "VaultV2: storage packing and gas optimisation",
     "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
     "status": "HALTED",
-    "governorProposalId": "110193499427897605679396190369830864647872962332488067644179343601487952341172",
-    "operationId": "0x6e7296c2ac839df30b1746c6643ec2a1e9afbc12bf87a72605d6d90721ff35f8",
+    "governorProposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+    "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
     "createdAt": "2026-10-25T09:11:58Z",
     "updatedAt": "2026-10-25T09:14:02Z"
   }
@@ -399,7 +399,17 @@ Levels: `< 0.1` LOW, `< 0.4` MEDIUM, `< 0.8` HIGH, else CRITICAL. The action is 
 
 ## backend Socket.IO (same origin as :4000)
 
-Event payloads are typed by `SocketEvents`.
+Event payloads are typed by `SocketEvents`. In events, `proposalId` is the **slug** (`MIP-21`).
+
+**Subscribe to receive events.** After connecting, emit `subscribe` with a slug, or `"*"` for every proposal (a dashboard list). Use `unsubscribe` with the same body to leave.
+
+```ts
+const socket = io("http://localhost:4000");
+socket.emit("subscribe", { proposalId: "MIP-21" }); // or { proposalId: "*" }
+socket.on("pipeline:progress", (p) => console.log(p.step, p.status));
+```
+
+Each event goes to room `proposal:<slug>` and to `proposal:*`. A `chain:event` with `proposalId: null` (e.g. a token transfer) goes to `proposal:*` only.
 
 | Event | Payload | When |
 |---|---|---|
@@ -408,15 +418,15 @@ Event payloads are typed by `SocketEvents`.
 | `watchdog:flag` | `WatchdogFlag` | `GovernanceGuard.flag()` is mined |
 
 ```json
-{ "proposalId": "clx21…", "step": "simulate", "status": "completed", "ms": 2140 }
+{ "proposalId": "MIP-21", "step": "simulate", "status": "completed", "ms": 2140 }
 ```
 ```json
-{ "proposalId": "clx21…", "contract": "GovernanceGuard", "name": "Flagged", "args": { "operationId": "0x6e72…35f8", "findingsHash": "0x1f0c…aa92", "watchdog": "0x7099…79C8" }, "blockNumber": 57, "txHash": "0x9be1…74aa", "logIndex": 0 }
+{ "proposalId": "MIP-21", "contract": "GovernanceGuard", "name": "Flagged", "args": { "operationId": "0xf331…6620", "findingsHash": "0x1f0c…aa92", "watchdog": "0x7099…79C8" }, "blockNumber": 57, "txHash": "0x9be1…74aa", "logIndex": 0 }
 ```
 ```json
 {
-  "proposalId": "clx21…",
-  "operationId": "0x6e7296c2ac839df30b1746c6643ec2a1e9afbc12bf87a72605d6d90721ff35f8",
+  "proposalId": "MIP-21",
+  "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
   "findingsHash": "0x1f0c…aa92",
   "findings": [{ "id": "f1", "…": "…" }],
   "risk": { "posterior": 0.9743, "level": "CRITICAL", "action": "halt", "…": "…" },
@@ -451,12 +461,12 @@ Event payloads are typed by `SocketEvents`.
 | MeridianToken | `0x5FbDB2315678afecb367f032d93F642f64180aa3` |
 | MockUSDC | `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512` |
 | GuardedTimelock | `0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0` |
-| GovernanceGuard | `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` |
-| MeridianGovernor | `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9` |
-| Treasury | `0x5FC8d32690cc91D4c39d9d3abcBD16989F875707` |
-| VaultV1 (impl) | `0x0165878A594ca255338adfa4d48449f69242Eb8F` |
-| Vault (proxy) | `0xa513E6E4b8f2a923D98304ec87F64353C4D5C853` |
-| ProposalRegistry | `0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6` |
-| VaultV2 (impl, MIP-21) | `0x8A791620dd6260079BF849Dc5567aDC3F2FdC318` |
+| GovernanceGuard (created by GuardedTimelock) | `0x75537828f2ce51be7289709686A69CbFDbB714F1` |
+| MeridianGovernor | `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` |
+| Treasury | `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9` |
+| VaultV1 (impl) | `0x5FC8d32690cc91D4c39d9d3abcBD16989F875707` |
+| Vault (proxy) | `0x0165878A594ca255338adfa4d48449f69242Eb8F` |
+| ProposalRegistry | `0xa513E6E4b8f2a923D98304ec87F64353C4D5C853` |
+| VaultV2 (impl, MIP-21, deployed by #13) | `0x17F24D3b8Bc1150553b54Da30B4d993AcB889212` |
 
 Contract addresses depend on deploy order. If the deploy script changes the order, regenerate the mocks and this table from `deployments/localhost.json`.
