@@ -110,31 +110,60 @@ def filter_valid_citations(
     return valid
 
 
+def count_independent_sources(citations: list[Citation]) -> int:
+    sources = set()
+    for cit in citations:
+        uri = cit.sourceUri or cit.chunkId or ""
+        # Group PDF pages into one PDF document source
+        if uri.startswith("pdf://") or uri.endswith(".pdf") or ".pdf#" in uri:
+            base = uri.split("#")[0]
+            sources.add(base)
+        elif "forum" in uri and "#post=" in uri:
+            # Different forum posts (e.g. delegate replies #post=2, #post=3) are independent
+            sources.add(uri)
+        elif "social" in uri and ("#msg=" in uri or "#post=" in uri):
+            # Different social messages
+            sources.add(uri)
+        else:
+            sources.add(uri.split("#")[0] if "#" in uri else uri)
+    return len(sources)
+
+
+def compute_claim_psupported(support: Support, valid_citations: list[Citation]) -> tuple[Support, float]:
+    if support == Support.contradicted:
+        return Support.contradicted, 0.05
+
+    if support == Support.unsupported or len(valid_citations) == 0:
+        return Support.unsupported, 0.3
+
+    # Supported with at least 1 verified citation
+    sources_count = count_independent_sources(valid_citations)
+    if sources_count >= 2:
+        return Support.supported, 0.9
+    else:
+        return Support.supported, 0.7
+
+
 def verify_and_clean_claim(claim: Claim, chunks_by_id: dict[str, Chunk]) -> Claim:
     """
     Verifies citation substrings. Drops unverified citations.
-    Marks claim unsupported if any citations were dropped or if all lost.
+    pSupported: supported with 2+ independent sources 0.9, one source 0.7, unsupported 0.3, contradicted 0.05.
     """
-    original_count = len(claim.citations)
     valid_citations = filter_valid_citations(claim.citations, chunks_by_id)
 
-    has_dropped = len(valid_citations) < original_count
+    orig_support = claim.support
+    if len(valid_citations) == 0 and orig_support == Support.supported:
+        orig_support = Support.unsupported
 
-    new_support = claim.support
-    new_p_supported = claim.pSupported
-
-    if has_dropped or len(valid_citations) == 0:
-        new_support = Support.unsupported
-        if new_p_supported > 0.5:
-            new_p_supported = 0.35
+    final_support, final_psupported = compute_claim_psupported(orig_support, valid_citations)
 
     return Claim(
         id=claim.id,
         text=claim.text,
         kind=claim.kind,
         citations=valid_citations,
-        support=new_support,
-        pSupported=new_p_supported,
+        support=final_support,
+        pSupported=final_psupported,
     )
 
 
@@ -218,13 +247,8 @@ def verify_decision_summary_citations(
     # 4. Claims
     verified_claims: list[Claim] = []
     for claim in summary.claims:
-        orig_count = len(claim.citations)
         cleaned_claim = verify_and_clean_claim(claim, chunks_by_id)
         verified_claims.append(cleaned_claim)
-        if orig_count > 0 and len(cleaned_claim.citations) == 0:
-            unverified_risks.append(
-                Risk(text=f"Unverified claim: {claim.text}", citations=[])
-            )
 
 
     return DecisionSummary(

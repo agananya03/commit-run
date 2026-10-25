@@ -4,7 +4,7 @@
   "treasuryImpact": {
     "amountUsd": 5000000,
     "pctOfTreasury": 25.0,
-    "recipients": ["0x71C836384191a83359d9B9582A45C8697A2E50dE"],
+    "recipients": ["0xFABB0ac9d68B0B445fB7357272Ff202C5651694a"],
     "citations": [
       {
         "chunkId": "MIP-17:pdf:0",

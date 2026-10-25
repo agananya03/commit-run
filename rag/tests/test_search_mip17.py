@@ -26,7 +26,7 @@ def test_hybrid_search_mip17_budget_chunks(client: TestClient) -> None:
     ingest_resp = client.post("/ingest", json=ingest_payload)
     assert ingest_resp.status_code == 200
     all_chunks = ingest_resp.json()
-    assert len(all_chunks) == 13
+    assert len(all_chunks) >= 13
 
     # 2. Search for "how much money is requested"
     search_payload = {

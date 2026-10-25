@@ -1,29 +1,25 @@
 {
   "proposalId": "MIP-17",
   "success": true,
-  "gasUsed": 58240,
-  "findings": [
-    {
-      "id": "find_17_1",
-      "severity": "critical",
-      "category": "treasury_mismatch",
-      "description": "Treasury transfer of 5,000,000 USDC to wallet index 12 contradicts itemized budget allocation ($3,500,000 USDC)."
-    },
-    {
-      "id": "find_17_2",
-      "severity": "high",
-      "category": "conflict_of_interest",
-      "description": "Proposer wallet index 10 secretly funded intermediary wallet 11 which funded recipient wallet 12."
-    }
-  ],
   "decodedCalls": [
     {
-      "target": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "target": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       "contractName": "Treasury",
+      "selector": "0xbeabacc8",
+      "signature": "transfer(address,address,uint256)",
+      "args": [
+        "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "5000000000000"
+      ]
+    },
+    {
+      "target": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "contractName": "MockUSDC",
       "selector": "0xa9059cbb",
       "signature": "transfer(address,uint256)",
       "args": [
-        "0x71C836384191a83359d9B9582A45C8697A2E50dE",
+        "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
         "5000000000000"
       ]
     }
@@ -31,8 +27,8 @@
   "tokenTransfers": [
     {
       "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "from": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "to": "0x71C836384191a83359d9B9582A45C8697A2E50dE",
+      "from": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "to": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
       "amount": "5000000000000"
     }
   ],
@@ -45,12 +41,21 @@
       "contract": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       "name": "Transfer",
       "args": {
-        "from": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-        "to": "0x71C836384191a83359d9B9582A45C8697A2E50dE",
+        "from": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "to": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
         "value": "5000000000000"
+      }
+    },
+    {
+      "contract": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "name": "Sent",
+      "args": {
+        "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "to": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "amount": "5000000000000"
       }
     }
   ],
-  "bytecodeHash": "0x892a0e234cf781a9f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b81",
-  "simHash": "0x234cf781a9f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b81892a0e"
+  "bytecodeHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "simHash": "0x7742ab56169195410eacbf5e02df3e1274c957832ca4b564fb025e53e8830265"
 }

@@ -6,9 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { SimulationResult, IntentSpec } from "@/lib/api";
 import { Terminal, ShieldAlert, ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 
+export interface ExtendedSimulationResult extends SimulationResult {
+  flagTriggered?: boolean;
+  findings?: Array<{ id: string; category: string; description: string }>;
+  gasUsed?: number;
+}
+
 interface CalldataDiffProps {
   intent: IntentSpec | null;
-  simulation: SimulationResult | null;
+  simulation: ExtendedSimulationResult | null;
   isLoading: boolean;
 }
 

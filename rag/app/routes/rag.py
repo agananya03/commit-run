@@ -21,6 +21,7 @@ from app.services.mock_loader import (
 from app.services.ingest import ingest_proposal_files
 from app.services.search import hybrid_search
 from app.services.summarize import generate_decision_summary
+from app.services.extract_intent import extract_intent_spec
 
 router = APIRouter()
 
@@ -56,12 +57,10 @@ def summarize(request: SummarizeRequest) -> DecisionSummary:
 @router.post("/extract-intent", response_model=IntentSpec)
 def extract_intent(request: ExtractIntentRequest) -> IntentSpec:
     """
-    Extracts IntentSpec strictly from human-readable proposal text.
+    Extracts IntentSpec strictly from human-readable proposal text (forum, pdf, social).
+    Excludes onchain calldata, normalises amounts, resolves recipients, and verifies citations.
     """
-    try:
-        return load_mock_intent(request.proposalId)
-    except FileNotFoundError:
-        return load_mock_intent("MIP-21")
+    return extract_intent_spec(request.proposalId)
 
 
 @router.post("/search", response_model=list[Chunk])
