@@ -4,11 +4,13 @@
   "treasuryImpact": {
     "amountUsd": 400000,
     "pctOfTreasury": 2.0,
-    "recipients": ["0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"],
+    "recipients": [
+      "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"
+    ],
     "citations": [
       {
-        "chunkId": "MIP-12:pdf:0",
-        "sha256": "0x892a0e234cf781a9f0293da27b6814b22c710d0c345b6ad64c9d9d95f8182b81",
+        "chunkId": "MIP-12:pdf:1",
+        "sha256": "0xce280622ea8234746bc4752c93538f30ec91ec49163983675c4263d782389690",
         "quote": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph indexer.",
         "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
       }
@@ -19,10 +21,10 @@
       "text": "Requires public RPC read endpoints for Goldsky and Graph node indexers.",
       "citations": [
         {
-          "chunkId": "MIP-12:pdf:1",
-          "sha256": "0x321a4f0289be11dae98341209ca41e786b810d0c345b6ad64c9d9d95f8182b81",
+          "chunkId": "MIP-12:pdf:6",
+          "sha256": "0x93a706b8fdfc95afc4936661fc8d714ad329800d63885ae930d73237894e43e0",
           "quote": "Subgraph deployments will be multi-hosted across redundant RPC endpoints with fallback failover.",
-          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=3"
         }
       ]
     }
@@ -32,10 +34,10 @@
       "text": "Maintenance overhead managed under open governance and community bounties.",
       "citations": [
         {
-          "chunkId": "MIP-12:pdf:1",
-          "sha256": "0x321a4f0289be11dae98341209ca41e786b810d0c345b6ad64c9d9d95f8182b81",
+          "chunkId": "MIP-12:pdf:6",
+          "sha256": "0x93a706b8fdfc95afc4936661fc8d714ad329800d63885ae930d73237894e43e0",
           "quote": "The SDK will be licensed under MIT and maintained under open governance with community bounties.",
-          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=3"
         }
       ]
     }
@@ -48,7 +50,7 @@
       "citations": [
         {
           "chunkId": "MIP-12:forum:4",
-          "sha256": "0x983210492cbade10923058a74136209ca41e786b810d0c345b6ad64c9d9d95",
+          "sha256": "0x84c62c611a4d8ed2633ad17c129055e4832f37533b07a94eabd824ed36145f68",
           "quote": "Zero private keys, zero admin roles, and zero proxy upgrades.",
           "sourceUri": "forum://MIP-12/forum_thread.json#post=5"
         }

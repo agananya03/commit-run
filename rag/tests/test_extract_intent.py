@@ -37,6 +37,56 @@ def test_extract_intent_mip21(client: TestClient) -> None:
             assert cit.sha256.root.startswith("0x")
 
 
+def test_mip21_intent_spec_exclusions_with_verified_citations(client: TestClient) -> None:
+    resp = client.post("/extract-intent", json={"proposalId": "MIP-21"})
+    assert resp.status_code == 200
+    spec = IntentSpec.model_validate(resp.json())
+
+    # 1. Must contain upgrade action that names the proxy and describes functional change in one line
+    upgrade_action = next((a for a in spec.actions if a.kind.value == "upgrade"), None)
+    assert upgrade_action is not None, "MIP-21 must contain an upgrade action"
+    assert "vault" in upgrade_action.target.lower() and "proxy" in upgrade_action.target.lower(), "Action target must name the proxy"
+    assert any(term in upgrade_action.description.lower() for term in ["gas", "storage", "packing", "rebalance"]), "Action description must describe expected functional change in one line"
+
+    # 2. IntentSpec must contain explicitlyExcluded promises: 'storage layout unchanged', 'no new admin functions', 'no change to ownership'
+    assert "storage layout unchanged" in spec.explicitlyExcluded
+    assert "no new admin functions" in spec.explicitlyExcluded
+    assert "no change to ownership" in spec.explicitlyExcluded
+
+    # 3. Action description must list those exclusions
+    assert "storage layout unchanged" in upgrade_action.description.lower()
+    assert "no new admin functions" in upgrade_action.description.lower()
+    assert "no change to ownership" in upgrade_action.description.lower()
+
+    # 4. Exclusions must be backed by verified citations
+    assert len(upgrade_action.citations) >= 3
+    chunks = retrieve_human_chunks("MIP-21")
+    c_map = {c.id: c for c in chunks}
+
+    found_storage_cit = False
+    found_admin_cit = False
+    found_ownership_cit = False
+
+    for cit in upgrade_action.citations:
+        assert cit.chunkId in c_map, f"Citation chunkId {cit.chunkId} not found in proposal chunks"
+        chunk = c_map[cit.chunkId]
+        assert cit.sha256 == chunk.sha256, f"Citation sha256 mismatch for chunk {cit.chunkId}"
+        assert cit.sourceUri == chunk.sourceUri, f"Citation sourceUri mismatch for chunk {cit.chunkId}"
+        assert cit.quote in chunk.text or " ".join(cit.quote.split()) in " ".join(chunk.text.split()), f"Citation quote '{cit.quote}' not found in chunk text"
+
+        q_lower = cit.quote.lower()
+        if "storage" in q_lower or "slot" in q_lower:
+            found_storage_cit = True
+        if "admin" in q_lower or "role" in q_lower or "timelock" in q_lower:
+            found_admin_cit = True
+        if "ownership" in q_lower or "owner" in q_lower:
+            found_ownership_cit = True
+
+    assert found_storage_cit, "Verified citation for 'storage layout unchanged' must be present"
+    assert found_admin_cit, "Verified citation for 'no new admin functions' must be present"
+    assert found_ownership_cit, "Verified citation for 'no change to ownership' must be present"
+
+
 def test_extract_intent_mip17(client: TestClient) -> None:
     resp = client.post("/extract-intent", json={"proposalId": "MIP-17"})
     assert resp.status_code == 200

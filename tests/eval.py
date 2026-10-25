@@ -154,6 +154,22 @@ def evaluate_single_run(client: TestClient, run_idx: int) -> list[EvalCheck]:
 
     checks.append(EvalCheck("MIP-17", "Amount contradiction ($3.5M vs $5M) detected", contradiction_found, details_17_con))
 
+    # 5b. MIP-17 Milestone date mismatch detected
+    date_mismatch_found = False
+    details_17_date = "No milestone date mismatch detected"
+    for c in sum_17.claims:
+        if c.support == Support.contradicted and (
+            "march 31" in c.text.lower()
+            or "may 15" in c.text.lower()
+            or any("march 31" in cit.quote.lower() or "may 15" in cit.quote.lower() for cit in c.citations)
+            or ("milestone" in c.text.lower() and "date" in c.text.lower())
+        ):
+            date_mismatch_found = True
+            details_17_date = f"Claim '{c.id}' with {len(c.citations)} citations: {c.text[:55]}..."
+            break
+
+    checks.append(EvalCheck("MIP-17", "Milestone date mismatch detected", date_mismatch_found, details_17_date))
+
     # -------------------------------------------------------------
     # Evaluation Checks for MIP-21
     # -------------------------------------------------------------

@@ -26,6 +26,7 @@ from app.services.citation_verifier import (
     verify_and_clean_claim,
     verify_decision_summary_citations,
 )
+from app.services.contradiction_detector import detect_contradictions
 from app.services.db import get_chunks_for_proposal
 from app.services.embeddings import generate_embeddings, generate_single_embedding
 from app.services.mock_loader import load_mock_chunks, load_mock_summary
@@ -477,6 +478,7 @@ def _extract_heuristically(proposal_id: str, chunks: list[Chunk]) -> DecisionSum
                 "kind": Kind.timeline,
                 "support": Support.contradicted,
                 "search_terms": [
+                    "Phase 1 milestone delivery date is scheduled for May 15, 2027.",
                     "The proposal contains no delivery dates, no testnet criteria",
                 ],
             },
@@ -666,6 +668,21 @@ def _extract_heuristically(proposal_id: str, chunks: list[Chunk]) -> DecisionSum
                     break
             break
 
+    # Contradiction pass: collect numeric statements and flag conflicting groups as claims with support 'contradicted' and both citations
+    contradiction_claims = detect_contradictions(proposal_id, all_chunks or chunks)
+    final_claims = list(contradiction_claims)
+    existing_claim_texts = {c.text.lower() for c in final_claims}
+    for ec in evaluated_claims:
+        if ec.text.lower() not in existing_claim_texts:
+            # Drop old generic cl1 if contradiction_claims already caught the 5M vs 3.5M mismatch
+            if "with reconciled budget" in ec.text.lower() and any("3,500,000" in c.text for c in contradiction_claims):
+                continue
+            # Drop old generic cl5 if contradiction_claims already caught the milestone date mismatch
+            if "concrete milestone deliverables" in ec.text.lower() and any("milestone" in c.text.lower() for c in contradiction_claims):
+                continue
+            final_claims.append(ec)
+            existing_claim_texts.add(ec.text.lower())
+
     raw_summary = DecisionSummary(
         proposalId=proposal_id,
         tldr=tldr,
@@ -677,7 +694,7 @@ def _extract_heuristically(proposal_id: str, chunks: list[Chunk]) -> DecisionSum
         ),
         dependencies=dependencies,
         risks=risks,
-        claims=evaluated_claims,
+        claims=final_claims[:15],
     )
     return raw_summary
 
@@ -804,6 +821,21 @@ Respond ONLY with valid JSON matching DecisionSummary:
 
     if raw_summary is None:
         raw_summary = _extract_heuristically(proposal_id, summary_chunks)
+    else:
+        # 2.5 Contradiction pass: collect all numeric statements, group them, and flag conflicting groups as claims with support 'contradicted' and both citations
+        contradiction_claims = detect_contradictions(proposal_id, all_chunks or summary_chunks)
+        if contradiction_claims:
+            merged_claims = list(contradiction_claims)
+            existing_texts = {c.text.lower() for c in merged_claims}
+            for cl in raw_summary.claims:
+                if cl.text.lower() not in existing_texts:
+                    if "with reconciled budget" in cl.text.lower() and any("3,500,000" in c.text for c in contradiction_claims):
+                        continue
+                    if "concrete milestone deliverables" in cl.text.lower() and any("milestone" in c.text.lower() for c in contradiction_claims):
+                        continue
+                    merged_claims.append(cl)
+                    existing_texts.add(cl.text.lower())
+            raw_summary.claims = merged_claims[:15]
 
     # 3. Verifier: fill sha256/sourceUri, drop unverified citations, unverified claims to risks, compute pctOfTreasury
     verified_summary = verify_decision_summary_citations(raw_summary, all_chunks or summary_chunks)

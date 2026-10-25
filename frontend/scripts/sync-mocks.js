@@ -46,6 +46,8 @@ if (fs.existsSync(sharedTypesFile)) {
   }
   fs.copyFileSync(sharedTypesFile, targetTypesFile);
   console.log(`[sync-mocks] Copied ${sharedTypesFile} -> ${targetTypesFile}`);
+}
+
 // 4. Ensure chunks.json is generated
 const generateChunksScript = path.resolve(__dirname, "generate-chunks.js");
 if (fs.existsSync(generateChunksScript)) {
