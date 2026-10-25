@@ -2,6 +2,209 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---- App look, after reflect.app: indigo-black, one violet accent, quiet type ---- */
+
+/* Night surfaces: a single soft violet light rising from below */
+.app-backdrop {
+  background:
+    radial-gradient(70% 55% at 50% 108%, rgba(139, 92, 246, 0.32), transparent 70%),
+    radial-gradient(60% 40% at 50% -10%, rgba(255, 255, 255, 0.04), transparent 70%),
+    #0c0b1d;
+}
+
+/* The violet "light from below" that sits under a hero or a key object */
+.violet-glow {
+  background: radial-gradient(50% 50% at 50% 50%, rgba(139, 92, 246, 0.55), rgba(139, 92, 246, 0.12) 45%, transparent 70%);
+  filter: blur(30px);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Headline lettering: white fading into soft lavender */
+.ice-text {
+  background: linear-gradient(180deg, #ffffff 15%, #c9c3e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.danger-text {
+  background: linear-gradient(180deg, #ffffff 0%, #d6c8ff 45%, #a17dff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Small label above a heading: sentence case, quiet violet */
+.eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #a78bfa;
+}
+
+/* Reflect-style chip: "✦ Meet Reflect Open" */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 13px;
+  color: #d8cffc;
+}
+
+/* Buttons: rounded rectangles, not glowing pills */
+.pill-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.pill-cta:hover,
+.pill-cta:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+/* primary: deep violet with a thin violet edge and an inner highlight */
+.pill-danger {
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  background: linear-gradient(180deg, #3a2580, #261759);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 30px -10px rgba(139, 92, 246, 0.6);
+}
+.pill-danger:hover,
+.pill-danger:focus-visible {
+  border-color: rgba(167, 139, 250, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 40px -10px rgba(139, 92, 246, 0.85);
+}
+/* secondary: near-black with a hairline */
+.pill-ice {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #15142a;
+  color: #eeecfb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.pill-ice:hover,
+.pill-ice:focus-visible {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #1b1a33;
+}
+
+/* Cards: hairline border plus a faint top highlight */
+.rf-card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ---- Ambient background: small, slow, single-violet motion (all off under reduced motion) ---- */
+
+/* soft light that follows the cursor; --mx/--my are set from JS */
+.ambient-spotlight {
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 30%), rgba(139, 92, 246, 0.07), transparent 70%);
+  transition: background 0.2s linear;
+}
+
+/* faint vertical light rays at the top, breathing */
+.ambient-ray {
+  position: absolute;
+  top: -10vh;
+  height: 70vh;
+  background: linear-gradient(180deg, rgba(167, 139, 250, 0.16), rgba(167, 139, 250, 0) 80%);
+  filter: blur(18px);
+  transform-origin: top center;
+  animation: ray-breathe 9s ease-in-out infinite;
+}
+@keyframes ray-breathe {
+  0%, 100% { opacity: 0.25; transform: scaleY(0.92) rotate(var(--tilt, 0deg)); }
+  50% { opacity: 0.7; transform: scaleY(1.04) rotate(var(--tilt, 0deg)); }
+}
+
+/* very dim aurora glows drifting */
+.ambient-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(120px);
+  animation: aurora-drift 40s ease-in-out infinite;
+}
+@keyframes aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(6vw, 4vh, 0) scale(1.1); }
+  66% { transform: translate3d(-4vw, 6vh, 0) scale(0.95); }
+}
+
+/* an occasional shooting star: visible for the first ~10% of a long cycle */
+.meteor {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 9999px;
+  background: #ede9fe;
+  box-shadow: 0 0 6px 1px rgba(196, 181, 253, 0.6);
+  opacity: 0;
+  animation: meteor-fall linear infinite;
+}
+.meteor::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 1px;
+  width: 140px;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(270deg, rgba(237, 233, 254, 0.9), transparent);
+}
+@keyframes meteor-fall {
+  0% { opacity: 0; transform: rotate(215deg) translateX(0); }
+  2% { opacity: 1; }
+  10% { opacity: 0; transform: rotate(215deg) translateX(-520px); }
+  100% { opacity: 0; transform: rotate(215deg) translateX(-520px); }
+}
+
+/* Reflect's perspective grid floor, gliding toward the viewer */
+.grid-floor {
+  background-image:
+    linear-gradient(to right, rgba(167, 139, 250, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(167, 139, 250, 0.22) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: top center;
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 55%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 55%, transparent);
+  animation: grid-glide 6s linear infinite;
+}
+@keyframes grid-glide {
+  from { background-position: 0 0; }
+  to { background-position: 0 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-ray,
+  .ambient-aurora,
+  .meteor,
+  .grid-floor {
+    animation: none !important;
+  }
+  .meteor {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-only {
+    animation: none !important;
+  }
+}
+
 :root {
   --background: #020617;
   --foreground: #f8fafc;

@@ -41,16 +41,16 @@ export function Citation({
       <HoverCardTrigger
         onClick={handleClick}
         className={cn(
-          "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium",
-          "bg-indigo-950/80 border border-indigo-700/60 text-indigo-300",
-          "hover:bg-indigo-900 hover:border-indigo-400 hover:text-indigo-100 transition-colors cursor-pointer select-none",
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium",
+          "border border-[#8B5CF6]/50 bg-[#2a1b5c] text-[#EDE9FE]",
+          "hover:border-[#A78BFA] hover:bg-[#3a2580] hover:-translate-y-px transition-all cursor-pointer select-none",
           className
         )}
       >
         {index !== undefined ? (
-          <span className="font-bold text-indigo-200">[{index}]</span>
+          <span className="font-bold">{index}</span>
         ) : (
-          <Quote className="w-2.5 h-2.5 text-indigo-400" />
+          <Quote className="w-2.5 h-2.5" />
         )}
         {showChunkId && <span>{citation.chunkId}</span>}
       </HoverCardTrigger>

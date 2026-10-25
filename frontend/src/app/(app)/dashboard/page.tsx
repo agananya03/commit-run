@@ -1,228 +1,296 @@
 "use client";
 
-import React from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { useProposals } from "@/lib/api";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { formatUSD } from "@/lib/utils";
-import {
-  ShieldAlert,
-  AlertTriangle,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  Coins,
-  Landmark,
-  Layers,
-} from "lucide-react";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { ArrowRight, Code2, FileText, Network, Sparkles, Vote } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useRadarRows } from "@/lib/useRadar";
+import { TONE_BG, TONE_TEXT, type RadarRow } from "@/lib/radar";
+import { CHECKS, checkTone, verdictOf } from "@/lib/plain";
+import { ParticleField } from "@/components/fx/ParticleField";
+import { BorderBeam } from "@/components/fx/BorderBeam";
+import { Magnetic, RevealLines, Rise, RiskRing, TiltCard } from "@/components/fx/Motion";
 
-export default function ProposalsIndexPage() {
-  const { data: proposals, isLoading, error } = useProposals();
+/* ---------------------------------------------------------------- 1. hero window */
 
-  const getRiskBadge = (risk?: string) => {
-    switch (risk?.toUpperCase()) {
-      case "CRITICAL":
-        return (
-          <Badge className="bg-red-950/80 text-red-400 border border-red-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
-            CRITICAL
-          </Badge>
-        );
-      case "HIGH":
-        return (
-          <Badge className="bg-amber-950/80 text-amber-400 border border-amber-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-            HIGH
-          </Badge>
-        );
-      case "MEDIUM":
-        return (
-          <Badge className="bg-yellow-950/80 text-yellow-400 border border-yellow-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
-            <AlertCircle className="w-3.5 h-3.5 text-yellow-400" />
-            MEDIUM
-          </Badge>
-        );
-      case "LOW":
-      default:
-        return (
-          <Badge className="bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            LOW
-          </Badge>
-        );
-    }
-  };
+function Hero({ rows }: { rows: RadarRow[] }) {
+  const stopped = rows.filter((r) => r.state === "HALTED");
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 600], [0, -80]);
+  const fade = useTransform(scrollY, [0, 500], [1, 0.2]);
 
-  const getStatusBadge = (status?: string) => {
-    const s = (status || "ACTIVE").toUpperCase();
-    if (s.includes("ACTIVE") || s === "VOTING ACTIVE") {
-      return (
-        <Badge className="bg-indigo-950/80 text-indigo-300 border border-indigo-700/60 font-mono text-[11px]">
-          ACTIVE
-        </Badge>
-      );
-    }
-    if (s.includes("HALTED")) {
-      return (
-        <Badge className="bg-red-950/80 text-red-300 border border-red-700/60 font-mono text-[11px]">
-          HALTED
-        </Badge>
-      );
-    }
-    if (s.includes("EXECUTED")) {
-      return (
-        <Badge className="bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[11px]">
-          EXECUTED
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="bg-slate-800 text-slate-400 border border-slate-700 font-mono text-[11px]">
-        {s}
-      </Badge>
-    );
-  };
+  const lead = stopped[0] ?? rows[0];
+  const leadVerdict = lead ? verdictOf(lead) : null;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-2.5">
-            <span>Governance Proposals</span>
-            <span className="text-xs font-mono font-normal bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 px-2.5 py-0.5 rounded">
-              Meridian DAO
-            </span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Automated intent verification, EVM calldata simulation, and conflict-of-interest watchdog.
+    <section className="relative isolate -mx-4 -mt-4 flex min-h-[calc(100vh-3rem)] flex-col items-center overflow-hidden px-4 pt-[12vh] text-center sm:-mx-8 sm:px-8">
+      {/* faint starfield, and one violet light rising from below (after reflect.app) */}
+      <ParticleField count={60} />
+      {/* perspective grid floor gliding toward the viewer; no translate classes, its transform is the perspective */}
+      <div aria-hidden className="grid-floor pointer-events-none absolute bottom-[-18%] left-[-30%] h-[48%] w-[160%] opacity-60" />
+      <div aria-hidden className="violet-glow pointer-events-none absolute bottom-[-14%] left-1/2 h-[460px] w-[min(900px,110vw)] -translate-x-1/2" />
+
+      <motion.div style={{ y, opacity: fade }} className="relative flex flex-col items-center">
+        <Rise>
+          <span className="chip">
+            <Sparkles className="h-3.5 w-3.5 text-ice" /> Meridian DAO governance watchdog
+          </span>
+        </Rise>
+        <h1 className="mt-7 text-[clamp(44px,6.4vw,92px)] font-medium leading-[1.04] tracking-[-0.035em]">
+          <RevealLines
+            lines={[
+              <span key="a" className="ice-text inline-block pr-[0.04em]">{rows.length || "—"} proposals.</span>,
+              stopped.length > 0 ? (
+                <span key="b" className="danger-text inline-block pr-[0.04em]">{stopped.length} stopped.</span>
+              ) : (
+                <span key="b" className="ice-text inline-block pr-[0.04em]">All clear.</span>
+              ),
+            ]}
+          />
+        </h1>
+        <Rise delay={0.3}>
+          <p className="mt-6 max-w-[44ch] text-[clamp(16px,1.3vw,19px)] leading-relaxed text-muted">
+            We read every proposal, run its code, and freeze it if the two don&apos;t match.
           </p>
+        </Rise>
+        <Rise delay={0.45} className="mt-9 flex flex-wrap justify-center gap-3">
+          <Magnetic strength={0.15}>
+            {stopped[0] ? (
+              <Link href={`/proposals/${stopped[0].slug}`} className="pill-cta pill-danger">
+                See what we stopped
+              </Link>
+            ) : (
+              <a href="#proposals" className="pill-cta pill-danger">
+                Browse proposals
+              </a>
+            )}
+          </Magnetic>
+          <Magnetic strength={0.15}>
+            <a href="#how" className="pill-cta pill-ice">
+              How it works
+            </a>
+          </Magnetic>
+        </Rise>
+        <Rise delay={0.55}>
+          <p className="mt-4 text-sm text-faint">{stopped.length ? `${stopped.length} frozen at the timelock` : "No proposal frozen right now"} · demo data</p>
+        </Rise>
+      </motion.div>
+
+      {/* a glimpse of the product, emerging from the light */}
+      {lead && leadVerdict && (
+        <Rise delay={0.7} className="relative mt-auto w-full max-w-[560px] translate-y-6">
+          <Link href={`/proposals/${lead.slug}`} className="glass rf-card block rounded-t-[22px] border-b-0 px-6 pb-10 pt-5 text-left transition-colors hover:border-white/20">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-code text-xs text-muted">{lead.slug}</span>
+              <span className="text-faint">{leadVerdict.status}</span>
+            </div>
+            <div className="mt-3 text-lg font-medium text-ink">{lead.title}</div>
+            <div className={cn("mt-1 text-sm", TONE_TEXT[leadVerdict.tone])}>
+              {leadVerdict.word}: {leadVerdict.why.charAt(0).toLowerCase() + leadVerdict.why.slice(1)}
+            </div>
+          </Link>
+        </Rise>
+      )}
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- 2. statement with self-drawing line */
+
+function Statement() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "end 0.3"] });
+  const draw = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
+  return (
+    <section ref={ref} className="relative overflow-hidden py-28 sm:py-40">
+      <svg aria-hidden viewBox="0 0 1200 520" className="pointer-events-none absolute inset-x-0 top-1/2 z-0 h-[120%] w-full -translate-y-1/2" preserveAspectRatio="none">
+        <motion.path
+          d="M 380 560 C 520 300, 700 120, 820 260 S 980 520, 1080 300 S 1180 60, 1260 140"
+          fill="none"
+          stroke="#8B5CF6"
+          strokeOpacity="0.4"
+          strokeWidth="12"
+          strokeLinecap="round"
+          style={{ pathLength: draw }}
+        />
+      </svg>
+      <div className="relative z-10">
+        <h2 className="text-[clamp(44px,7.4vw,120px)] font-medium leading-[0.98] tracking-[-0.04em] text-ink">
+          <RevealLines lines={["Read the promise.", "Run the code.", <span key="c" className="text-evidence">Stop the gap.</span>]} />
+        </h2>
+        <Rise delay={0.3}>
+          <p className="mt-10 max-w-[46ch] text-lg leading-relaxed text-muted">
+            A proposal can say one thing while its code does another. We check both, before anyone&apos;s money moves.
+          </p>
+        </Rise>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- 3. proposal cards */
+
+function ProposalCard({ row, index }: { row: RadarRow; index: number }) {
+  const v = verdictOf(row);
+  const stopped = row.state === "HALTED";
+  return (
+    <Rise delay={index * 0.12}>
+      <TiltCard className={cn("h-full rounded-[28px]", stopped && "shadow-[0_30px_80px_-30px_rgba(167,139,250,0.45)]")}>
+        <div className={cn("relative flex h-full flex-col rounded-[28px] border bg-panel p-7", stopped ? "border-danger/30" : "border-line")}>
+          {stopped && <BorderBeam color="#B392FF" size={180} />}
+          <div className="flex items-center justify-between">
+            <span className="rounded-full bg-canvas px-3 py-1 font-code text-xs font-semibold text-ink">{row.slug}</span>
+            <span className="text-xs text-faint">{v.status}</span>
+          </div>
+
+          <h3 className="mt-5 line-clamp-2 min-h-[3.2rem] text-lg font-medium leading-snug text-ink">{row.title}</h3>
+
+          <div className="mt-6 flex items-center gap-6">
+            <RiskRing value={row.posterior} tone={v.tone} label="risk" />
+            <div className="min-w-0">
+              <div className={cn("text-[28px] font-semibold leading-tight tracking-tight", TONE_TEXT[v.tone])}>{v.word}</div>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{v.why}</p>
+            </div>
+          </div>
+
+          <div className="mt-7 grid grid-cols-4 gap-2 border-t border-line pt-5">
+            {CHECKS.map((c) => {
+              const t = checkTone(row, c.stage);
+              return (
+                <div key={c.stage} className="flex flex-col items-center gap-1.5 text-center">
+                  <span className={cn("h-2.5 w-2.5 rounded-full", TONE_BG[t], t === "muted" && "opacity-40")} />
+                  <span className="text-[11px] text-muted">{c.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-7 flex flex-1 items-end">
+            <Magnetic strength={0.2}>
+              <Link
+                href={`/proposals/${row.slug}`}
+                className={cn(
+                  "inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-medium shadow-sm transition-colors duration-200",
+                  stopped ? "bg-night text-ice-light hover:bg-night-soft" : "border border-line bg-panel text-ink hover:border-ink/30",
+                )}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", stopped ? "bg-danger" : "bg-ink")} />
+                Investigate
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Magnetic>
+          </div>
+        </div>
+      </TiltCard>
+    </Rise>
+  );
+}
+
+function Proposals({ rows, isLoading, error }: { rows: RadarRow[]; isLoading: boolean; error: Error | null }) {
+  return (
+    <section id="proposals" className="scroll-mt-20 py-10">
+      <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <div className="eyebrow !text-evidence">The proposals</div>
+          <h2 className="mt-4 text-[clamp(36px,5vw,72px)] font-medium leading-none tracking-[-0.04em] text-ink">
+            <RevealLines lines={["What's being voted on,", <span key="b" className="text-faint">and what it really does.</span>]} />
+          </h2>
         </div>
       </div>
+      {error && <p className="rounded-2xl border border-caution/40 bg-caution/10 px-5 py-4 text-sm text-caution">Couldn&apos;t load proposals: {error.message}</p>}
+      <div className="grid gap-6 [perspective:1400px] md:grid-cols-2 xl:grid-cols-3">
+        {isLoading && [0, 1, 2].map((i) => <div key={i} className="h-[440px] animate-pulse rounded-[28px] bg-panel" />)}
+        {rows.map((row, i) => (
+          <ProposalCard key={row.slug} row={row} index={i} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
-      {/* Loading Skeletons */}
-      {isLoading && (
-        <div className="grid grid-cols-1 gap-5">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="border-slate-800 bg-slate-900/40 p-6 space-y-4 animate-pulse">
-              <div className="flex items-center justify-between">
-                <div className="h-5 w-24 bg-slate-800 rounded" />
-                <div className="flex gap-2">
-                  <div className="h-5 w-16 bg-slate-800 rounded" />
-                  <div className="h-5 w-20 bg-slate-800 rounded" />
-                </div>
-              </div>
-              <div className="h-6 w-3/4 bg-slate-800 rounded" />
-              <div className="h-14 w-full bg-slate-950/60 rounded border border-slate-800/80" />
-              <div className="flex justify-between items-center pt-2 border-t border-slate-800/80">
-                <div className="h-4 w-32 bg-slate-800 rounded" />
-                <div className="h-8 w-28 bg-slate-800 rounded" />
-              </div>
-            </Card>
-          ))}
+/* ---------------------------------------------------------------- 4. how it works, lit by scroll */
+
+const STEPS = [
+  { icon: FileText, label: "Promises", q: "What did they say?", a: "We read the forum post, PDF and socials." },
+  { icon: Network, label: "Connections", q: "Who's linked to whom?", a: "We follow the money between wallets." },
+  { icon: Vote, label: "Votes", q: "Who decided?", a: "We check who holds the voting power." },
+  { icon: Code2, label: "Code", q: "What will really happen?", a: "We run the exact code on a copy of the chain." },
+];
+
+function Step({ step, index, progress }: { step: (typeof STEPS)[number]; index: number; progress: MotionValue<number> }) {
+  const at = index / (STEPS.length - 1);
+  const lit = useTransform(progress, [at - 0.12, at], [0, 1]);
+  const bg = useTransform(lit, [0, 1], ["#100F22", "#3A2580"]);
+  const fg = useTransform(lit, [0, 1], ["#6F6C8C", "#FFFFFF"]);
+  const scale = useTransform(lit, [0, 1], [0.9, 1]);
+  const Icon = step.icon;
+  return (
+    <div className="relative flex flex-col items-start md:items-center md:text-center">
+      <motion.div style={{ backgroundColor: bg, color: fg, scale }} className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-line shadow-sm">
+        <Icon className="h-5 w-5" />
+      </motion.div>
+      <div className="mt-5 font-code text-[11px] text-faint">{step.label}</div>
+      <div className="mt-2 text-xl font-medium text-ink">{step.q}</div>
+      <p className="mt-2 max-w-[24ch] text-sm leading-relaxed text-muted">{step.a}</p>
+    </div>
+  );
+}
+
+function HowItWorks() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.75", "end 0.55"] });
+  return (
+    <section ref={ref} id="how" className="scroll-mt-16 py-28 sm:py-36">
+      <div className="eyebrow !text-evidence">How it works</div>
+      <h2 className="mt-4 text-[clamp(36px,5vw,72px)] font-medium leading-none tracking-[-0.04em] text-ink">
+        <RevealLines lines={["Four checks.", <span key="b" className="text-faint">One decision.</span>]} />
+      </h2>
+
+      <div className="relative mt-20 grid gap-12 md:grid-cols-4 md:gap-6">
+        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-7 hidden h-px bg-white/10 md:block">
+          <motion.div className="-mt-px h-[2px] origin-left rounded-full bg-gradient-to-r from-white/40 to-[#A78BFA] shadow-[0_0_10px_#a78bfa]" style={{ scaleX: scrollYProgress }} />
         </div>
-      )}
+        {STEPS.map((s, i) => (
+          <Step key={s.label} step={s} index={i} progress={scrollYProgress} />
+        ))}
+      </div>
 
-      {/* Error State */}
-      {error && !isLoading && (
-        <Card className="border-red-900/50 bg-red-950/20 p-6 text-center">
-          <p className="text-red-400 font-mono text-sm">Failed to load proposals list: {(error as Error).message}</p>
-        </Card>
-      )}
-
-      {/* Proposals Grid */}
-      {!isLoading && proposals && (
-        <div className="grid grid-cols-1 gap-5">
-          {proposals.map((p) => {
-            const risk = p.riskLevel?.toUpperCase() || "LOW";
-            const isCritical = risk === "CRITICAL";
-            const isHigh = risk === "HIGH";
-
-            const hasFunds = p.amountUsd !== null && p.amountUsd !== undefined && p.amountUsd > 0;
-
-            return (
-              <Card
-                key={p.slug}
-                className={`border transition-all shadow-lg ${
-                  isCritical
-                    ? "border-red-900/60 bg-slate-950/90 hover:border-red-500/80"
-                    : isHigh
-                    ? "border-amber-900/50 bg-slate-950/90 hover:border-amber-500/70"
-                    : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
-                }`}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-base font-bold text-indigo-400">
-                        {p.slug}
-                      </span>
-                      <span className="text-slate-600">|</span>
-                      <span className="font-mono text-xs text-slate-400">
-                        Proposer: {p.proposer.slice(0, 10)}...{p.proposer.slice(-4)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(p.status)}
-                      {getRiskBadge(p.riskLevel)}
-                    </div>
-                  </div>
-
-                  <CardTitle className="text-lg text-slate-100 font-semibold leading-snug">
-                    {p.title}
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-3 pb-3 text-xs">
-                  {/* Treasury Impact Block */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border border-slate-800/80 bg-slate-900/50 font-mono">
-                    <div className="flex items-center gap-2">
-                      <Coins className="w-4 h-4 text-amber-400 shrink-0" />
-                      <div>
-                        <span className="text-slate-500 text-[11px] block">Requested Amount</span>
-                        <span className="text-sm font-bold text-slate-100">
-                          {hasFunds ? formatUSD(p.amountUsd as number) : "No funds requested (0 USDC)"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Landmark className="w-4 h-4 text-indigo-400 shrink-0" />
-                      <div>
-                        <span className="text-slate-500 text-[11px] block">% of Treasury (20M USDC)</span>
-                        <span className="text-sm font-bold text-indigo-300">
-                          {p.pctOfTreasury !== null && p.pctOfTreasury !== undefined
-                            ? `${p.pctOfTreasury}%`
-                            : "0.0%"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                  <div className="text-[11px] font-mono text-slate-500 flex items-center gap-2">
-                    <Layers className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Governor ID: {p.governorProposalId ? `${p.governorProposalId.slice(0, 8)}...` : "Pending"}</span>
-                  </div>
-
-                  <Link href={`/proposals/${p.slug}`}>
-                    <Button
-                      size="sm"
-                      className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium gap-1.5"
-                    >
-                      <span>Inspect Proposal</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            );
-          })}
+      <Rise className="mt-20">
+        <div className="relative overflow-hidden rounded-[28px] bg-night px-8 py-10 text-ice-light sm:px-12">
+          <div aria-hidden className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-danger/25 blur-[90px]" />
+          <div className="relative flex flex-wrap items-center justify-between gap-6">
+            <p className="text-[clamp(24px,3vw,40px)] font-semibold leading-tight tracking-tight">
+              Promise and code don&apos;t match? <span className="danger-text">The vote&apos;s result is frozen.</span>
+            </p>
+            <span className="max-w-[30ch] text-sm leading-relaxed text-ice-light/70">
+              The watchdog flags it on-chain, and only a new vote by token holders can unfreeze it.
+            </span>
+          </div>
         </div>
-      )}
+      </Rise>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- page */
+
+export default function ProposalRadarPage() {
+  const { rows, isLoading, error } = useRadarRows();
+  return (
+    <div>
+      <Hero rows={rows} />
+      <Statement />
+      <Proposals rows={rows} isLoading={isLoading} error={error} />
+      <HowItWorks />
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-xs text-faint">
+        <span>
+          <span className="mr-2 rounded-full border border-caution/40 bg-caution/10 px-2.5 py-0.5 font-medium text-caution">Demo data</span>
+          Meridian DAO is fictional. Its proposals run on a local test chain.
+        </span>
+        <span className="font-code">ProofOfIntent</span>
+      </footer>
     </div>
   );
 }
