@@ -64,7 +64,7 @@
         }
       ],
       "support": "supported",
-      "pSupported": 0.82
+      "pSupported": 0.9
     },
     {
       "id": "cl2",
@@ -85,7 +85,7 @@
         }
       ],
       "support": "supported",
-      "pSupported": 0.74
+      "pSupported": 0.9
     },
     {
       "id": "cl3",
