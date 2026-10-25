@@ -1,0 +1,71 @@
+{
+  "proposalId": "MIP-17",
+  "tldr": "Requests a $5,000,000 USDC allocation from the Treasury for Nexus Labs cross-chain routing rails; however, the itemized budget table only totals $3,500,000 USDC.",
+  "treasuryImpact": {
+    "amountUsd": 5000000,
+    "pctOfTreasury": 25.0,
+    "recipients": ["0x71C836384191a83359d9B9582A45C8697A2E50dE"],
+    "citations": [
+      {
+        "chunkId": "MIP-17:pdf:0",
+        "sha256": "0x4892c908234be10923058a74136209ca41e786b810d0c345b6ad64c9d9d95f8",
+        "quote": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol acceleration and cross-chain routing initiative.",
+        "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "text": "Requires multi-region relayer node infrastructure and dual-oracle pricing feeds.",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:2",
+          "sha256": "0x510923058a74136209ca41e786b810d0c345b6ad64c9d9d95f84892c908234be",
+          "quote": "The routing engine utilizes a dual-oracle fall-back combining Chainlink feeds with time-weighted average prices.",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=3"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "text": "Budget contradiction: Summary requests $5,000,000 USDC while itemized table totals $3,500,000 USDC.",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:1",
+          "sha256": "0x789410923058a74136209ca41e786b810d0c345b6ad64c9d9d95f84892c9082",
+          "quote": "Total Itemized Budget Allocation: $3,500,000 USDC",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+        }
+      ]
+    },
+    {
+      "text": "Proposer deflected delegate inquiries regarding milestone schedule and recipient multisig signers.",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:4",
+          "sha256": "0x9810923058a74136209ca41e786b810d0c345b6ad64c9d9d95f84892c908278",
+          "quote": "Nexus Labs is an agile research collective and breaking down exact dates would constrain engineering flexibility.",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=5"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl17_1",
+      "text": "Nexus Labs maintains proprietary routing logic requiring pseudonymous contributor security.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:2",
+          "sha256": "0x9910923058a74136209ca41e786b810d0c345b6ad64c9d9d95f84892c908211",
+          "quote": "Due to the competitive and proprietary nature of our routing algorithms, the core contributors operate pseudonymously without public identity disclosures.",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=3"
+        }
+      ],
+      "support": "unsupported",
+      "pSupported": 0.25
+    }
+  ]
+}
