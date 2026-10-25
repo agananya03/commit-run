@@ -1,0 +1,75 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-17",
+  "riskLevel": "HIGH",
+  "action": "reject",
+  "requiredFindings": [
+    {
+      "category": "treasury_mismatch",
+      "severity": "CRITICAL",
+      "said": "Total Itemized Budget Allocation: $3,500,000 USDC",
+      "does": "Treasury.transfer of 5000000 USDC to wallet index 12 ($1.5M undeclared surplus)"
+    },
+    {
+      "category": "conflict_of_interest",
+      "severity": "HIGH",
+      "said": null,
+      "does": "Hidden fund transfer path from proposer wallet 10 through intermediary 11 to recipient wallet 12"
+    },
+    {
+      "category": "whale_sybil_voting",
+      "severity": "HIGH",
+      "said": null,
+      "does": "Proposer wallet 10 and intermediary 11 secretly funded whale colluders 18, 19, and 20 controlling decisive governance voting power"
+    }
+  ],
+  "contradictions": [
+    {
+      "a": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol acceleration and cross-chain routing initiative.",
+      "b": "Total Itemized Budget Allocation: $3,500,000 USDC"
+    }
+  ],
+  "coiLinks": [
+    {
+      "fromIndex": 10,
+      "toIndex": 12,
+      "path": [10, 11, 12],
+      "minPLink": 0.85
+    },
+    {
+      "fromIndex": 10,
+      "toIndex": 18,
+      "path": [10, 18],
+      "minPLink": 0.9
+    },
+    {
+      "fromIndex": 10,
+      "toIndex": 19,
+      "path": [10, 19],
+      "minPLink": 0.9
+    },
+    {
+      "fromIndex": 11,
+      "toIndex": 20,
+      "path": [11, 20],
+      "minPLink": 0.9
+    }
+  ],
+  "evidenceRows": [
+    {
+      "effect": "Treasury transfer of 5,000,000 USDC to wallet index 12",
+      "describedQuote": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol acceleration and cross-chain routing initiative.",
+      "verdict": "contradicted"
+    },
+    {
+      "effect": "Recipient designation to Nexus Labs Protocol Collective",
+      "describedQuote": "The proposed funding will be disbursed directly to wallet index 12",
+      "verdict": "suspicious"
+    },
+    {
+      "effect": "Omission of verifiable delivery schedule",
+      "describedQuote": "Milestones will be communicated to the DAO via informal quarterly updates rather than rigid contractual deadlines.",
+      "verdict": "unverified"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "proposalId": "MIP-21",
+  "summary": "Gas optimisation of the Vault via a VaultV2 implementation upgrade; no change to ownership.",
+  "actions": [
+    {
+      "kind": "upgrade",
+      "target": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "description": "Upgrade the Vault to VaultV2 (storage packing / gas optimisation only).",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:0",
+          "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
+          "quote": "VaultV2 packs reserveCap and lastRebalance into one slot",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=1"
+        },
+        {
+          "chunkId": "MIP-21:pdf:0",
+          "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311",
+          "quote": "The upgrade replaces the Vault implementation behind the existing UUPS proxy",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ]
+    }
+  ],
+  "explicitlyExcluded": [
+    "change to ownership"
+  ],
+  "confidence": 0.91
+}

@@ -1,0 +1,36 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-21",
+  "posts": [
+    {
+      "id": 1,
+      "author": "@kestrel_builds",
+      "created_at": "2026-10-22T09:30:00Z",
+      "text": "Excited to share MIP-21! VaultV2 introduces tight EVM storage packing to shave off redundant SLOAD reads and lower transaction costs for all Meridian users."
+    },
+    {
+      "id": 2,
+      "author": "@aria_governance",
+      "created_at": "2026-10-22T10:45:00Z",
+      "text": "Every basis point of gas efficiency matters for DeFi liquidity providers. Great work by the engineering team on the VaultV2 packing design."
+    },
+    {
+      "id": 3,
+      "author": "@dev_yield",
+      "created_at": "2026-10-22T11:50:00Z",
+      "text": "Reduced SLOAD overhead during vault rebalancing and liquidations means tighter spreads and faster automated execution."
+    },
+    {
+      "id": 4,
+      "author": "@kestrel_builds",
+      "created_at": "2026-10-22T14:20:00Z",
+      "text": "@kestrel_builds: MIP-21 is up for vote, a small gas win for every Meridian depositor. Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks."
+    },
+    {
+      "id": 5,
+      "author": "@chen_security",
+      "created_at": "2026-10-22T16:40:00Z",
+      "text": "Still reviewing the UUPS upgrade payload and AST storage diff. Upgrades to core vault contracts must be audited thoroughly."
+    }
+  ]
+}

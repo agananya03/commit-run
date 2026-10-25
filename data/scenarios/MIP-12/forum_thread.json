@@ -1,0 +1,70 @@
+{
+  "synthetic": true,
+  "topic_id": 1012,
+  "title": "[MIP-12] Developer SDK and Subgraph Indexer Infrastructure Grant",
+  "posts": [
+    {
+      "id": 1,
+      "author": "proposer_8",
+      "created_at": "2026-09-15T09:00:00Z",
+      "reply_to": null,
+      "raw": "We are excited to submit MIP-12 requesting a 400,000 USDC grant to build an official TypeScript SDK and subgraph indexer for Meridian DAO. Recipient is wallet index 9 (Meridian Studio Collective). Looking forward to delegate feedback!"
+    },
+    {
+      "id": 2,
+      "author": "Aria",
+      "created_at": "2026-09-15T10:15:00Z",
+      "reply_to": 1,
+      "raw": "From a financial perspective, 400K USDC represents exactly 2.0% of our 20M treasury. Given the clear milestone-based breakdown ($150K SDK, $150K subgraph, $100K docs), this fits our quantitative grant allocation guidelines cleanly."
+    },
+    {
+      "id": 3,
+      "author": "Bo",
+      "created_at": "2026-09-15T11:30:00Z",
+      "reply_to": 1,
+      "raw": "Developer accessibility is critical for grassroots community growth. Having open-source tooling under MIT license ensures that third-party integrations aren't bottlenecked by core contributor bandwidth. Strong support."
+    },
+    {
+      "id": 4,
+      "author": "Chen",
+      "created_at": "2026-09-15T13:00:00Z",
+      "reply_to": 1,
+      "raw": "I reviewed the proposed repository structure. Does the SDK rely solely on public view functions and ABI encoders, or are there any embedded relayer or privileged multisig keys?"
+    },
+    {
+      "id": 5,
+      "author": "proposer_8",
+      "created_at": "2026-09-15T14:10:00Z",
+      "reply_to": 4,
+      "raw": "Great question Chen. The SDK is purely client-side and interacts strictly with public view calls and standard user transaction building. Zero private keys, zero admin roles, and zero proxy upgrades."
+    },
+    {
+      "id": 6,
+      "author": "Dev",
+      "created_at": "2026-09-15T15:45:00Z",
+      "reply_to": 5,
+      "raw": "Having subgraphs tracking real-time loan book health and reserve utilization will make liquidity rebalancing bots far more efficient. This directly benefits our yield infrastructure."
+    },
+    {
+      "id": 7,
+      "author": "Esi",
+      "created_at": "2026-09-15T16:30:00Z",
+      "reply_to": 1,
+      "raw": "Crucially, this proposal involves no contract changes or upgradeToAndCall bytecode deployments to our 8M USDC Vault. Since funds are sent directly to the disclosed dev studio wallet 9, the vault remains untouched."
+    },
+    {
+      "id": 8,
+      "author": "Farid",
+      "created_at": "2026-09-15T17:15:00Z",
+      "reply_to": 1,
+      "raw": "The milestone schedule looks very reasonable. Month 1 alpha SDK release gives delegates enough time to verify the deliverables before follow-up sprints. I will vote FOR."
+    },
+    {
+      "id": 9,
+      "author": "proposer_8",
+      "created_at": "2026-09-15T18:00:00Z",
+      "reply_to": null,
+      "raw": "Thank you all for the constructive feedback and unanimous delegate support. Moving to formal on-chain voting."
+    }
+  ]
+}
