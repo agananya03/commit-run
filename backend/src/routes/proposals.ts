@@ -2,6 +2,8 @@ import { Router, type Request } from "express";
 import multer from "multer";
 import { z } from "zod";
 import { CreateProposalRequest } from "../contracts/schemas.js";
+import { HttpError } from "../errors.js";
+import type { Pipeline } from "../pipeline/pipeline.js";
 import { EVIDENCE_TYPES, type ProposalService, type Upload } from "../proposals/service.js";
 import type { EvidenceType } from "../seed/scenarios.js";
 
@@ -25,8 +27,13 @@ const isMultipart = (req: Request): boolean => Boolean(req.is("multipart/form-da
 /** :id is a slug (MIP-21) or a database id. */
 const idParam = (req: Request): string => z.string().min(1).parse(req.params.id);
 
-export function proposalRoutes(service: ProposalService): Router {
+export function proposalRoutes(service: ProposalService, pipeline?: Pipeline): Router {
   const router = Router();
+
+  router.post("/proposals/:id/run", async (req, res) => {
+    if (!pipeline) throw new HttpError(502, "UPSTREAM_UNAVAILABLE", "Pipeline (Redis) is not configured for this backend");
+    res.status(202).json(await pipeline.run(idParam(req), { force: req.query.force === "true" }));
+  });
 
   router.get("/proposals", async (_req, res) => {
     res.json(await service.list());
@@ -41,6 +48,10 @@ export function proposalRoutes(service: ProposalService): Router {
 
   router.get("/proposals/:id", async (req, res) => {
     res.json(await service.getBundle(idParam(req)));
+  });
+
+  router.post("/proposals/:id/commit", async (req, res) => {
+    res.json(await service.commit(idParam(req)));
   });
 
   router.post("/proposals/:id/versions", upload, async (req, res) => {

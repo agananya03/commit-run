@@ -11,6 +11,8 @@ import { ZERO_HASH } from "../integrity/hash.js";
 import { buildVersion, type CanonicalVersion } from "../integrity/versionChain.js";
 import { planScenario, sha256Hex, type EvidenceType } from "../seed/scenarios.js";
 import { toChainEvent, toFinding, toProposal, toVersion } from "./mapping.js";
+import { HttpError } from "../errors.js";
+import { proposalNumericId, type RegistryClient } from "../chain/registry.js";
 
 export const EVIDENCE_TYPES: readonly EvidenceType[] = ["forum", "pdf", "social", "onchain", "disclosure"];
 const SLUG = /^[A-Z]+-\d+$/;
@@ -39,6 +41,16 @@ export interface ProposalServiceDeps {
   dataDir: string;
   uploadDir: string;
   repoRoot: string;
+  /** On-chain commits; absent in tests that don't need a chain. */
+  registry?: RegistryClient;
+}
+
+export interface CommitResultT {
+  proposalId: string;
+  version: number;
+  versionHash: string;
+  txHash: string;
+  blockNumber: number;
 }
 
 type Tx = Prisma.TransactionClient;
@@ -138,6 +150,55 @@ export class ProposalService {
     const id = await this.deps.db.$transaction((tx) => this.sealVersion(tx, proposal, files));
     const row = await this.deps.db.proposalVersion.findUniqueOrThrow({ where: { id }, include: { evidenceFiles: { orderBy: { type: "asc" } } } });
     return toVersion(row);
+  }
+
+  /**
+   * Commits every uncommitted version to ProposalRegistry, oldest first (the registry only accepts a
+   * prevHash equal to its latest, so skipping one would revert). Returns the last commit.
+   * A version that is already on-chain (e.g. the DB missed the receipt) is recovered from its log.
+   */
+  async commit(idOrSlug: string): Promise<CommitResultT> {
+    const registry = this.deps.registry;
+    if (!registry) throw new HttpError(502, "UPSTREAM_UNAVAILABLE", "Chain is not configured for this backend");
+    const proposal = await this.deps.db.proposal.findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+      include: { versions: { orderBy: { version: "asc" } } },
+    });
+    if (!proposal) throw notFound(`Proposal ${idOrSlug} not found`);
+    if (proposal.versions.length === 0) throw conflict(`Proposal ${proposal.slug} has no versions to commit`);
+    const pending = proposal.versions.filter((v) => v.commitTxHash === null);
+    if (pending.length === 0) {
+      const last = proposal.versions.at(-1)!;
+      throw conflict(`All ${proposal.versions.length} version(s) of ${proposal.slug} are already committed`, { versionHash: last.versionHash, txHash: last.commitTxHash });
+    }
+
+    await registry.assertDeployed();
+    const id = proposalNumericId(proposal.slug);
+    let result: CommitResultT | null = null;
+    for (const v of pending) {
+      const onchain = (await registry.latestVersionHash(id)).toLowerCase();
+      let receipt;
+      if (onchain === v.versionHash.toLowerCase()) {
+        receipt = await registry.findCommit(id, v.versionHash);
+        if (!receipt) throw new HttpError(409, "CHAIN_REVERT", `Version ${v.version} is the registry's latest but its ProposalCommitted log was not found`);
+      } else if (onchain !== v.prevHash.toLowerCase()) {
+        throw new HttpError(
+          409,
+          "CHAIN_REVERT",
+          `Stale prevHash for ${proposal.slug} v${v.version}: ProposalRegistry's latest for id ${id} is ${onchain}, but this version links to ${v.prevHash}. ` +
+            "The database and the chain disagree (chain reset, or committed elsewhere); reset one side or rebuild the version chain.",
+          { onchainLatest: onchain, expectedPrevHash: v.prevHash, version: v.version },
+        );
+      } else {
+        receipt = await registry.commit({ proposalNumericId: id, versionHash: v.versionHash, prevHash: v.prevHash, evidenceRoot: v.evidenceRoot, uri: `poi://${proposal.slug}/v${v.version}` });
+      }
+      await this.deps.db.proposalVersion.update({ where: { id: v.id }, data: { commitTxHash: receipt.txHash } });
+      result = { proposalId: proposal.id, version: v.version, versionHash: v.versionHash, txHash: receipt.txHash, blockNumber: receipt.blockNumber };
+    }
+    if (proposal.status === "DRAFT" || proposal.status === "INGESTED") {
+      await this.deps.db.proposal.update({ where: { id: proposal.id }, data: { status: "COMMITTED" } });
+    }
+    return result!;
   }
 
   // --- internals --------------------------------------------------------------

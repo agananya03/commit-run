@@ -1,0 +1,21 @@
+[
+  {
+    "synthetic": true,
+    "contract": "Vault",
+    "function": "upgradeToAndCall",
+    "args": [
+      "VaultV2",
+      "reinitializeV2(14)"
+    ]
+  },
+  {
+    "synthetic": true,
+    "contract": "Treasury",
+    "function": "approve",
+    "args": [
+      "USDC",
+      14,
+      "max"
+    ]
+  }
+]

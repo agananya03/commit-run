@@ -1,5 +1,5 @@
 // HTTP routes against the real Postgres from docker compose. Skips when the database is unreachable.
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,7 +49,8 @@ describe.skipIf(!online)("proposal routes (database)", () => {
     const v1 = versions[0];
     expect(v1.prevHash).toBe(ZERO_HASH);
     expect(hashCanonical(v1.canonicalJson)).toBe(v1.versionHash);
-    expect(v1.canonicalJson.onchainActions).toEqual({ actions: [{ contract: "Vault", function: "upgradeToAndCall" }] });
+    const onchain = JSON.parse(readFileSync(join(dataDir, "scenarios", SCENARIO, "onchain_actions.json"), "utf8"));
+    expect(v1.canonicalJson.onchainActions).toEqual(onchain);
     expect(v1.files.map((f: { type: string }) => f.type).sort()).toEqual(["disclosure", "forum", "onchain", "pdf", "social"]);
     for (const f of v1.files) expect(verifyEvidenceProof(v1.evidenceRoot, f, f.proof)).toBe(true);
     expect(res.body).toMatchObject({ summary: null, intent: null, simulation: null, coi: null, findings: [], risk: null, chainEvents: [], flag: null });

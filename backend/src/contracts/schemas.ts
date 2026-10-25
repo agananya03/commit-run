@@ -241,6 +241,16 @@ export const ProposalBundle = named("ProposalBundle", z.strictObject({
 
 export const CreateProposalRequest = named("CreateProposalRequest", z.strictObject({ slug: z.string() }));
 
+export const RunResult = named("RunResult", z.strictObject({ proposalId: z.string(), flowId: z.string() }));
+
+export const CommitResult = named("CommitResult", z.strictObject({
+  proposalId: z.string(),
+  version: z.number(),
+  versionHash: Hex,
+  txHash: Hex,
+  blockNumber: z.number(),
+}));
+
 export const PipelineProgress = named("PipelineProgress", z.strictObject({
   proposalId: z.string(),
   step: z.enum(["ingest", "summarize", "extractIntent", "commit", "coi", "simulate", "verdict", "risk"]),
@@ -268,5 +278,5 @@ export const Health = named("Health", z.strictObject({
 export const SHARED_SCHEMAS = {
   Chunk, Citation, Claim, DecisionSummary, IntentAction, IntentSpec, Explanation, SimulationResult, Deployments,
   WalletLink, CoiReport, Finding, RiskStage, RiskChain, ProposalStatus, Proposal, EvidenceFile, ProposalVersion,
-  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, PipelineProgress, ApiError, Health,
+  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, CommitResult, RunResult, PipelineProgress, ApiError, Health,
 } as const;

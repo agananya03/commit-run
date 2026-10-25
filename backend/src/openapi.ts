@@ -1,6 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { ApiError, CreateProposalRequest, Health, Proposal, ProposalBundle, ProposalVersion } from "./contracts/schemas.js";
+import { ApiError, CommitResult, CreateProposalRequest, Health, Proposal, ProposalBundle, ProposalVersion, RunResult } from "./contracts/schemas.js";
 
 const errors = (...codes: (400 | 404 | 409 | 502)[]) =>
   Object.fromEntries(
@@ -58,6 +58,28 @@ export function buildOpenApiDocument() {
     summary: "Full bundle: versions, files, summary, intent, simulation, coi, findings, risk, chain events",
     request: { params: idParam },
     responses: { 200: { description: "Bundle", content: { "application/json": { schema: ProposalBundle } } }, ...errors(404) },
+  });
+
+  r.registerPath({
+    method: "post",
+    path: "/proposals/{id}/run",
+    summary: "Run the analysis pipeline for the latest version",
+    description:
+      "BullMQ: ingest, then summarize + extractIntent in parallel, then commit, coi, simulate, verdict, risk. Each step retries twice with backoff, " +
+      "is idempotent per (version, step), and emits pipeline:progress. 409 if this version already ran; add ?force=true to re-run. Inspect jobs at /queues.",
+    request: { params: idParam, query: z.object({ force: z.enum(["true", "false"]).optional() }) },
+    responses: { 202: { description: "Queued", content: { "application/json": { schema: RunResult } } }, ...errors(404, 409, 502) },
+  });
+
+  r.registerPath({
+    method: "post",
+    path: "/proposals/{id}/commit",
+    summary: "Commit uncommitted versions to ProposalRegistry",
+    description:
+      "Calls ProposalRegistry.commit(registryId, versionHash, prevHash, evidenceRoot, uri) for every uncommitted version, oldest first, and stores each commitTxHash. " +
+      "registryId is the slug's number (MIP-21 -> 21); uri is poi://<slug>/v<n>. Returns the last commit. 409 CHAIN_REVERT on a stale prevHash or a chain owned by another committer; 409 CONFLICT if nothing is pending.",
+    request: { params: idParam },
+    responses: { 200: { description: "Committed", content: { "application/json": { schema: CommitResult } } }, ...errors(404, 409, 502) },
   });
 
   r.registerPath({

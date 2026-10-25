@@ -9,7 +9,9 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "check:network": "hardhat run scripts/check-network.ts",
-    "deploy:seed": "hardhat run scripts/deploy-seed.ts --network localhost"
+    "deploy:seed": "hardhat run scripts/deploy-seed.ts --network localhost",
+    "gov": "ts-node scripts/governance.ts",
+    "flow": "ts-node scripts/governance.ts flow"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.1.2",

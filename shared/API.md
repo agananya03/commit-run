@@ -234,7 +234,7 @@ Full: [`mocks/deployments.json`](mocks/deployments.json). `decimals` appears onl
 |---|---|---|---|
 | GET | `/health` | | `Health` (deps: postgres, redis, rpc, rag, sim) |
 | GET | `/docs` · `/docs.json` | | Swagger UI · OpenAPI JSON |
-| GET | `/queues` | | bull-board UI |
+| GET | `/queues` | | bull-board UI (pipeline jobs, results, errors, retries) |
 | POST | `/proposals` | `CreateProposalRequest` or multipart files | `201 ProposalBundle` |
 | GET | `/proposals` | | `Proposal[]` |
 | GET | `/proposals/:id` | | `ProposalBundle` |
@@ -304,18 +304,27 @@ Send `{ "slug": "MIP-21" }` to load `data/scenarios/MIP-21/`, or a multipart upl
 
 ### `POST /proposals/:id/commit` → `CommitResult`
 
-Calls `ProposalRegistry.commit(proposalId, versionHash, prevHash, evidenceRoot, uri)` for the latest uncommitted version.
+Calls `ProposalRegistry.commit(registryId, versionHash, prevHash, evidenceRoot, uri)` for **every** uncommitted version, oldest first, and stores each `commitTxHash`. The registry only accepts a `prevHash` equal to its latest, so skipping one would revert. Returns the last commit.
+- `registryId` is the slug's number (`MIP-21` → `21`); `uri` is `poi://<slug>/v<n>`.
+- If a version is already on-chain but the backend missed the receipt, its tx is recovered from the `ProposalCommitted` log.
+- A successful commit moves the proposal from `DRAFT`/`INGESTED` to `COMMITTED`.
 ```json
-{ "proposalId": "clx21…", "version": 1, "versionHash": "0x4c1d…e2a7", "txHash": "0x2f6a…88d1", "blockNumber": 42 }
+{ "proposalId": "clx21…", "version": 1, "versionHash": "0x4540…6cf1", "txHash": "0x2144…3bd3", "blockNumber": 3135 }
 ```
-If the registry's latest hash isn't `prevHash` (a stale chain), the call reverts and the backend returns `409 CHAIN_REVERT`.
+Errors: `409 CHAIN_REVERT` if the registry's latest hash isn't this version's `prevHash` (stale chain, e.g. after a chain reset), or if another address owns that registry id; `409 CONFLICT` if nothing is pending; `502 UPSTREAM_UNAVAILABLE` if the RPC is down or no registry is deployed.
 
 ### `POST /proposals/:id/run` → `RunResult` (202)
 
-Starts the BullMQ flow `ingest → summarize + extractIntent → commit → coi → simulate → verdict → risk`. Progress streams over `pipeline:progress`.
+Runs the BullMQ pipeline on the latest version: `ingest`, then `summarize` + `extractIntent` in parallel, then `commit → coi → simulate → verdict → risk`.
+- Each step retries twice with exponential backoff; a step that finally fails stops the pipeline.
+- Steps are idempotent per (version, step): stored outputs are reused, and a version is never committed twice.
+- `simulate` encodes the version's `onchain_actions.json` into real calldata with the deployed ABIs.
+- `coi`, `verdict` and `risk` are placeholders until H9/H11/H13 (they complete without storing anything).
+- Progress streams over `pipeline:progress`; jobs can be inspected in the bull-board UI at `GET /queues`.
 ```json
-{ "proposalId": "clx21…", "flowId": "flow:clx21…:v1" }
+{ "proposalId": "clx21…", "flowId": "pipeline:<versionId>" }
 ```
+`409 CONFLICT` if this version already ran (or is running); `POST …/run?force=true` re-runs it.
 
 ### `POST /proposals/:id/disclosure` → `CoiReport` (201)
 

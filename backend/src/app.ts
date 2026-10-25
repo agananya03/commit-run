@@ -5,6 +5,10 @@ import swaggerUi from "swagger-ui-express";
 import type { Health } from "../../shared/schemas/types.js";
 import { errorHandler, unknownRoute } from "./errors.js";
 import { buildOpenApiDocument } from "./openapi.js";
+import { createBullBoard } from "@bull-board/api";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { ExpressAdapter } from "@bull-board/express";
+import type { Pipeline } from "./pipeline/pipeline.js";
 import type { ProposalService } from "./proposals/service.js";
 import { proposalRoutes } from "./routes/proposals.js";
 
@@ -15,6 +19,7 @@ export interface AppDeps {
   checks: Record<string, () => Promise<boolean>>;
   corsOrigin?: string;
   proposals?: ProposalService;
+  pipeline?: Pipeline;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -44,7 +49,15 @@ export function createApp(deps: AppDeps): Express {
   });
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
 
-  if (deps.proposals) app.use(proposalRoutes(deps.proposals));
+  if (deps.pipeline) {
+    // bull-board: queue/job inspector (states, return values, errors, retries)
+    const board = new ExpressAdapter();
+    board.setBasePath("/queues");
+    createBullBoard({ queues: [new BullMQAdapter(deps.pipeline.queue)], serverAdapter: board });
+    app.use("/queues", board.getRouter());
+  }
+
+  if (deps.proposals) app.use(proposalRoutes(deps.proposals, deps.pipeline));
 
   app.use(unknownRoute);
   app.use(errorHandler(deps.logger));

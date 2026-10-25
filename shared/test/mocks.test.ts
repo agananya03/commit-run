@@ -60,7 +60,7 @@ describe("shared mocks", () => {
   });
 });
 
-describe.each(["MIP-21"])("%s mock integrity", (proposalId) => {
+describe.each(["MIP-21", "MIP-12"])("%s mock integrity", (proposalId) => {
   const chunks = readJson(join(mocksDir, `ingest.${proposalId}.json`)) as Chunk[];
   const byId = new Map(chunks.map((c) => [c.id, c]));
 

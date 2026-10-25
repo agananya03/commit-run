@@ -1,0 +1,185 @@
+[
+  {
+    "id": "MIP-12:forum:0",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=1",
+    "text": "proposer_8: We are excited to submit MIP-12 requesting a 400,000 USDC grant to build an official TypeScript SDK and subgraph indexer for Meridian DAO. Recipient is wallet index 9 (Meridian Studio Collective). Looking forward to delegate feedback!",
+    "sha256": "0x1b6f544a71065817b72dcff991a21cb6461c57732bf8dc4933b2d1639f8223e2"
+  },
+  {
+    "id": "MIP-12:forum:1",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=2",
+    "text": "Aria: From a financial perspective, 400K USDC represents exactly 2.0% of our 20M treasury. Given the clear milestone-based breakdown ($150K SDK, $150K subgraph, $100K docs), this fits our quantitative grant allocation guidelines cleanly.",
+    "sha256": "0x0b5e8a554fac7f0312c4cf552d79575f7b72e205d8146b5c29259ff9b3080b7c"
+  },
+  {
+    "id": "MIP-12:forum:2",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=3",
+    "text": "Bo: Developer accessibility is critical for grassroots community growth. Having open-source tooling under MIT license ensures that third-party integrations aren't bottlenecked by core contributor bandwidth. Strong support.",
+    "sha256": "0x1d40d95ec838057913017ed49a69a5feb422a71dbd354732f0284f6d43d484e4"
+  },
+  {
+    "id": "MIP-12:forum:3",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=4",
+    "text": "Chen: I reviewed the proposed repository structure. Does the SDK rely solely on public view functions and ABI encoders, or are there any embedded relayer or privileged multisig keys?",
+    "sha256": "0xca7038f9d69a87200c9e7c000bbfdf7d694e7b492584dadbce1a6a9957bf5cfd"
+  },
+  {
+    "id": "MIP-12:forum:4",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=5",
+    "text": "proposer_8: Great question Chen. The SDK is purely client-side and interacts strictly with public view calls and standard user transaction building. Zero private keys, zero admin roles, and zero proxy upgrades.",
+    "sha256": "0x84c62c611a4d8ed2633ad17c129055e4832f37533b07a94eabd824ed36145f68"
+  },
+  {
+    "id": "MIP-12:forum:5",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=6",
+    "text": "Dev: Having subgraphs tracking real-time loan book health and reserve utilization will make liquidity rebalancing bots far more efficient. This directly benefits our yield infrastructure.",
+    "sha256": "0x63128bdd6b74f2415c0c226809d09a56539ef10803a869cd19c43ec96a08a2b1"
+  },
+  {
+    "id": "MIP-12:forum:6",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=7",
+    "text": "Esi: Crucially, this proposal involves no contract changes or upgradeToAndCall bytecode deployments to our 8M USDC Vault. Since funds are sent directly to the disclosed dev studio wallet 9, the vault remains untouched.",
+    "sha256": "0x25065fcbf15a557c1a7de6078fad1080f46c57514ba76fc9d65947646bd4c9f7"
+  },
+  {
+    "id": "MIP-12:forum:7",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=8",
+    "text": "Farid: The milestone schedule looks very reasonable. Month 1 alpha SDK release gives delegates enough time to verify the deliverables before follow-up sprints. I will vote FOR.",
+    "sha256": "0x0cdbd15f8a56f3dd6d35306211795898f7fa5609086c9e4008c26c575f8e4195"
+  },
+  {
+    "id": "MIP-12:forum:8",
+    "proposalId": "MIP-12",
+    "sourceType": "forum",
+    "sourceUri": "forum://MIP-12/forum_thread.json#post=9",
+    "text": "proposer_8: Thank you all for the constructive feedback and unanimous delegate support. Moving to formal on-chain voting.",
+    "sha256": "0xd3ae5842ba78f3172934876c149f8546a34d78301d155c038abc5eaa71868818"
+  },
+  {
+    "id": "MIP-12:pdf:0",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=1",
+    "page": 1,
+    "text": "MERIDIAN DAO FORMAL GOVERNANCE Meridian Improvement Proposal 12 (MIP-12) Developer SDK and Subgraph Indexer Infrastructure Grant Title Developer SDK and Subgraph Indexer Infrastructure Grant Proposer walletIndex 8 (Ecosystem Contributor Lead) Beneficiary walletIndex 9 (Meridian Studio Collective) Status Formal Proposal Category Ecosystem Tooling Synthetic Simulation Fictional scenario for Meridian DAO security evaluation NOTICE: All parameters, figures, organizations, and entities in this document are synthetic fixtures constructed exclusively for Meridian DAO security evaluation. Not for public circulation.",
+    "sha256": "0xde6ec25ad00fe21ff3f722faed064d1b6482735b5930c8f641e4b17d6569f02a"
+  },
+  {
+    "id": "MIP-12:pdf:1",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=2",
+    "page": 2,
+    "text": "1. Executive Summary We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph indexer. The recipient address is wallet index 9, owned and operated by Meridian Studio Collective. This proposal establishes a robust developer tooling suite to streamline integrations across Meridian DAO's lending pools and liquidity reserves.",
+    "sha256": "0xce280622ea8234746bc4752c93538f30ec91ec49163983675c4263d782389690"
+  },
+  {
+    "id": "MIP-12:pdf:2",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=2",
+    "page": 2,
+    "text": "2. Motivation Currently, third-party developers building on Meridian must manually assemble low-level RPC calls, encode ABI parameters, and parse complex event logs. The lack of an official TypeScript SDK and subgraph indexing layer limits hackathon adoption, partner integrations, and analytics dashboard development. Providing an accessible SDK and reliable indexer will dramatically accelerate developer onboarding.",
+    "sha256": "0x2c59267b5617f590fd51a510572d1eecc5b4e88f8256a0213c996c6a53a21a47"
+  },
+  {
+    "id": "MIP-12:pdf:3",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=2",
+    "page": 2,
+    "text": "3. Budget & Resource Allocation Workstream Scope & Deliverables Cost (USDC) Phase 1: Core TypeScript SDK Complete type-safe wrapper for Lending Controller, Vault, and Timelock $150,000 Phase 2: Subgraph Indexer Open-source Goldsky/Graph indexing pipeline for all protocol events $150,000 Phase 3: Documentation & Demos Interactive documentation portal, CLI tooling, and reference examples $100,000 Total Allocation Full project delivery across all 3 phases $400,000",
+    "sha256": "0x90b87aff0e1b8fd466638da2cddde5302b1dc093a2264ea5e98a28e49f7c37a5"
+  },
+  {
+    "id": "MIP-12:pdf:4",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=2",
+    "page": 2,
+    "text": "4. Concrete Milestones & Timeline • Milestone 1 (Month 1): Alpha release of `@meridian-dao/sdk` on npm with full test coverage and automated CI. • Milestone 2 (Month 2): Deployment of production subgraph indexer tracking loans, liquidations, and reserve states. • Milestone 3 (Month 3): Developer portal launch with live sandbox, code recipes, and community documentation.",
+    "sha256": "0x0adb4f4cebe0bbd094c7681bd12a20112c7e7bedef437d778ddf509f3726a4a4"
+  },
+  {
+    "id": "MIP-12:pdf:5",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=2",
+    "page": 2,
+    "text": "5. Team & Track Record The team comprises four senior Web3 engineers from Meridian Studio Collective: • Lead Architect: 5 years EVM experience, former core contributor to leading DeFi indexers. • SDK Engineers (2): Extensive track record building developer tooling and TypeScript libraries. • DevRel Lead: Manages technical documentation and community developer support.",
+    "sha256": "0xb58e282518e9f31c0d39746e8bfd38fcd89cca3a19b05789a78fd3c04cb111c0"
+  },
+  {
+    "id": "MIP-12:pdf:6",
+    "proposalId": "MIP-12",
+    "sourceType": "pdf",
+    "sourceUri": "pdf://MIP-12/proposal.pdf#page=3",
+    "page": 3,
+    "text": "6. Risk Analysis & Mitigations • Maintenance Overhead: The SDK will be licensed under MIT and maintained under open governance with community bounties. • Indexer Reliability: Subgraph deployments will be multi-hosted across redundant RPC endpoints with fallback failover. • Audit Requirement: SDK smart contract interfaces utilize only audited contracts with zero elevated admin privileges.",
+    "sha256": "0x93a706b8fdfc95afc4936661fc8d714ad329800d63885ae930d73237894e43e0"
+  },
+  {
+    "id": "MIP-12:social:0",
+    "proposalId": "MIP-12",
+    "sourceType": "social",
+    "sourceUri": "social://MIP-12/social.json#msg=soc_12_1",
+    "text": "@meridian_studio: Excited to publish MIP-12 for community review! We are building the official TypeScript SDK and subgraph indexing layer to supercharge Meridian DAO developer tooling.",
+    "sha256": "0x2a749d5ae4af59506ef610c7299ae3156fd7c624c95bacc7520fd98490ec40eb"
+  },
+  {
+    "id": "MIP-12:social:1",
+    "proposalId": "MIP-12",
+    "sourceType": "social",
+    "sourceUri": "social://MIP-12/social.json#msg=soc_12_2",
+    "text": "@aria_governance: Thoroughly analyzed the financial scope of MIP-12. At 400K USDC (2.0% treasury), with transparent milestones and clear deliverables, this is a model grant proposal.",
+    "sha256": "0xa27a1738f3132adf52be543cc542d5e3a0eebb4ec59e6b88d0207b4ec6f8bf79"
+  },
+  {
+    "id": "MIP-12:social:2",
+    "proposalId": "MIP-12",
+    "sourceType": "social",
+    "sourceUri": "social://MIP-12/social.json#msg=soc_12_3",
+    "text": "@bo_community: Grassroots builder tooling is how Meridian wins the long game. Huge shoutout to the community for supporting open-source development.",
+    "sha256": "0x03912c95fb0f28594e482fcabe3fd0b3773120991c20f6cca88bea8e9ef52c00"
+  },
+  {
+    "id": "MIP-12:social:3",
+    "proposalId": "MIP-12",
+    "sourceType": "social",
+    "sourceUri": "social://MIP-12/social.json#msg=soc_12_4",
+    "text": "@chen_security: Reviewed the MIP-12 client-side architecture: zero privileged execution, zero timelock admin keys. Clean and safe.",
+    "sha256": "0xa6ccbf6f83ce45493e5dda86216be944b1ba00bee7a7457e9b2590f5e6702536"
+  },
+  {
+    "id": "MIP-12:social:4",
+    "proposalId": "MIP-12",
+    "sourceType": "social",
+    "sourceUri": "social://MIP-12/social.json#msg=soc_12_5",
+    "text": "@dev_yield: Can't wait to plug our automated liquidity rebalancing bots into the official Meridian subgraph once deployed!",
+    "sha256": "0x203a2894b5b6d530768be9edb2efcd9add8ab7ea06c506f1fcb69e055037e349"
+  },
+  {
+    "id": "MIP-12:onchain:0",
+    "proposalId": "MIP-12",
+    "sourceType": "onchain",
+    "sourceUri": "onchain://MIP-12/onchain_actions.json",
+    "text": "[{\"contract\": \"Treasury\", \"function\": \"transfer\", \"args\": [9, \"400000000000\"]}]",
+    "sha256": "0x146a1d44d076a7ae39e18cb997f6f6ab177696e111fc7cb645f81745abc9ea2b"
+  }
+]

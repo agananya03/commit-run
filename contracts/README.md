@@ -87,4 +87,20 @@ Env options: `TIMELOCK_DELAY` (seconds, default 60), `SEED_WALLETS` / `SEED_TRAN
 - **Pre-funding.** Before replaying, the script dry-runs the history and covers balances the data assumes but never creates (e.g. a hub sending USDC it never received). USDC is **minted** to the sender, so it comes from `0x0` and adds no wallet link. MRD has a fixed 100M supply, so the deployer sends it, held back from the largest allocation when the whole supply is handed out. With D's current data that is 506,721 USDC for 41 senders and 172,779 MRD for the CEX hub (#15) and the watchdog (#1), held back from whale #18 (−1.1%). The deploy log prints the totals.
 - The deployer keeps any MRD that is not handed out and does not delegate it.
 
+## Governance flow (`scripts/governance.ts`)
+
+Drives a scenario from `/data/scenarios/<id>/` through propose → vote → queue → execute on the local node. Calldata is encoded from `onchain_actions.json` with the deployed ABIs (`scripts/lib/actions.ts`), the proposer comes from `disclosure.json` (`proposerIndex`), and votes from `votes.json`.
+
+| Command | What it does |
+|---|---|
+| `npm run gov -- propose MIP-21` | propose from the scenario's proposer; prints `governorProposalId` and the `targets/values/calldatas` JSON |
+| `npm run gov -- vote MIP-21` | cast every vote in `votes.json`, all mined in **one block** (40+ voters would otherwise outlast the 20-block voting period) |
+| `npm run gov -- advance [blocks] [seconds]` | mine blocks / move time (default: voting period + 1 block) |
+| `npm run gov -- queue MIP-21` | queue in the GuardedTimelock; prints the operation id |
+| `npm run gov -- execute MIP-21` | execute after the delay; prints `HALTED` if GovernanceGuard flagged it |
+| `npm run gov -- status MIP-21` | on-chain state |
+| `npm run flow MIP-12` | everything above, resuming from the proposal's current state |
+
+The description is `# <slug>: <forum title>`, derived from `/data` every time, so queue and execute always match the proposal; the backend links chain proposals to its records by the slug in it.
+
 Owner: C (Parvati).
