@@ -1,0 +1,110 @@
+{
+  "$id": "https://proofofintent.local/schemas/VotingSnapshot.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/VotingSnapshot",
+  "definitions": {
+    "VotingSnapshot": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "$ref": "#/definitions/ProposalId"
+        },
+        "snapshotBlock": {
+          "type": "number"
+        },
+        "deadlineBlock": {
+          "type": "number"
+        },
+        "forVotes": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "againstVotes": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "abstainVotes": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "quorum": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "totalSupply": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Vote"
+          }
+        }
+      },
+      "required": [
+        "proposalId",
+        "snapshotBlock",
+        "deadlineBlock",
+        "forVotes",
+        "againstVotes",
+        "abstainVotes",
+        "quorum",
+        "totalSupply",
+        "votes"
+      ],
+      "additionalProperties": false
+    },
+    "ProposalId": {
+      "type": "string",
+      "description": "Meridian Improvement Proposal id.",
+      "pattern": "^MIP-[0-9]+$"
+    },
+    "Uint256": {
+      "type": "string",
+      "description": "uint256 as a base-10 string.",
+      "pattern": "^[0-9]+$"
+    },
+    "Vote": {
+      "type": "object",
+      "properties": {
+        "voter": {
+          "$ref": "#/definitions/Address"
+        },
+        "support": {
+          "$ref": "#/definitions/VoteSupport"
+        },
+        "weight": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hash32"
+        },
+        "linkedToProposer": {
+          "type": "boolean",
+          "description": "Voter is linked to the proposer in the COI graph."
+        }
+      },
+      "required": [
+        "voter",
+        "support",
+        "weight",
+        "linkedToProposer"
+      ],
+      "additionalProperties": false
+    },
+    "Address": {
+      "type": "string",
+      "description": "20-byte EVM address, 0x-prefixed (checksum optional).",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "VoteSupport": {
+      "type": "string",
+      "enum": [
+        "for",
+        "against",
+        "abstain"
+      ]
+    },
+    "Hash32": {
+      "type": "string",
+      "description": "32-byte hash, 0x-prefixed (keccak256 unless stated otherwise).",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$id": "https://proofofintent.local/schemas/SummarizeRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SummarizeRequest",
+  "definitions": {
+    "SummarizeRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "$ref": "#/definitions/ProposalId"
+        }
+      },
+      "required": [
+        "proposalId"
+      ],
+      "additionalProperties": false,
+      "description": "POST /summarize"
+    },
+    "ProposalId": {
+      "type": "string",
+      "description": "Meridian Improvement Proposal id.",
+      "pattern": "^MIP-[0-9]+$"
+    }
+  }
+}

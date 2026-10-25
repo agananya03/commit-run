@@ -1,0 +1,34 @@
+{
+  "$id": "https://proofofintent.local/schemas/WalletMention.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/WalletMention",
+  "definitions": {
+    "WalletMention": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "documentId": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string",
+          "description": "Surrounding text, e.g. \"moving ops to my new wallet 0x9f2c...\"."
+        }
+      },
+      "required": [
+        "address",
+        "documentId",
+        "context"
+      ],
+      "additionalProperties": false,
+      "description": "A wallet address mentioned in any source; input to the COI graph."
+    },
+    "Address": {
+      "type": "string",
+      "description": "20-byte EVM address, 0x-prefixed (checksum optional).",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    }
+  }
+}

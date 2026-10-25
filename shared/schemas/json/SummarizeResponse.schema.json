@@ -1,0 +1,74 @@
+{
+  "$id": "https://proofofintent.local/schemas/SummarizeResponse.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SummarizeResponse",
+  "definitions": {
+    "SummarizeResponse": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "$ref": "#/definitions/ProposalId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "keyPoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "title",
+        "summary",
+        "keyPoints",
+        "citations"
+      ],
+      "additionalProperties": false
+    },
+    "ProposalId": {
+      "type": "string",
+      "description": "Meridian Improvement Proposal id.",
+      "pattern": "^MIP-[0-9]+$"
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "documentId": {
+          "type": "string",
+          "description": "SourceDocument.id the quote comes from."
+        },
+        "chunkId": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string",
+          "description": "Verbatim excerpt supporting the statement."
+        },
+        "page": {
+          "type": "number",
+          "description": "1-based page number for PDFs."
+        }
+      },
+      "required": [
+        "documentId",
+        "quote"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

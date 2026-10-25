@@ -1,0 +1,19 @@
+{
+  "$id": "https://proofofintent.local/schemas/WalletLinkKind.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/WalletLinkKind",
+  "definitions": {
+    "WalletLinkKind": {
+      "type": "string",
+      "enum": [
+        "funded_by",
+        "same_deployer",
+        "social_claim",
+        "ens",
+        "token_flow",
+        "co_signer",
+        "beneficiary_of"
+      ]
+    }
+  }
+}

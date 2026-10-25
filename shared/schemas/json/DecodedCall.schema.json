@@ -1,0 +1,90 @@
+{
+  "$id": "https://proofofintent.local/schemas/DecodedCall.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DecodedCall",
+  "definitions": {
+    "DecodedCall": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "number",
+          "description": "Position in the batch (inner calls repeat their parent's index)."
+        },
+        "target": {
+          "$ref": "#/definitions/Address"
+        },
+        "targetLabel": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "selector": {
+          "$ref": "#/definitions/Selector"
+        },
+        "signature": {
+          "type": "string",
+          "description": "e.g. \"upgradeToAndCall(address,bytes)\"; absent if unknown."
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DecodedArg"
+          }
+        },
+        "innerCalls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DecodedCall"
+          },
+          "description": "Calls encoded inside this one, e.g. the initializer in upgradeToAndCall."
+        }
+      },
+      "required": [
+        "index",
+        "target",
+        "value",
+        "selector",
+        "args"
+      ],
+      "additionalProperties": false
+    },
+    "Address": {
+      "type": "string",
+      "description": "20-byte EVM address, 0x-prefixed (checksum optional).",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "Uint256": {
+      "type": "string",
+      "description": "uint256 as a base-10 string.",
+      "pattern": "^[0-9]+$"
+    },
+    "Selector": {
+      "type": "string",
+      "description": "4-byte function selector, 0x-prefixed.",
+      "pattern": "^0x[0-9a-fA-F]{8}$"
+    },
+    "DecodedArg": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "description": "Solidity type, e.g. \"address\", \"uint256\", \"bytes\"."
+        },
+        "value": {
+          "type": "string",
+          "description": "Stringified value; bytes and arrays stay as hex / JSON text."
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

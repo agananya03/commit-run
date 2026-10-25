@@ -1,0 +1,52 @@
+{
+  "$id": "https://proofofintent.local/schemas/HealthResponse.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/HealthResponse",
+  "definitions": {
+    "HealthResponse": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string",
+          "enum": [
+            "backend",
+            "rag",
+            "sim"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "degraded"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "mocks": {
+          "type": "boolean",
+          "description": "True when the service is answering from /shared/mocks."
+        },
+        "deps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "down"
+            ]
+          },
+          "description": "Dependency name -> state, e.g. { \"postgres\": \"ok\", \"redis\": \"down\" }."
+        }
+      },
+      "required": [
+        "service",
+        "status",
+        "version",
+        "mocks"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$id": "https://proofofintent.local/schemas/RiskSignal.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RiskSignal",
+  "definitions": {
+    "RiskSignal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "likelihoodRatio": {
+          "type": "number",
+          "description": "Likelihood ratio this signal contributes; >1 raises risk, <1 lowers it."
+        },
+        "evidenceIndex": {
+          "type": "number",
+          "description": "EvidenceEntry.index backing this signal."
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "likelihoodRatio"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

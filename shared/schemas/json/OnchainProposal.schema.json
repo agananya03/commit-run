@@ -1,0 +1,92 @@
+{
+  "$id": "https://proofofintent.local/schemas/OnchainProposal.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/OnchainProposal",
+  "definitions": {
+    "OnchainProposal": {
+      "type": "object",
+      "properties": {
+        "governorProposalId": {
+          "$ref": "#/definitions/Uint256",
+          "description": "Governor proposalId (uint256)."
+        },
+        "proposer": {
+          "$ref": "#/definitions/Address"
+        },
+        "governor": {
+          "$ref": "#/definitions/Address"
+        },
+        "timelock": {
+          "$ref": "#/definitions/Address"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimelockCall"
+          }
+        },
+        "descriptionHash": {
+          "$ref": "#/definitions/Hash32",
+          "description": "keccak256 of the proposal description string."
+        },
+        "operationId": {
+          "$ref": "#/definitions/Hash32",
+          "description": "Timelock hashOperationBatch(targets, values, payloads, 0x0, descriptionHash)."
+        }
+      },
+      "required": [
+        "governorProposalId",
+        "proposer",
+        "governor",
+        "timelock",
+        "calls",
+        "descriptionHash",
+        "operationId"
+      ],
+      "additionalProperties": false,
+      "description": "The proposal as submitted on chain (Governor + Timelock view)."
+    },
+    "Uint256": {
+      "type": "string",
+      "description": "uint256 as a base-10 string.",
+      "pattern": "^[0-9]+$"
+    },
+    "Address": {
+      "type": "string",
+      "description": "20-byte EVM address, 0x-prefixed (checksum optional).",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "TimelockCall": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/definitions/Address"
+        },
+        "value": {
+          "$ref": "#/definitions/Uint256",
+          "description": "ETH sent with the call, in wei."
+        },
+        "data": {
+          "$ref": "#/definitions/HexData"
+        }
+      },
+      "required": [
+        "target",
+        "value",
+        "data"
+      ],
+      "additionalProperties": false,
+      "description": "A single call inside a Timelock batch operation."
+    },
+    "HexData": {
+      "type": "string",
+      "description": "Arbitrary-length hex bytes, 0x-prefixed.",
+      "pattern": "^0x([0-9a-fA-F]{2})*$"
+    },
+    "Hash32": {
+      "type": "string",
+      "description": "32-byte hash, 0x-prefixed (keccak256 unless stated otherwise).",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    }
+  }
+}

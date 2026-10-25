@@ -1,0 +1,24 @@
+{
+  "name": "@meridian/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-team contract for ProofOfIntent: types, JSON Schemas, mocks.",
+  "exports": {
+    "./types": "./schemas/types.ts"
+  },
+  "scripts": {
+    "gen:schemas": "tsx scripts/gen-schemas.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "ts-json-schema-generator": "^2.9.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

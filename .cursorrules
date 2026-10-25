@@ -11,8 +11,9 @@
 
 ## Contract
 - Request/response shapes come from /shared/schemas/json/*.schema.json (generated from /shared/schemas/types.ts).
-  Generate the models, don't hand-write them:
-  `datamodel-codegen --input ../shared/schemas/json --input-file-type jsonschema --output-model-type pydantic_v2.BaseModel --output app/contracts`
+  Generate the models from the combined file, don't hand-write them:
+  `datamodel-codegen --input ../shared/schemas/json/meridian.schema.json --input-file-type jsonschema --output-model-type pydantic_v2.BaseModel --use-annotated --field-constraints --output app/contracts.py`
+  Regenerate whenever /shared/schemas/json changes.
 - Field names stay camelCase on the wire, exactly as in the schemas. Use `alias` / `populate_by_name` if you want snake_case in Python.
 - Endpoints, methods and examples are in /shared/API.md. Your responses must validate against the matching schema, because the backend rejects anything that doesn't (zod).
 - /shared/mocks/*.MIP-21.json shows exactly what the backend expects back. Use it as the golden example in tests.

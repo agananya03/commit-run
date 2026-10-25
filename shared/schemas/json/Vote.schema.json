@@ -1,0 +1,58 @@
+{
+  "$id": "https://proofofintent.local/schemas/Vote.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Vote",
+  "definitions": {
+    "Vote": {
+      "type": "object",
+      "properties": {
+        "voter": {
+          "$ref": "#/definitions/Address"
+        },
+        "support": {
+          "$ref": "#/definitions/VoteSupport"
+        },
+        "weight": {
+          "$ref": "#/definitions/Uint256"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hash32"
+        },
+        "linkedToProposer": {
+          "type": "boolean",
+          "description": "Voter is linked to the proposer in the COI graph."
+        }
+      },
+      "required": [
+        "voter",
+        "support",
+        "weight",
+        "linkedToProposer"
+      ],
+      "additionalProperties": false
+    },
+    "Address": {
+      "type": "string",
+      "description": "20-byte EVM address, 0x-prefixed (checksum optional).",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "VoteSupport": {
+      "type": "string",
+      "enum": [
+        "for",
+        "against",
+        "abstain"
+      ]
+    },
+    "Uint256": {
+      "type": "string",
+      "description": "uint256 as a base-10 string.",
+      "pattern": "^[0-9]+$"
+    },
+    "Hash32": {
+      "type": "string",
+      "description": "32-byte hash, 0x-prefixed (keccak256 unless stated otherwise).",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    }
+  }
+}

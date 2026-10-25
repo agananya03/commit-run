@@ -1,0 +1,17 @@
+{
+  "$id": "https://proofofintent.local/schemas/Severity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Severity",
+  "definitions": {
+    "Severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    }
+  }
+}
