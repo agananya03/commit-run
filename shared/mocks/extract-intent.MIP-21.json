@@ -1,0 +1,52 @@
+{
+  "proposalId": "MIP-21",
+  "claims": [
+    {
+      "id": "c1",
+      "category": "gas",
+      "statement": "Gas optimisation of MeridianReserve deposit/withdraw",
+      "expectation": "change",
+      "subject": "MeridianReserve implementation",
+      "confidence": 0.96,
+      "citations": [
+        {
+          "documentId": "MIP-21:forum:0",
+          "chunkId": "MIP-21:forum:0#0",
+          "quote": "we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters)"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "category": "ownership",
+      "statement": "No change to ownership",
+      "expectation": "no_change",
+      "subject": "MeridianReserve.owner",
+      "confidence": 0.93,
+      "citations": [
+        {
+          "documentId": "MIP-21:forum:0",
+          "chunkId": "MIP-21:forum:0#1",
+          "quote": "no change to ownership, permissions or treasury funds"
+        },
+        {
+          "documentId": "MIP-21:pdf:0",
+          "chunkId": "MIP-21:pdf:0#4",
+          "quote": "The Timelock remains the sole owner of the Reserve.",
+          "page": 3
+        }
+      ]
+    }
+  ],
+  "declaredTargets": [
+    "MeridianReserve"
+  ],
+  "walletMentions": [
+    {
+      "address": "0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B",
+      "documentId": "MIP-21:social:0",
+      "context": "Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books."
+    }
+  ],
+  "model": "mock"
+}

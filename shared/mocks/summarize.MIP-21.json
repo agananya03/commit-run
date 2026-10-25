@@ -1,0 +1,37 @@
+{
+  "proposalId": "MIP-21",
+  "title": "MIP-21: MeridianReserve gas optimisation",
+  "summary": "MIP-21, proposed by kestrel.eth, upgrades the MeridianReserve contract to a new implementation behind its existing UUPS proxy. The proposal says the new code packs storage slots and uses unchecked loop counters so deposits and withdrawals cost roughly 1% less gas. The author states that storage layout is preserved, that the Timelock remains the sole owner of the Reserve, and that no permissions or treasury funds change. The on-chain proposal contains a single call to the Reserve proxy.",
+  "keyPoints": [
+    "Upgrades MeridianReserve implementation via the UUPS proxy",
+    "Claimed benefit: ~1% cheaper deposit/withdraw gas",
+    "Claims no change to ownership: Timelock stays sole owner",
+    "Claims no change to permissions or treasury funds",
+    "One on-chain call, targeting the Reserve proxy"
+  ],
+  "citations": [
+    {
+      "documentId": "MIP-21:forum:0",
+      "chunkId": "MIP-21:forum:0#0",
+      "quote": "This is a pure gas optimisation: no change to ownership, permissions or treasury funds."
+    },
+    {
+      "documentId": "MIP-21:forum:0",
+      "chunkId": "MIP-21:forum:0#1",
+      "quote": "Deposits and withdrawals get ~1% cheaper."
+    },
+    {
+      "documentId": "MIP-21:pdf:0",
+      "chunkId": "MIP-21:pdf:0#4",
+      "quote": "The Timelock remains the sole owner of the Reserve.",
+      "page": 3
+    },
+    {
+      "documentId": "MIP-21:pdf:0",
+      "chunkId": "MIP-21:pdf:0#3",
+      "quote": "The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy. Storage layout is preserved.",
+      "page": 3
+    }
+  ],
+  "model": "mock"
+}

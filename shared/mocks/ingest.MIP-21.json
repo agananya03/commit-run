@@ -1,0 +1,73 @@
+{
+  "proposalId": "MIP-21",
+  "documents": [
+    {
+      "id": "MIP-21:forum:0",
+      "proposalId": "MIP-21",
+      "kind": "forum",
+      "uri": "data/MIP-21/forum.json",
+      "title": "[MIP-21] MeridianReserve gas optimisation",
+      "author": "kestrel.eth",
+      "publishedAt": "2026-10-20T14:03:11Z",
+      "contentHash": "0xb9dc02a4ea65633c3f431cf8b57381d90bc6ed4920ef0ce0bdd796a98da6ea0d",
+      "chunkCount": 9,
+      "excerpt": "TL;DR: we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters). Deposits and withdrawals get ~1% cheaper. This is a pure gas optimisation: no change to ownership, permissions or treasury funds."
+    },
+    {
+      "id": "MIP-21:pdf:0",
+      "proposalId": "MIP-21",
+      "kind": "pdf",
+      "uri": "data/MIP-21/MIP-21-technical-spec.pdf",
+      "title": "MIP-21 Technical Specification v1.2",
+      "author": "kestrel.eth",
+      "publishedAt": "2026-10-20T13:40:00Z",
+      "contentHash": "0xb0ff28b9f88f91cf5c8d6d534e7adfe3f445e7d1ada4009026ac46b434c636c0",
+      "chunkCount": 14,
+      "excerpt": "3. Scope. The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy. Storage layout is preserved. The Timelock remains the sole owner of the Reserve."
+    },
+    {
+      "id": "MIP-21:social:0",
+      "proposalId": "MIP-21",
+      "kind": "social",
+      "uri": "data/MIP-21/social.json",
+      "title": "Post by @kestrel_builds",
+      "author": "@kestrel_builds",
+      "publishedAt": "2026-10-21T08:17:45Z",
+      "contentHash": "0x6a88927a6efaaff51fa36e2bf74d731abb98fd5c7a995cee87888a617133abcf",
+      "chunkCount": 2,
+      "excerpt": "MIP-21 is live for voting, small gas win for every Meridian depositor. Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books."
+    },
+    {
+      "id": "MIP-21:calldata:0",
+      "proposalId": "MIP-21",
+      "kind": "calldata",
+      "uri": "data/MIP-21/calldata.json",
+      "title": "MeridianGovernor ProposalCreated (MIP-21)",
+      "author": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "publishedAt": "2026-10-21T09:00:12Z",
+      "contentHash": "0x4355f77648ecb3c9b0cdafcd44d77103ac17c886ed7a8c271619acd6a7b3a290",
+      "chunkCount": 1,
+      "excerpt": "targets=[0x5FC8d32690cc91D4c39d9d3abcBD16989F875707] values=[0] calldatas=[0x4f1ef286…]"
+    }
+  ],
+  "chunkCount": 26,
+  "onchain": {
+    "governorProposalId": "71240117917747628806640772231852050840836735106339123343864741404726318379014",
+    "proposer": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "governor": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "timelock": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "calls": [
+      {
+        "target": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+        "value": "0",
+        "data": "0x4f1ef286000000000000000000000000057ef64e23666f000b34ae31332854acbd1c85440000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000002429b6eca90000000000000000000000009f2c188225babb8ac51c8b49c850678558fefb7b00000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "descriptionHash": "0x1af95546fe3f7411660d911aa922f2158f9fe394c0513576d4ba842ccf17b9bf",
+    "operationId": "0x1479f0221f839edab5b6bd6509e1d8de7cd01691d05237a1ce45da57ad021396"
+  },
+  "warnings": [
+    "MIP-21:pdf:0 page 6 is an image-only diagram; no text extracted"
+  ],
+  "ingestedAt": "2026-10-25T09:12:04Z"
+}
