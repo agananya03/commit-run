@@ -89,6 +89,7 @@ model Proposal {
   findings       Finding[]
   riskChains     RiskChainRecord[]
   chainEvents    ChainEvent[]
+  watchdogFlags  WatchdogFlagRecord[]
 
   @@index([status])
 }
@@ -183,6 +184,7 @@ model SimulationRun {
   proposalVersion ProposalVersion?  @relation(fields: [proposalVersionId], references: [id], onDelete: SetNull)
   findings        Finding[]
   riskChains      RiskChainRecord[]
+  watchdogFlag    WatchdogFlagRecord?
 
   @@index([proposalId, createdAt])
 }
@@ -237,6 +239,25 @@ model RiskChainRecord {
   simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
 
   @@index([proposalId, createdAt])
+}
+
+/// A GovernanceGuard.flag() sent by the watchdog. data = WatchdogFlag (/shared/schemas/types.ts).
+model WatchdogFlagRecord {
+  id              String   @id @default(cuid())
+  proposalId      String
+  simulationRunId String   @unique /// the QUEUED run whose findings were hashed
+  operationId     String   @db.VarChar(66)
+  findingsHash    String   @db.VarChar(66)
+  txHash          String   @db.VarChar(66)
+  blockNumber     Int
+  data            Json
+  flaggedAt       DateTime @default(now())
+
+  proposal      Proposal      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  simulationRun SimulationRun @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@index([operationId])
 }
 
 /// Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry.

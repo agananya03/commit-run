@@ -70,7 +70,7 @@ describe("HTTP extras", () => {
   it("serves the OpenAPI document with every route", async () => {
     const res = await request(http).get("/docs.json").expect(200);
     expect(res.body.openapi).toBe("3.1.0");
-    expect(Object.keys(res.body.paths).sort()).toEqual(["/health", "/proposals", "/proposals/{id}", "/proposals/{id}/commit", "/proposals/{id}/run", "/proposals/{id}/versions"]);
+    expect(Object.keys(res.body.paths).sort()).toEqual(["/health", "/proposals", "/proposals/{id}", "/proposals/{id}/commit", "/proposals/{id}/disclosure", "/proposals/{id}/reverify", "/proposals/{id}/run", "/proposals/{id}/versions"]);
     expect(res.body.components.schemas.ProposalBundle).toBeDefined();
   });
 

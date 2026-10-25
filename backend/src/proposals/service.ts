@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getAddress, isAddress } from "ethers";
 import type { z } from "zod";
-import { DecisionSummary, CoiReport, Explanation, IntentSpec, ProposalBundle, RiskChain, SimulationResult } from "../contracts/schemas.js";
+import { DecisionSummary, CoiReport, Explanation, IntentSpec, ProposalBundle, RiskChain, SimulationResult, WatchdogFlag } from "../contracts/schemas.js";
 import type { Db } from "../db.js";
 import { badRequest, conflict, notFound } from "../errors.js";
 import type { Prisma } from "../generated/prisma/client.js";
@@ -77,6 +77,7 @@ export class ProposalService {
         simulationRuns: { orderBy: { createdAt: "desc" }, take: 1, include: { findings: { orderBy: { findingKey: "asc" } } } },
         riskChains: { orderBy: { createdAt: "desc" }, take: 1 },
         chainEvents: { orderBy: [{ blockNumber: "asc" }, { logIndex: "asc" }] },
+        watchdogFlags: { orderBy: { flaggedAt: "desc" }, take: 1 },
       },
     });
     if (!p) throw notFound(`Proposal ${idOrSlug} not found`);
@@ -95,7 +96,7 @@ export class ProposalService {
       explanation: json(Explanation, run?.explanation),
       risk: json(RiskChain, p.riskChains[0]?.data),
       chainEvents: p.chainEvents.map((e) => toChainEvent(e, p.slug)),
-      flag: null, // set by the watchdog once GovernanceGuard.flag() is mined
+      flag: json(WatchdogFlag, p.watchdogFlags[0]?.data),
     };
   }
 

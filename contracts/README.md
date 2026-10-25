@@ -2,14 +2,88 @@
 
 Hardhat 2 (TypeScript) + OpenZeppelin Contracts v5 project for Meridian DAO on **:8545** (chainId 31337, default Hardhat mnemonic, 80 accounts).
 
-- **DAO core:** MeridianToken (MRD, ERC20Votes, 100M), MockUSDC (6 decimals), MeridianGovernor (1-block delay, 20-block period, 4% quorum, timelock control), Treasury (owned by the timelock), VaultV1 (UUPS proxy, owner = timelock).
-- **Accountability:** ProposalRegistry (`commit(proposalId, versionHash, prevHash, evidenceRoot, uri)`, rejects a stale `prevHash`), GuardedTimelock (reverts `execute` while flagged), which deploys its own GovernanceGuard (`flag(operationId, findingsHash)` for WATCHDOG_ROLE, `clear` only by the timelock, flags expire after 7 days).
-- **Scenario contracts:** VaultV2 (SYNTHETIC malicious MIP-21 upgrade: real storage packing, plus `reinitializeV2(newOwner)` and `migrateReserves(to)`) and VaultV2Honest (same packing, no backdoor; tests only).
+## The contracts
+
+### DAO core
+
+| Contract | What it is |
+|---|---|
+| **MeridianToken** (MRD) | ERC20Votes governance token, 100M supply minted to the deployer. Voting power counts only once delegated (deploy:seed delegates every holder). |
+| **MockUSDC** | 6-decimal ERC-20 the deployer can mint. Treasury holds 20M, the vault 8M. |
+| **MeridianGovernor** | OpenZeppelin Governor with a 1-block voting delay, 20-block voting period, 4% quorum, no proposal threshold, and GovernorTimelockControl. A passed proposal is queued in the GuardedTimelock, and the timelock executes it. |
+| **Treasury** | Owned by the timelock. `transfer(token, to, amount)` and `approve(token, spender, amount)` are owner-only, so only a passed vote moves funds. |
+| **VaultV1** (behind **VaultProxy**) | UUPS-upgradeable USDC vault with deposits, withdrawals and a deposit cap. Owner is the timelock, so only a vote can upgrade it. |
+
+### Accountability
+
+| Contract | What it is |
+|---|---|
+| **ProposalRegistry** | Append-only, hash-chained history of proposal versions. `commit(proposalId, versionHash, prevHash, evidenceRoot, uri)` must name the current latest hash as `prevHash` (`StalePrevHash` otherwise), so history can be extended but never rewritten or forked. Whoever commits version 1 owns that chain (`NotCommitter`). The backend commits every evidence version here from Hardhat #0. |
+| **GuardedTimelock** | OpenZeppelin TimelockController (60 s min delay in the demo, `TIMELOCK_DELAY`) whose `execute`/`executeBatch` revert `GuardFlagged(id)` while the guard has the operation flagged. It deploys its own GovernanceGuard in its constructor, so the guard is bound to it from block one. The governor is the only proposer and canceller, anyone can execute, and the deployer renounces admin. |
+| **GovernanceGuard** | The watchdog's brake, which can only **delay**, never execute or change anything. `flag(operationId, findingsHash)` is restricted to `WATCHDOG_ROLE` (Hardhat #1, the backend's watchdog key), once per operation, and expires after `FLAG_TTL` = 7 days, so a rogue watchdog cannot block forever. `clear(operationId)` accepts only the timelock itself, so lifting a flag takes a passed governance vote. A cleared operation can never be flagged again (`AlreadyCleared`), which makes the override final. Only governance (the timelock is admin) can add or remove watchdogs. `findingsHash` is the keccak of the backend's canonical findings, so anyone can check what the flag was based on. |
+
+### Scenario contracts (SYNTHETIC)
+
+| Contract | What it is |
+|---|---|
+| **VaultV2** | The malicious MIP-21 upgrade. The storage packing it advertises is real (VaultPackedBase), but `reinitializeV2(newOwner)` also hands vault ownership to `newOwner`, and `migrateReserves(to)` lets that owner drain every USDC in the vault. Deployed by the MIP-21 proposer (#13). The watchdog catches it by behaviour in simulation (owner change, new privileged selectors), not by these names. |
+| **VaultV2Honest** | Same packing, no backdoor. Used only in tests, to show an honest upgrade passes. |
+
+## Halt and override
+
+When a proposal is queued, the backend's watchdog re-simulates **exactly the queued calldata** (read back from the timelock's `CallScheduled` logs), scores it, and flags it before the 60 s delay runs out if the verdict is *halt*. The token holders keep the last word: an override proposal calling `guard.clear(operationId)` goes through the same vote and delay, and once it executes the original proposal can execute too.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Proposer (#13)
+    actor H as Token holders
+    participant G as MeridianGovernor
+    participant T as GuardedTimelock
+    participant GG as GovernanceGuard
+    participant B as Backend listener + watchdog
+    participant S as Sim (Anvil fork)
+
+    P->>G: propose(targets, values, calldatas, "# MIP-21: ...")
+    G-->>B: ProposalCreated (linked by slug, operationId precomputed)
+    H->>G: castVote (all in one block)
+    H->>G: queue(...)
+    G->>T: scheduleBatch(..., delay 60 s)
+    T-->>B: CallScheduled(operationId, index, target, value, data)
+    B->>T: read every CallScheduled for operationId
+    B->>S: simulate queued payloads at the queue block
+    S-->>B: state diffs, owner/role/allowance changes, new selectors
+    B->>B: findings vs. stated intent, then risk chain (claims, COI, voting, execution)
+    alt verdict is halt (CRITICAL)
+        B->>GG: flag(operationId, findingsHash) from watchdog #1
+        GG-->>B: Flagged, then status HALTED and socket watchdog:flag
+        Note over T: 60 s delay ends
+        H->>G: execute(...)
+        G->>T: executeBatch(...)
+        T->>GG: isFlagged(operationId)?
+        GG-->>T: true
+        T-->>H: revert GuardFlagged(operationId)
+        Note over H,GG: Override: token holders can overrule the watchdog
+        H->>G: propose([guard], [0], [clear(operationId)], "# Override: ... MIP 21 ...")
+        H->>G: castVote, then queue, then 60 s delay
+        H->>G: execute override
+        G->>T: executeBatch
+        T->>GG: clear(operationId) (msg.sender is the timelock)
+        GG-->>B: Cleared, then status QUEUED
+        H->>G: execute(...) original proposal
+        G->>T: executeBatch, now passes the guard
+    else verdict is clear or review
+        Note over B,T: no flag; executes normally after the delay
+    end
+```
+
+The override's description says `MIP 21` (no dash) on purpose: the backend links Governor proposals to its records by a `MIP-21`-style slug, and the override must not be mistaken for MIP-21 itself. `test/HaltOverride.e2e.test.ts` runs this whole sequence with the real MIP-21 payload.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
+| `bash scripts/reset.sh` | **Demo reset** (about 65 s): restarts the node and the Anvil fork, runs deploy:seed, executes MIP-12, leaves MIP-17 voted and Active, leaves MIP-21 un-proposed, re-forks the sim, then prints every address and the live MIP-21 commands. Git Bash on Windows, or bash on macOS/Linux. Logs go to `$TMPDIR/poi-reset/`. |
 | `npm run node` | Hardhat node on :8545 |
 | `npm run deploy:seed` | Deploy everything to the running node, seed wallets, replay transfers, write `deployments/localhost.json` |
 | `npm test` | All contract tests |
@@ -99,7 +173,11 @@ Drives a scenario from `/data/scenarios/<id>/` through propose → vote → queu
 | `npm run gov -- queue MIP-21` | queue in the GuardedTimelock; prints the operation id |
 | `npm run gov -- execute MIP-21` | execute after the delay; prints `HALTED` if GovernanceGuard flagged it |
 | `npm run gov -- status MIP-21` | on-chain state |
+| `npm run gov -- open MIP-17` | propose, wait out the voting delay and vote; leaves it Active |
+| `npm run gov -- override MIP-21` | token holders overrule a watchdog flag: propose `guard.clear(operationId)`, vote, queue, execute it, then execute MIP-21 |
+| `npm run gov -- addresses` | every deployed address plus the demo accounts (#0, #1, #13, #14) |
 | `npm run flow MIP-12` | everything above, resuming from the proposal's current state |
+| `npm run gov -- flow MIP-12 + open MIP-17` | several commands in one process, in order (reset.sh uses this) |
 
 The description is `# <slug>: <forum title>`, derived from `/data` every time, so queue and execute always match the proposal; the backend links chain proposals to its records by the slug in it.
 

@@ -258,6 +258,19 @@ export const CommitResult = named("CommitResult", z.strictObject({
   blockNumber: z.number(),
 }));
 
+export const ReverifyResult = named("ReverifyResult", z.strictObject({
+  allMatch: z.boolean(),
+  versions: z.array(z.strictObject({
+    version: z.number(),
+    versionHash: Hex,
+    onchainVersionHash: Hex.nullable(),
+    evidenceRootMatch: z.boolean(),
+    match: z.boolean(),
+  })),
+  simMatch: z.boolean(),
+  findingsMatch: z.boolean(),
+}));
+
 export const PipelineProgress = named("PipelineProgress", z.strictObject({
   proposalId: z.string(),
   step: z.enum(["ingest", "summarize", "extractIntent", "commit", "coi", "simulate", "verdict", "risk"]),
@@ -285,5 +298,5 @@ export const Health = named("Health", z.strictObject({
 export const SHARED_SCHEMAS = {
   Chunk, Citation, Claim, DecisionSummary, IntentAction, IntentSpec, Explanation, SimulationResult, Deployments,
   WalletLink, CoiReport, Finding, RiskStage, RiskChain, ProposalStatus, Proposal, EvidenceFile, ProposalVersion,
-  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, CommitResult, RunResult, DisclosureRequest, PipelineProgress, ApiError, Health,
+  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, CommitResult, RunResult, DisclosureRequest, ReverifyResult, PipelineProgress, ApiError, Health,
 } as const;

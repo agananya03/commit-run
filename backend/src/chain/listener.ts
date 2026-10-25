@@ -23,6 +23,8 @@ export interface ListenerOptions {
   bus?: EventBus;
   logger: Pick<Logger, "info" | "warn" | "error">;
   pollMs?: number;
+  /** Every GuardedTimelock CallScheduled (live or backfilled); the watchdog dedupes per operation. */
+  onCallScheduled?: (operationId: string) => void;
 }
 
 interface Watched {
@@ -146,6 +148,7 @@ export class ChainListener {
       }],
       skipDuplicates: true,
     });
+    if (watched.name === "GuardedTimelock" && desc.name === "CallScheduled") this.opts.onCallScheduled?.(lower(desc.args.id as string));
     if (live && created.count > 0) {
       this.opts.bus?.emit("chain:event", {
         proposalId: proposal?.slug ?? null,

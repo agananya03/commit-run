@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type { RagClient } from "../clients/ragClient.js";
 import type { Explanation, Finding } from "../contracts/schemas.js";
 import { HttpError } from "../errors.js";
+import { compactFindings } from "./service.js";
 
 type FindingT = z.infer<typeof Finding>;
 type ExplanationT = z.infer<typeof Explanation>;
@@ -37,9 +38,7 @@ export function templateExplanation(proposalId: string, findings: FindingT[]): E
 /** rag /explain; falls back to the template only when rag is unreachable and has no mock (never on an invalid response). */
 export async function explainFindings(rag: RagClient, proposalId: string, findings: FindingT[]): Promise<{ explanation: ExplanationT; source: "rag" | "template" }> {
   try {
-    // The shared request type has no explicit `undefined` for simRef, so drop the key when it is absent
-    const body = findings.map(({ simRef, ...f }) => (simRef ? { ...f, simRef } : f));
-    return { explanation: await rag.explain({ proposalId, findings: body }), source: "rag" };
+    return { explanation: await rag.explain({ proposalId, findings: compactFindings(findings) }), source: "rag" };
   } catch (err) {
     if (err instanceof HttpError && err.code === "UPSTREAM_UNAVAILABLE") return { explanation: templateExplanation(proposalId, findings), source: "template" };
     throw err;

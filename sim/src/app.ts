@@ -2,7 +2,7 @@ import express, { type ErrorRequestHandler, type Express } from "express";
 import type { Logger } from "pino";
 import { ZodError } from "zod";
 import type { Health } from "../../shared/schemas/types.js";
-import { SimulateRequest } from "./schema.js";
+import { ResetRequest, SimulateRequest } from "./schema.js";
 import type { Simulator } from "./simulate.js";
 
 export interface AppDeps {
@@ -36,6 +36,25 @@ export function createApp(deps: AppDeps): Express {
     res.json(body);
   });
 
+  /** Addresses and ABIs the sim decodes with (same shape as /shared/mocks/deployments.json). */
+  app.get("/deployments", (_req, res) => {
+    if (!deps.simulator) {
+      res.status(502).json(apiError("UPSTREAM_UNAVAILABLE", "Simulator is not configured"));
+      return;
+    }
+    res.json(deps.simulator.deployments);
+  });
+
+  /** Re-forks Anvil from the Hardhat node's head (or { forkBlock }): use after the node restarts or a demo reset. */
+  app.post("/reset", async (req, res) => {
+    if (!deps.simulator) {
+      res.status(502).json(apiError("UPSTREAM_UNAVAILABLE", "Simulator is not configured"));
+      return;
+    }
+    const body = ResetRequest.parse(req.body ?? {});
+    res.json(await deps.simulator.reset(body.forkBlock));
+  });
+
   app.post("/simulate", async (req, res) => {
     if (!deps.simulator) {
       res.status(502).json(apiError("UPSTREAM_UNAVAILABLE", "Simulator is not configured"));
@@ -48,7 +67,7 @@ export function createApp(deps: AppDeps): Express {
   const onError: ErrorRequestHandler = (err: unknown, req, res, _next) => {
     if (err instanceof ZodError) {
       // A bad request body is the caller's fault; a result failing the schema would be our bug.
-      const isRequest = req.path === "/simulate" && !res.headersSent && err.issues.every((i) => i.path.length === 0 || ["proposalId", "targets", "values", "calldatas", "forkBlock"].includes(String(i.path[0])));
+      const isRequest = (req.path === "/simulate" || req.path === "/reset") && !res.headersSent && err.issues.every((i) => i.path.length === 0 || ["proposalId", "targets", "values", "calldatas", "forkBlock"].includes(String(i.path[0])));
       if (isRequest) {
         res.status(400).json(apiError("VALIDATION_FAILED", "Request failed validation", err.issues));
         return;

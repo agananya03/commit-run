@@ -3,11 +3,16 @@
  *
  *   npm run gov -- propose MIP-21    propose from the scenario's proposer; prints the proposalId and calldata JSON
  *   npm run gov -- vote MIP-21       cast every vote in data/scenarios/<id>/votes.json
+ *   npm run gov -- open MIP-17       propose, wait out the voting delay and vote; leaves the proposal Active
  *   npm run gov -- advance [blocks] [seconds]   mine blocks and/or move time forward (default: voting period + 1 block)
  *   npm run gov -- queue MIP-21      queue the passed proposal in the GuardedTimelock; prints the operation id
  *   npm run gov -- execute MIP-21    execute after the timelock delay (reverts GuardFlagged if the watchdog flagged it)
  *   npm run gov -- status MIP-21     on-chain state of the proposal
+ *   npm run gov -- override MIP-21   token holders overrule the watchdog: propose guard.clear(operationId), vote,
+ *                                    queue and execute it, then execute the original proposal
  *   npm run flow MIP-12              all of the above, resuming from the proposal's current state
+ *   npm run gov -- addresses         every deployed address and the demo accounts
+ *   npm run gov -- flow MIP-12 + open MIP-17    several commands in one process, in order
  *
  * Standalone ethers script (not `hardhat run`, which cannot take arguments). Uses the default Hardhat mnemonic and
  * contracts/deployments/localhost.json; RPC_URL overrides the node (default http://127.0.0.1:8545).
@@ -16,6 +21,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ethers } from "ethers";
 import { encodeActions, hardhatAddress, hardhatKey, type Action, type Deployments, type EncodedProposal } from "./lib/actions";
+import { governorSalt, overrideProposal } from "./lib/override";
 
 const REPO = join(__dirname, "..", "..");
 const RPC_URL = process.env.RPC_URL ?? "http://127.0.0.1:8545";
@@ -42,9 +48,15 @@ const contract = (name: string, runner: ethers.ContractRunner = provider) => {
   return new ethers.Contract(c.address, c.abi as ethers.InterfaceAbi, runner);
 };
 
+interface Vote {
+  index: number;
+  choice: string;
+}
+
 interface Scenario {
   slug: string;
   proposer: number;
+  votes: Vote[];
   description: string;
   descriptionHash: string;
   encoded: EncodedProposal;
@@ -70,7 +82,8 @@ async function loadScenario(slug: string): Promise<Scenario> {
   const description = `# ${slug}: ${(forum.title ?? slug).replace(/^\[[^\]]+\]\s*/, "")}`;
   const descriptionHash = ethers.id(description);
   const proposalId = (await contract("MeridianGovernor").getFunction("hashProposal")(encoded.targets, encoded.values, encoded.calldatas, descriptionHash)) as bigint;
-  return { slug, proposer, description, descriptionHash, encoded, proposalId };
+  const votes = readJson<{ votes: Vote[] }>(join(dir, "votes.json")).votes;
+  return { slug, proposer, votes, description, descriptionHash, encoded, proposalId };
 }
 
 async function stateOf(s: Scenario): Promise<(typeof STATES)[number] | null> {
@@ -103,7 +116,6 @@ async function propose(s: Scenario): Promise<void> {
 }
 
 async function vote(s: Scenario): Promise<void> {
-  const file = readJson<{ votes: { index: number; choice: string }[] }>(join(REPO, "data", "scenarios", s.slug, "votes.json"));
   const governor = contract("MeridianGovernor");
   const tally: Record<string, number> = { for: 0, against: 0, abstain: 0 };
   // With automine every vote would be its own block, and 40+ voters outlast a 20-block voting period.
@@ -111,7 +123,7 @@ async function vote(s: Scenario): Promise<void> {
   await provider.send("evm_setAutomine", [false]);
   try {
     const sent: ethers.ContractTransactionResponse[] = [];
-    for (const v of file.votes) {
+    for (const v of s.votes) {
       const support = SUPPORT[v.choice.toLowerCase()];
       if (support === undefined) throw new Error(`unknown vote choice ${v.choice} for #${v.index}`);
       if ((await governor.getFunction("hasVoted")(s.proposalId, hardhatAddress(v.index))) as boolean) continue;
@@ -167,6 +179,43 @@ async function execute(s: Scenario): Promise<boolean> {
   }
 }
 
+/** The timelock operation id a queued proposal gets (what the watchdog flags). */
+async function operationIdOf(s: Scenario): Promise<string> {
+  const salt = governorSalt(await contract("MeridianGovernor").getAddress(), s.descriptionHash);
+  return (await contract("GuardedTimelock").getFunction("hashOperationBatch")(s.encoded.targets, s.encoded.values, s.encoded.calldatas, ethers.ZeroHash, salt)) as string;
+}
+
+/**
+ * Token holders overrule the watchdog: a proposal calling guard.clear(operationId) goes through the full
+ * propose -> vote -> queue -> delay -> execute cycle, and then the original proposal executes after all.
+ * Everyone in the scenario's votes.json votes For the override (edit here to stage a contested override).
+ */
+async function override(s: Scenario): Promise<void> {
+  const operationId = await operationIdOf(s);
+  const guard = contract("GovernanceGuard");
+  if (!((await guard.getFunction("isFlagged")(operationId)) as boolean)) {
+    throw new Error(`${s.slug} (operation ${operationId}) is not flagged; nothing to override`);
+  }
+  const o = overrideProposal(await guard.getAddress(), operationId, s.slug);
+  const descriptionHash = ethers.id(o.description);
+  const encoded: EncodedProposal = { targets: o.targets, values: o.values, calldatas: o.calldatas };
+  const proposalId = (await contract("MeridianGovernor").getFunction("hashProposal")(o.targets, o.values, o.calldatas, descriptionHash)) as bigint;
+  const overrideScenario: Scenario = {
+    slug: `${s.slug} override`,
+    proposer: 2, // any token holder may propose (threshold 0); #2 is a delegate
+    votes: s.votes.map((v) => ({ index: v.index, choice: "for" })),
+    description: o.description,
+    descriptionHash,
+    encoded,
+    proposalId,
+  };
+  console.log(`overriding the watchdog flag on ${s.slug} (operation ${operationId})`);
+  await flow(overrideScenario);
+  if ((await guard.getFunction("isFlagged")(operationId)) as boolean) throw new Error("override executed but the operation is still flagged");
+  console.log(`\n== flag cleared by governance; executing ${s.slug}`);
+  await execute(s);
+}
+
 async function status(s: Scenario): Promise<void> {
   const state = await stateOf(s);
   console.log(`${s.slug}: ${state ?? "not proposed"} (governorProposalId ${s.proposalId})`);
@@ -199,18 +248,46 @@ async function flow(s: Scenario): Promise<void> {
   }
 }
 
-async function main(): Promise<void> {
-  const [command, arg1, arg2] = process.argv.slice(2);
+/** Proposes and votes, then stops with the proposal still Active (the voting period keeps running). */
+async function open(s: Scenario): Promise<void> {
+  if ((await stateOf(s)) === null) await propose(s);
+  if ((await stateOf(s)) === "Pending") await advance(Number(await contract("MeridianGovernor").getFunction("votingDelay")()) + 1, 0);
+  if ((await stateOf(s)) !== "Active") throw new Error(`${s.slug} is ${await stateOf(s)}, cannot vote`);
+  await vote(s);
+  await status(s);
+}
+
+/** Every contract address plus the accounts the demo talks about. */
+function addresses(): void {
+  for (const [name, c] of Object.entries(deployments.contracts)) console.log(`  ${name.padEnd(26)} ${c.address}`);
+  const accounts: [string, number][] = [["deployer / committer", 0], ["watchdog", 1], ["MIP-21 proposer", 13], ["MIP-21 alt wallet", 14]];
+  for (const [label, i] of accounts) console.log(`  ${`${label} #${i}`.padEnd(26)} ${hardhatAddress(i)}`);
+}
+
+const USAGE = "usage: governance.ts <propose|vote|open|queue|execute|status|flow|override> <MIP-xx> | advance [blocks] [seconds] | addresses  (chain several with +)";
+
+async function runOne(command: string | undefined, arg1: string | undefined, arg2: string | undefined): Promise<void> {
+  if (command === "addresses") return addresses();
   if (command === "advance") {
     const votingPeriod = Number(await contract("MeridianGovernor").getFunction("votingPeriod")());
     return advance(arg1 !== undefined ? Number(arg1) : votingPeriod + 1, arg2 !== undefined ? Number(arg2) : 0);
   }
-  if (!command || !arg1) throw new Error("usage: governance.ts <propose|vote|queue|execute|status|flow> <MIP-xx> | advance [blocks] [seconds]");
+  if (!command || !arg1) throw new Error(USAGE);
   const s = await loadScenario(arg1);
-  const commands: Record<string, (x: Scenario) => Promise<unknown>> = { propose, vote, queue, execute, status, flow };
+  const commands: Record<string, (x: Scenario) => Promise<unknown>> = { propose, vote, open, queue, execute, status, flow, override };
   const run = commands[command];
   if (!run) throw new Error(`unknown command ${command}`);
   await run(s);
+}
+
+/** `flow MIP-12 + open MIP-17 + status MIP-21` runs the commands in order in one process (reset.sh uses this). */
+async function main(): Promise<void> {
+  const groups: string[][] = [[]];
+  for (const a of process.argv.slice(2)) {
+    if (a === "+") groups.push([]);
+    else groups.at(-1)!.push(a);
+  }
+  for (const [command, arg1, arg2] of groups) await runOne(command, arg1, arg2);
 }
 
 main().catch((err: unknown) => {

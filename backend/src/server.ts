@@ -13,6 +13,8 @@ import { attachSocket } from "./events.js";
 import { loadRootEnv, repoRoot } from "./loadRootEnv.js";
 import { Pipeline } from "./pipeline/pipeline.js";
 import { ProposalService } from "./proposals/service.js";
+import { Watchdog } from "./watchdog/worker.js";
+import { Reverifier } from "./integrity/reverify.js";
 
 loadRootEnv();
 const env = loadEnv();
@@ -29,7 +31,7 @@ const proposals = new ProposalService({ db, dataDir: env.DATA_DIR, uploadDir: en
 // The HTTP server exists first so Socket.IO (the pipeline's event bus) can attach before the app is built.
 const httpServer = createServer();
 const { io, bus } = attachSocket(httpServer, env.CORS_ORIGIN, logger);
-const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, proposals, deployments: chain.deployments, repoRoot }, bus, logger });
+const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, proposals, deployments: chain.deployments, repoRoot, chainHead: async () => Number(await chain.provider.send("eth_blockNumber", [])) }, bus, logger });
 
 const redisProbe = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 });
 const app = createApp({
@@ -43,11 +45,15 @@ const app = createApp({
   corsOrigin: env.CORS_ORIGIN,
   proposals,
   pipeline,
+  reverifier: new Reverifier({ db, sim, registry: chain.registry, provider: chain.provider, deployments: chain.deployments, repoRoot }),
 });
 httpServer.on("request", app);
 
+// Re-simulates every queued operation and flags it on GovernanceGuard if the verdict is "halt".
+const watchdog = new Watchdog({ db, sim, rag, provider: chain.provider, signer: chain.signers.watchdog, deployments: chain.deployments, bus, logger });
+
 // Backfills ChainEvent + Transfer from block 0, then polls; keeps retrying quietly while the node is down.
-const listener = new ChainListener({ db, provider: chain.provider, deployments: chain.deployments, bus, logger });
+const listener = new ChainListener({ db, provider: chain.provider, deployments: chain.deployments, bus, logger, onCallScheduled: (op) => watchdog.onCallScheduled(op) });
 
 httpServer.listen(env.PORT, () => {
   logger.info(

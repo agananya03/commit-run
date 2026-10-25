@@ -8,8 +8,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { DecisionSummaryCard } from "@/components/DecisionSummaryCard";
 import { EvidenceTable } from "@/components/EvidenceTable";
+import { ExecutionDiff } from "@/components/ExecutionDiff";
 import { RiskChain } from "@/components/RiskChain";
 import { ProposalTimeline } from "@/components/ProposalTimeline";
+import { ConflictsGraph } from "@/components/ConflictsGraph";
 import { useEvidencePanel } from "@/components/EvidencePanel";
 import type { EvidenceFile } from "@/types/shared";
 import { Badge } from "@/components/ui/badge";
@@ -312,7 +314,13 @@ export default function ProposalDetailPage() {
 
         {/* 2. EXECUTION TAB */}
         <TabsContent value="execution">
-          <EvidenceTable proposalId={proposalId} />
+          <ExecutionDiff
+            proposalId={proposalId}
+            intent={bundle?.intent}
+            simulation={bundle?.simulation}
+            findings={bundle?.findings}
+            explanation={bundle?.explanation}
+          />
         </TabsContent>
 
         {/* 4. EVIDENCE TAB (Requirement 4) */}
@@ -475,42 +483,16 @@ export default function ProposalDetailPage() {
 
         {/* 4. CONFLICTS TAB */}
         <TabsContent value="conflicts">
-          <Card className="border-slate-800 bg-slate-900/80 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <GitBranch className="w-4 h-4 text-indigo-400" />
-                <span>Conflict-of-Interest & Sybil Graph Network</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-400">
-                Forensic wallet transfer trails and hidden delegate voting collusion links.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 font-mono text-xs">
-              <div className="rounded-lg bg-slate-950 p-4 border border-slate-800 space-y-2">
-                <div className="text-indigo-400 font-bold text-xs uppercase tracking-wider">
-                  Detected Collusion & Laundering Trails:
-                </div>
-                {proposalId === "MIP-21" ? (
-                  <ul className="space-y-1.5 text-slate-300">
-                    <li>• Proposer Wallet 13 transferred 2.0 ETH seed capital to Alt Wallet 14 (Path [13, 14], P=0.95)</li>
-                    <li>• Alt Wallet 14 routed capital to Proposer Secondary Wallet 17 (Path [14, 17], P=0.90)</li>
-                    <li>• 4 Whale Colluders (Wallets 18, 19, 20, 21) control 61.0% delegated voting power</li>
-                  </ul>
-                ) : (
-                  <ul className="space-y-1.5 text-slate-300">
-                    <li>• Proposer Wallet 10 transferred 25 ETH to Intermediary 11 (offset 1100)</li>
-                    <li>• Intermediary 11 transferred 20 ETH to Recipient Wallet 12 (Nexus Labs, offset 1110)</li>
-                    <li>• Proposer 10 secretly funded Whale 18 (5 ETH) and Whale 19 (5 ETH)</li>
-                  </ul>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <ConflictsGraph proposalId={proposalId} coi={bundle?.coi} />
         </TabsContent>
 
         {/* 5. RISK TAB */}
         <TabsContent value="risk">
-          <RiskChain proposalId={proposalId} />
+          <RiskChain
+            proposalId={proposalId}
+            risk={bundle?.risk}
+            findings={bundle?.findings}
+          />
         </TabsContent>
 
         {/* 6. TIMELINE TAB */}

@@ -4,11 +4,12 @@ import type { z } from "zod";
 import type { PipelineStep } from "../../../shared/schemas/types.js";
 import type { RagClient } from "../clients/ragClient.js";
 import type { SimClient } from "../clients/simClient.js";
-import { CoiReport, DecisionSummary, IntentSpec, SimulationResult } from "../contracts/schemas.js";
+import type { DecisionSummary, IntentSpec } from "../contracts/schemas.js";
 import { encodeActions } from "../chain/actions.js";
 import { coiReportFor, saveCoiReport } from "../coi/service.js";
 import { explainFindings } from "../verdict/explain.js";
-import { evaluate } from "../verdict/rules.js";
+import { findingsForRun, storeFindings } from "../verdict/service.js";
+import { riskForRun, saveRisk } from "../risk/service.js";
 import type { DeploymentsT } from "../chain/contracts.js";
 import type { Db } from "../db.js";
 import { HttpError } from "../errors.js";
@@ -29,6 +30,8 @@ export interface StepDeps {
   deployments: DeploymentsT;
   /** Evidence file uris are relative to it. */
   repoRoot: string;
+  /** Current chain head; the simulate step pins its fork block to it so reverify can replay the run. */
+  chainHead?: () => Promise<number>;
 }
 
 /** What a step returns (kept as the BullMQ job's return value, visible in /queues). */
@@ -98,46 +101,39 @@ export const STEPS: Record<PipelineStep, Processor> = {
   },
 
   /** sim /simulate on the calldata encoded from the version's on-chain actions. */
-  async simulate({ proposalId, slug, versionId }, { db, sim, deployments }) {
+  async simulate({ proposalId, slug, versionId }, { db, sim, deployments, chainHead }) {
     const existing = await db.simulationRun.findFirst({ where: { proposalVersionId: versionId, source: "PROPOSED" } });
     if (existing) return { cached: true, simHash: existing.simHash };
     const version = await versionOf(db, versionId);
     const actions = (version.canonicalJson as { onchainActions?: unknown }).onchainActions;
-    const request = encodeActions(actions, deployments, slug);
+    const forkBlock = chainHead ? await chainHead().catch(() => undefined) : undefined;
+    const request = { ...encodeActions(actions, deployments, slug), ...(forkBlock !== undefined ? { forkBlock } : {}) };
     const result = await sim.simulate(request);
     await db.simulationRun.create({
-      data: { proposalId, proposalVersionId: versionId, source: "PROPOSED", data: json(result), success: result.success, simHash: result.simHash, bytecodeHash: result.bytecodeHash },
+      data: { proposalId, proposalVersionId: versionId, source: "PROPOSED", forkBlock: forkBlock ?? null, data: json(result), success: result.success, simHash: result.simHash, bytecodeHash: result.bytecodeHash },
     });
     return { success: result.success, calls: request.calldatas.length, simHash: result.simHash };
   },
 
   /** Said-vs-does rules (verdict/rules.ts) on the version's proposed simulation, then one explanation via rag /explain. */
-  async verdict({ slug, proposalId, versionId }, { db, rag }) {
+  async verdict({ slug, versionId }, { db, rag }) {
     const run = await db.simulationRun.findFirst({ where: { proposalVersionId: versionId, source: "PROPOSED" }, orderBy: { createdAt: "desc" } });
     if (!run) throw new Error(`no proposed simulation for ${slug}; the simulate step must run first`);
     if (run.explanation !== null) return { cached: true };
-    const version = await db.proposalVersion.findUniqueOrThrow({ where: { id: versionId }, include: { intentSpec: true, summary: true, coiReport: true } });
-    if (!version.intentSpec) throw new Error(`no intent for ${slug}; the extractIntent step must run first`);
-
-    const findings = evaluate({
-      intent: IntentSpec.parse(version.intentSpec.data),
-      sim: SimulationResult.parse(run.data),
-      summary: version.summary ? DecisionSummary.parse(version.summary.data) : null,
-      coi: version.coiReport ? CoiReport.parse(version.coiReport.data) : null,
-    });
+    const findings = await findingsForRun(db, run.id, versionId);
     const { explanation, source } = await explainFindings(rag, slug, findings);
-    // Replace, not append: a retry after a failed explain must not duplicate rows.
-    await db.$transaction([
-      db.finding.deleteMany({ where: { simulationRunId: run.id } }),
-      db.finding.createMany({
-        data: findings.map((f) => ({ proposalId, simulationRunId: run.id, findingKey: f.id, severity: f.severity, category: f.category, said: f.said, does: f.does, evidence: json(f.evidence), simRef: f.simRef ?? null })),
-      }),
-      db.simulationRun.update({ where: { id: run.id }, data: { explanation: json(explanation) } }),
-    ]);
+    await storeFindings(db, run, findings, explanation);
     return { findings: findings.length, critical: findings.filter((f) => f.severity === "critical").length, explanation: source };
   },
 
-  async risk() {
-    return { placeholder: true, note: "4-stage probabilistic risk chain lands in H13" };
+  /** 4-stage risk chain (risk/chain.ts) over the version's proposed simulation run. */
+  async risk({ slug, versionId }, { db }) {
+    const run = await db.simulationRun.findFirst({ where: { proposalVersionId: versionId, source: "PROPOSED" }, orderBy: { createdAt: "desc" } });
+    if (!run) throw new Error(`no proposed simulation for ${slug}; the simulate step must run first`);
+    const existing = await db.riskChainRecord.findFirst({ where: { simulationRunId: run.id } });
+    if (existing) return { cached: true, level: existing.level, action: existing.action };
+    const risk = await riskForRun(db, run.id);
+    await saveRisk(db, run, risk);
+    return { posterior: risk.posterior, level: risk.level, action: risk.action };
   },
 };

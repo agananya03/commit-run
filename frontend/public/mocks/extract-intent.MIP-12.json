@@ -1,0 +1,34 @@
+{
+  "proposalId": "MIP-12",
+  "summary": "A 400,000 USDC grant from the Treasury to Meridian Studio Collective (wallet index 9) for the TypeScript SDK and subgraph indexer; no contract changes.",
+  "actions": [
+    {
+      "kind": "transfer",
+      "token": "USDC",
+      "amount": "400000000000",
+      "recipient": "wallet index 9 (Meridian Studio Collective)",
+      "description": "Transfer 400,000 USDC from the Meridian Treasury to Meridian Studio Collective (wallet index 9).",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:1",
+          "sha256": "0xce280622ea8234746bc4752c93538f30ec91ec49163983675c4263d782389690",
+          "quote": "We request a grant of 400,000 USDC from the Meridian Treasury",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        },
+        {
+          "chunkId": "MIP-12:pdf:1",
+          "sha256": "0xce280622ea8234746bc4752c93538f30ec91ec49163983675c4263d782389690",
+          "quote": "The recipient address is wallet index 9, owned and operated by Meridian Studio Collective.",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ]
+    }
+  ],
+  "explicitlyExcluded": [
+    "no private keys held by the SDK",
+    "no admin roles",
+    "no proxy upgrades",
+    "no contract changes or upgradeToAndCall deployments to the Vault"
+  ],
+  "confidence": 0.94
+}

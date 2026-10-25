@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
-    "disclosures:sign": "tsx scripts/sign-disclosures.ts"
+    "disclosures:sign": "tsx scripts/sign-disclosures.ts",
+    "demo:halt": "tsx demo/halt-mip21.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^9.1.0",

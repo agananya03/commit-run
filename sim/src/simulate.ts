@@ -88,7 +88,30 @@ export class Simulator {
   }
 
   simulate(req: SimulateRequestT): Promise<SimulationResultT> {
-    const run = this.queue.then(() => this.run(req));
+    return this.enqueue(() => this.run(req));
+  }
+
+  /** The deployments the simulator decodes with (served as GET /deployments). */
+  get deployments() {
+    return this.d.book.deployments;
+  }
+
+  /**
+   * Re-forks Anvil from the source node's current head (or forkBlock), dropping any state left on the fork. Queued
+   * behind running simulations, so it never pulls the fork out from under one.
+   */
+  reset(forkBlock?: number): Promise<{ forkBlock: number; sourceHead: number }> {
+    return this.enqueue(async () => {
+      const sourceHead = Number(await this.d.source.send("eth_blockNumber", []));
+      const block = forkBlock ?? sourceHead;
+      await this.d.anvil.send("anvil_reset", [{ forking: { jsonRpcUrl: this.d.rpcUrl, blockNumber: block } }]);
+      this.d.logger.info({ forkBlock: block, sourceHead }, "fork reset");
+      return { forkBlock: block, sourceHead };
+    });
+  }
+
+  private enqueue<T>(f: () => Promise<T>): Promise<T> {
+    const run = this.queue.then(f);
     this.queue = run.catch(() => undefined);
     return run;
   }

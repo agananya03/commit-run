@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from fastapi import APIRouter, HTTPException, status
 
-from app.models.contracts import Chunk, DecisionSummary, IntentSpec
+from app.models.contracts import Chunk, DecisionSummary, Explanation, IntentSpec
 from app.models.requests import (
     ExplainRequest,
     ExtractIntentRequest,
@@ -22,6 +22,7 @@ from app.services.ingest import ingest_proposal_files
 from app.services.search import hybrid_search
 from app.services.summarize import generate_decision_summary
 from app.services.extract_intent import extract_intent_spec
+from app.services.explain import generate_explanation
 
 router = APIRouter()
 
@@ -71,27 +72,15 @@ def search(request: SearchRequest) -> list[Chunk]:
     return hybrid_search(request.proposalId, request.query, request.k)
 
 
-@router.post("/explain", response_model=dict[str, Any])
-def explain(request: ExplainRequest) -> dict[str, Any]:
+@router.post("/explain", response_model=Explanation)
+def explain(request: ExplainRequest) -> Explanation:
     """
-    Explains findings or proposal summary with citations.
+    Explains findings for non-technical token holders.
+    Rules: written for non-technical token holders, strictly under 120 words,
+    quotes what the proposal said and states what the code actually does,
+    never invents facts not present in findings, keeps finding IDs.
     """
-    try:
-        summary = load_mock_summary(request.proposalId)
-    except FileNotFoundError:
-        summary = load_mock_summary("MIP-21")
-
-    return {
-        "headline": f"Analysis for {request.proposalId}",
-        "paragraph": summary.tldr,
-        "perFinding": [
-            {
-                "findingId": f.get("id", f"f{i+1}") if isinstance(f, dict) else getattr(f, "id", f"f{i+1}"),
-                "sentence": f.get("does", "") if isinstance(f, dict) else getattr(f, "does", ""),
-            }
-            for i, f in enumerate(request.findings)
-        ],
-    }
+    return generate_explanation(request.proposalId, request.findings)
 
 
 @router.get("/chunks/{chunk_id:path}", response_model=Chunk)

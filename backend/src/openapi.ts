@@ -1,6 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { ApiError, CoiReport, CommitResult, CreateProposalRequest, DisclosureRequest, Health, Proposal, ProposalBundle, ProposalVersion, RunResult } from "./contracts/schemas.js";
+import { ApiError, CoiReport, CommitResult, CreateProposalRequest, DisclosureRequest, Health, ReverifyResult, Proposal, ProposalBundle, ProposalVersion, RunResult } from "./contracts/schemas.js";
 
 const errors = (...codes: (400 | 404 | 409 | 502)[]) =>
   Object.fromEntries(
@@ -102,6 +102,17 @@ export function buildOpenApiDocument() {
       "linked wallets missing from the signed list count as undisclosed. 400 if the signer is not the proposer; 409 if the same disclosure is already in the latest version.",
     request: { params: idParam, body: { required: true, content: { "application/json": { schema: DisclosureRequest } } } },
     responses: { 201: { description: "COI report for the new version", content: { "application/json": { schema: CoiReport } } }, ...errors(400, 404, 409) },
+  });
+
+  r.registerPath({
+    method: "post",
+    path: "/proposals/{id}/reverify",
+    summary: "Recompute everything and compare with the chain (who watches the watchdog)",
+    description:
+      "Per version: re-hashes the stored evidence files, rebuilds canonical JSON, evidence root and versionHash from scratch (chaining recomputed prevHashes) and compares them with ProposalRegistry's ProposalCommitted logs. " +
+      "Then replays the decisive simulation (the flagged run, else the latest queued, else the latest proposed) on its pinned fork block and compares simHash, and recomputes the findings and compares their hash with the findingsHash in GovernanceGuard's Flagged event.",
+    request: { params: idParam },
+    responses: { 200: { description: "Comparison", content: { "application/json": { schema: ReverifyResult } } }, ...errors(404, 409, 502) },
   });
 
   return new OpenApiGeneratorV31(r.definitions).generateDocument({

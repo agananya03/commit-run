@@ -63,6 +63,18 @@ export class RegistryClient {
     }
   }
 
+  /** Every ProposalCommitted for a registry id, in chain order (version 1 first). */
+  async commits(id: bigint): Promise<{ version: number; versionHash: string; prevHash: string; evidenceRoot: string; txHash: string; blockNumber: number }[]> {
+    const logs = await this.call(() => this.registry.queryFilter(this.registry.filters.ProposalCommitted!(id), 0, "latest"));
+    return logs
+      .map((log) => {
+        const a = (log as unknown as { args: { version: bigint; versionHash: string; prevHash: string; evidenceRoot: string } }).args;
+        return { version: Number(a.version), versionHash: a.versionHash.toLowerCase(), prevHash: a.prevHash.toLowerCase(), evidenceRoot: a.evidenceRoot.toLowerCase(), txHash: log.transactionHash, blockNumber: log.blockNumber, logIndex: log.index };
+      })
+      .sort((x, y) => x.blockNumber - y.blockNumber || x.logIndex - y.logIndex)
+      .map(({ logIndex: _l, ...c }) => c);
+  }
+
   /** Finds the ProposalCommitted log for an already-committed version (used to recover a lost tx hash). */
   async findCommit(id: bigint, versionHash: string): Promise<CommitReceipt | null> {
     const logs = await this.call(() => this.registry.queryFilter(this.registry.filters.ProposalCommitted!(id), 0, "latest"));

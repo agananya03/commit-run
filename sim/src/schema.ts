@@ -18,6 +18,9 @@ export const SimulateRequest = z
 
 export type SimulateRequestT = z.infer<typeof SimulateRequest>;
 
+/** POST /reset body (optional). */
+export const ResetRequest = z.strictObject({ forkBlock: z.number().int().nonnegative().optional() });
+
 const SelectorRef = z.strictObject({ selector: z.string(), signature: z.string().optional() });
 
 export const SimulationResult = z.strictObject({

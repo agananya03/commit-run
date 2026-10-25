@@ -9,6 +9,7 @@ import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import type { Pipeline } from "./pipeline/pipeline.js";
+import type { Reverifier } from "./integrity/reverify.js";
 import type { ProposalService } from "./proposals/service.js";
 import { proposalRoutes } from "./routes/proposals.js";
 
@@ -20,6 +21,8 @@ export interface AppDeps {
   corsOrigin?: string;
   proposals?: ProposalService;
   pipeline?: Pipeline;
+  /** POST /proposals/:id/reverify; needs the chain and the sim. */
+  reverifier?: Reverifier;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -57,7 +60,7 @@ export function createApp(deps: AppDeps): Express {
     app.use("/queues", board.getRouter());
   }
 
-  if (deps.proposals) app.use(proposalRoutes(deps.proposals, deps.pipeline));
+  if (deps.proposals) app.use(proposalRoutes(deps.proposals, deps.pipeline, deps.reverifier));
 
   app.use(unknownRoute);
   app.use(errorHandler(deps.logger));

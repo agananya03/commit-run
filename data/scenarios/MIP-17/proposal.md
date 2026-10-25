@@ -50,6 +50,7 @@ The budget detailed above provides sufficient runway for twelve months of sustai
 
 Given the cutting-edge and exploratory nature of cross-chain liquidity architecture, deliverables will be managed on an agile, rolling basis as market liquidity conditions evolve over subsequent quarters.
 
+- **Phase 1 Milestone**: Initial solver protocol specification and testnet settlement routing delivery date is March 31, 2027.
 - **Initial Discovery & Sprint Zero**: Architecture drafting, solver protocol specification, and internal testnet benchmarking.
 - **Progressive Testnet Rollout**: Deployment of experimental settlement contracts on Goerli and Sepolia testnets for community feedback and fuzz testing.
 - **Mainnet Staging & Soft Launch**: Gradual activation of routing rails with conservative debt ceilings and initial partner onboarding.

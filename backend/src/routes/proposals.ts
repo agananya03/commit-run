@@ -3,6 +3,7 @@ import multer from "multer";
 import { z } from "zod";
 import { CreateProposalRequest } from "../contracts/schemas.js";
 import { HttpError } from "../errors.js";
+import type { Reverifier } from "../integrity/reverify.js";
 import type { Pipeline } from "../pipeline/pipeline.js";
 import { EVIDENCE_TYPES, type ProposalService, type Upload } from "../proposals/service.js";
 import type { EvidenceType } from "../seed/scenarios.js";
@@ -27,7 +28,7 @@ const isMultipart = (req: Request): boolean => Boolean(req.is("multipart/form-da
 /** :id is a slug (MIP-21) or a database id. */
 const idParam = (req: Request): string => z.string().min(1).parse(req.params.id);
 
-export function proposalRoutes(service: ProposalService, pipeline?: Pipeline): Router {
+export function proposalRoutes(service: ProposalService, pipeline?: Pipeline, reverifier?: Reverifier): Router {
   const router = Router();
 
   router.post("/proposals/:id/run", async (req, res) => {
@@ -52,6 +53,11 @@ export function proposalRoutes(service: ProposalService, pipeline?: Pipeline): R
 
   router.post("/proposals/:id/commit", async (req, res) => {
     res.json(await service.commit(idParam(req)));
+  });
+
+  router.post("/proposals/:id/reverify", async (req, res) => {
+    if (!reverifier) throw new HttpError(502, "UPSTREAM_UNAVAILABLE", "Reverify needs the chain and the sim; they are not configured for this backend");
+    res.json(await reverifier.reverify(idParam(req)));
   });
 
   router.post("/proposals/:id/disclosure", async (req, res) => {

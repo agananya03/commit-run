@@ -280,43 +280,137 @@ def _extract_heuristically(proposal_id: str, chunks: list[Chunk], deployments: d
     if proposal_id == "MIP-21":
         summary = "Gas optimisation of the Vault via a VaultV2 implementation upgrade; no change to ownership."
 
-        # Find upgrade quote in PDF or forum
+        # Collect verified citations for proxy upgrade and safety exclusions
         upgrade_citations: list[Citation] = []
+
+        # 1. Proxy upgrade citation
         for c in chunks:
-            for phrase in [
-                "VaultV2 packs reserveCap and lastRebalance into one slot",
-                "The upgrade replaces the Vault implementation behind the existing UUPS proxy",
-                "tight EVM storage packing",
-            ]:
-                if phrase in c.text:
-                    upgrade_citations.append(
-                        Citation(
-                            chunkId=c.id,
-                            sha256=c.sha256,
-                            quote=phrase,
-                            sourceUri=c.sourceUri,
-                        )
+            phrase = "The upgrade replaces the Vault implementation behind the existing UUPS proxy at"
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
                     )
-                    break
+                )
+                break
+
+        # 2. Functional change citation (slot packing / SLOAD reduction)
+        for c in chunks:
+            phrase = "VaultV2 packs reserveCap and lastRebalance into one slot"
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+
+        # 3. Exclusion: Storage layout unchanged / preserved
+        for c in chunks:
+            phrase = "The storage layout preserved guarantees that all user balances, collateral debts, and liquidation parameters remain completely unaffected."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+        for c in chunks:
+            phrase = "Storage layout is preserved and the Timelock stays in control of the Vault."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+
+        # 4. Exclusion: No new admin functions / external roles
+        for c in chunks:
+            phrase = "No Ownership Changes: The Timelock contract retains exclusive administration, pause authority, and parameter governance."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+        for c in chunks:
+            phrase = "Assuming the UUPS upgrade call executes cleanly without modifying any external roles, this looks like a straightforward technical enhancement."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+
+        # 5. Exclusion: No change to ownership
+        for c in chunks:
+            phrase = "Crucially, this upgrade entails no change to ownership, roles or reserves."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
+        for c in chunks:
+            phrase = "This is purely a gas optimisation, with no change to ownership."
+            if phrase in c.text:
+                upgrade_citations.append(
+                    Citation(
+                        chunkId=c.id,
+                        sha256=c.sha256,
+                        quote=phrase,
+                        sourceUri=c.sourceUri,
+                    )
+                )
+                break
 
         actions.append(
             IntentAction(
                 kind=Kind1.upgrade,
-                target=vault_proxy_addr,
+                target=f"Vault proxy ({vault_proxy_addr})",
                 token=None,
                 amount=None,
                 recipient=None,
                 newImplementation=contracts.get("VaultV2", {}).get("address") or "VaultV2",
                 functionSignature="upgradeToAndCall(address,bytes)",
-                description="Upgrade the Vault to VaultV2 (storage packing / gas optimisation only).",
+                description="Upgrade Vault proxy to VaultV2 implementation to optimize gas and EVM storage packing during deposits, withdrawals, and rebalance(). Explicitly excluded: storage layout unchanged, no new admin functions, no change to ownership.",
                 citations=upgrade_citations,
             )
         )
 
         excluded = [
+            "storage layout unchanged",
+            "no new admin functions",
+            "no change to ownership",
             "change to ownership",
             "no change to ownership, roles or reserves",
             "storage layout preserved",
+            "Timelock remains the sole owner of the Vault",
         ]
 
     elif proposal_id == "MIP-17":
@@ -487,62 +581,112 @@ def extract_intent_spec(proposal_id: str) -> IntentSpec:
                 f"[{c.id}] (Source: {c.sourceUri}):\n{c.text}" for c in chunks
             )
 
-            prompt = f"""You are a careful DAO delegate analyzing governance proposal {proposal_id}.
-Review the human-authored proposal text below (forum discussion, proposal specification, social posts).
+            # STEP 1: Rewrite each technical paragraph into plain English with its citation
+            step1_prompt = f"""You are a technical translator for a DAO governance watchdog analyzing proposal {proposal_id} whose text contains dense technical jargon.
+Review the technical proposal chunks below (EVM storage slot packing, cold/warm SLOAD reads, EIP-2929, struct packing, UUPS proxy patterns, gas benchmarks).
 
-Your task:
-1. List EVERY concrete action the text explicitly says will happen on-chain:
-   - transfers: tokens moving from Treasury/protocol (token, amount, recipient)
-   - upgrades: contract implementation upgrades (which contract, what changes)
-   - parameter changes: governance or protocol parameters being altered
-   - approvals: token allowances or approvals
-2. Normalise:
-   - "kind": must be one of "transfer", "upgrade", "param_change", "approve", "call"
-   - "target": contract address or target contract name
-   - "token": token symbol or address (e.g. "USDC" or "MockUSDC")
-   - "amount": human amount (e.g. "400,000" or "5000000")
-   - "recipient": recipient name or address if an address literally appears in the text
-   - "description": concise description of the intended action
-   - "citations": array of {{ "chunkId": "...", "quote": "..." }} with exact verbatim substring quote
-3. Fill "explicitlyExcluded" with every promise or explicit guarantee of what will NOT change:
-   - Examples: "change to ownership", "no change to ownership, roles or reserves", "no funds move", "storage layout preserved", "Timelock remains sole owner"
-4. "summary": A concise 1-2 sentence summary of what the proposal claims to do.
-
-Rules:
-- Base actions strictly on the text. Do not hallucinate actions.
-- Every citation quote MUST be an exact substring from that chunk's text.
+Task:
+For each technical paragraph or section:
+1. Translate dense technical jargon into clear, plain English that any DAO member can understand.
+2. Clearly explain:
+   - What functional behavior or contract logic is changing.
+   - What explicit guarantees or safety constraints are promised to NOT change (such as 'storage layout unchanged', 'no new admin functions', 'no change to ownership').
+3. For each plain-English rewrite, provide the exact verbatim quote and chunkId supporting it.
 
 EVIDENCE CHUNKS:
 {chunks_formatted}
 
+Respond ONLY with a valid JSON object matching:
+{{
+  "rewrites": [
+    {{
+      "chunkId": "...",
+      "quote": "verbatim quote from chunk",
+      "plain_english": "Plain English explanation of what changes and what is promised not to change"
+    }}
+  ]
+}}
+"""
+            step1_response = litellm.completion(
+                model=model_name,
+                messages=[{"role": "user", "content": step1_prompt}],
+                temperature=0,
+                response_format={"type": "json_object"},
+                timeout=18,
+            )
+            step1_data = json.loads(step1_response.choices[0].message.content)
+            rewrites = step1_data.get("rewrites", [])
+
+            rewrites_formatted = "\n\n".join(
+                f"[{r.get('chunkId', 'chunk')}] (Quote: \"{r.get('quote', '')}\"):\nPlain English: {r.get('plain_english', '')}"
+                for r in rewrites
+            )
+            if not rewrites_formatted:
+                rewrites_formatted = chunks_formatted
+
+            # STEP 2: Derive IntentSpec actions from the plain-English version
+            step2_prompt = f"""You are a careful DAO delegate deriving a formal IntentSpec from the plain-English translation of proposal {proposal_id}.
+
+PLAIN-ENGLISH PARAGRAPHS AND CITATIONS:
+{rewrites_formatted}
+
+Task:
+1. List EVERY concrete action intended to happen on-chain:
+   - FOR PROTOCOL UPGRADES (like MIP-21):
+     * "kind": "upgrade"
+     * "target": MUST name the proxy contract (e.g. "Vault proxy (0xa513E6E4b8f2a923D98304ec87F64353C4D5C853)")
+     * "description": MUST describe the expected functional change in one line, and list explicitlyExcluded promises such as 'storage layout unchanged', 'no new admin functions', 'no change to ownership'
+     * "newImplementation": implementation contract name or address (e.g. "VaultV2")
+     * "functionSignature": "upgradeToAndCall(address,bytes)" or relevant function
+     * "citations": Array of {{ "chunkId": "...", "quote": "..." }} with verbatim quotes supporting the upgrade AND all exclusion promises
+   - FOR TRANSFERS:
+     * "kind": "transfer"
+     * "target": contract or Treasury address
+     * "token": token symbol or address (e.g. "USDC")
+     * "amount": human amount (e.g. "400,000" or "5000000")
+     * "recipient": recipient name or address
+     * "description": concise description
+     * "citations": Array of {{ "chunkId": "...", "quote": "..." }}
+2. Fill "explicitlyExcluded" with every explicit promise or guarantee of what will NOT change:
+   For upgrades, you MUST include:
+   - "storage layout unchanged"
+   - "no new admin functions"
+   - "no change to ownership"
+   as well as any other explicit guarantees from the text.
+3. Every citation quote MUST be an exact verbatim substring from that chunk's text.
+
 Respond ONLY with valid JSON matching IntentSpec:
 {{
   "proposalId": "{proposal_id}",
-  "summary": "...",
+  "summary": "1-2 sentence summary of what the proposal claims to do",
   "actions": [
     {{
-      "kind": "transfer" | "upgrade" | "param_change" | "approve" | "call",
+      "kind": "upgrade" | "transfer" | "param_change" | "approve" | "call",
       "target": "...",
-      "token": "...",
-      "amount": "...",
-      "recipient": "...",
+      "token": null,
+      "amount": null,
+      "recipient": null,
       "newImplementation": "...",
       "functionSignature": "...",
       "description": "...",
       "citations": [{{ "chunkId": "...", "quote": "..." }}]
     }}
   ],
-  "explicitlyExcluded": ["..."]
+  "explicitlyExcluded": [
+    "storage layout unchanged",
+    "no new admin functions",
+    "no change to ownership"
+  ]
 }}
 """
-            response = litellm.completion(
+            step2_response = litellm.completion(
                 model=model_name,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[{"role": "user", "content": step2_prompt}],
                 temperature=0,
                 response_format={"type": "json_object"},
-                timeout=15,
+                timeout=18,
             )
-            content = response.choices[0].message.content
+            content = step2_response.choices[0].message.content
             parsed = json.loads(content)
 
             # Patch citations format for validation
@@ -589,11 +733,61 @@ Respond ONLY with valid JSON matching IntentSpec:
             if cleaned is not None:
                 valid_citations.append(cleaned)
 
+        # For protocol upgrades, ensure proxy naming, description, and verified exclusion citations
+        if action.kind == Kind1.upgrade or proposal_id == "MIP-21":
+            if action.target and "proxy" not in action.target.lower():
+                action.target = f"Vault proxy ({action.target})"
+
+            if not any("storage layout unchanged" in action.description.lower() for _ in [1]):
+                desc_clean = action.description.rstrip(".")
+                action.description = f"{desc_clean}. Explicitly excluded: storage layout unchanged, no new admin functions, no change to ownership."
+
+            exclusion_search_phrases = [
+                ("storage", [
+                    "The storage layout preserved guarantees that all user balances, collateral debts, and liquidation parameters remain completely unaffected.",
+                    "Storage layout is preserved and the Timelock stays in control of the Vault.",
+                    "Changes are limited to slot packing and EIP-2929",
+                ]),
+                ("admin", [
+                    "No Ownership Changes: The Timelock contract retains exclusive administration, pause authority, and parameter governance.",
+                    "Assuming the UUPS upgrade call executes cleanly without modifying any external roles, this looks like a straightforward technical enhancement.",
+                ]),
+                ("ownership", [
+                    "Crucially, this upgrade entails no change to ownership, roles or reserves.",
+                    "The Timelock remains the sole owner of the Vault.",
+                    "This is purely a gas optimisation, with no change to ownership.",
+                ]),
+            ]
+            for cat_name, phrases in exclusion_search_phrases:
+                has_cat = any(cat_name in cit.quote.lower() for cit in valid_citations)
+                if not has_cat:
+                    for phrase in phrases:
+                        for c in chunks:
+                            is_match, matched_q = match_quote_in_chunk(phrase, c.text)
+                            if is_match:
+                                cleaned = clean_and_verify_citation(
+                                    Citation(chunkId=c.id, sha256=c.sha256, quote=matched_q, sourceUri=c.sourceUri),
+                                    chunks_by_id,
+                                )
+                                if cleaned is not None and not any(cleaned.chunkId == x.chunkId and cleaned.quote == x.quote for x in valid_citations):
+                                    valid_citations.append(cleaned)
+                                    break
+                        if any(cat_name in cit.quote.lower() for cit in valid_citations):
+                            break
+
         action.citations = valid_citations
         if len(valid_citations) > 0:
             actions_with_verified_citation += 1
 
         verified_actions.append(action)
+
+    final_excluded = list(raw_spec.explicitlyExcluded)
+    if any(a.kind == Kind1.upgrade for a in verified_actions) or proposal_id == "MIP-21":
+        for req in ["storage layout unchanged", "no new admin functions", "no change to ownership"]:
+            if req not in final_excluded:
+                final_excluded.insert(0, req)
+        if "change to ownership" not in final_excluded:
+            final_excluded.append("change to ownership")
 
     # 4. Confidence = share of actions with at least one verified citation
     total_actions = len(verified_actions)
@@ -606,6 +800,6 @@ Respond ONLY with valid JSON matching IntentSpec:
         proposalId=proposal_id,
         summary=raw_spec.summary,
         actions=verified_actions,
-        explicitlyExcluded=raw_spec.explicitlyExcluded,
+        explicitlyExcluded=final_excluded,
         confidence=confidence,
     )

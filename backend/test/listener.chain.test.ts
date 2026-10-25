@@ -1,4 +1,5 @@
 // ChainListener + importTransfers against a RUNNING Hardhat node with `npm run deploy:seed` applied (contracts
+// Timeouts scale with the chain: a full backfill reads every block (~11 ms each on a busy Hardhat node).
 // at the addresses in contracts/deployments/localhost.json) and the docker Postgres. Drives a real governance
 // flow (commit -> propose -> vote -> queue -> watchdog flag) and checks the listener links and updates the
 // proposal. Skips when the node, the deployment or the database is missing.
@@ -57,7 +58,7 @@ describe.skipIf(!online)("ChainListener (hardhat node + deploy:seed)", () => {
     rmSync(uploadDir, { recursive: true, force: true });
   });
 
-  it("backfills transfers from block 0, including D's hidden COI links", { timeout: 30_000 }, async () => {
+  it("backfills transfers from block 0, including D's hidden COI links", { timeout: 120_000 }, async () => {
     const range = await listener.tick();
     expect(range?.from).toBe(0);
     const eth = (from: number, to: number) => db!.transfer.findMany({ where: { token: null, from: hardhatAddress(from).toLowerCase(), to: hardhatAddress(to).toLowerCase() } });
@@ -77,7 +78,7 @@ describe.skipIf(!online)("ChainListener (hardhat node + deploy:seed)", () => {
     const again = await importTransfers(db!, provider, deployments!, 0, await provider.getBlockNumber());
     expect(again.inserted).toBe(0);
     expect(await db!.transfer.count()).toBe(before);
-  }, 30_000);
+  }, 120_000);
 
   it("links a real governance flow to our proposal and moves its status to HALTED", async () => {
     const version = await db!.proposalVersion.findFirstOrThrow({ where: { proposal: { slug: SLUG } } });
@@ -118,10 +119,13 @@ describe.skipIf(!online)("ChainListener (hardhat node + deploy:seed)", () => {
     expect(names.filter((n) => n === "VoteCast").length).toBeGreaterThanOrEqual(2);
     expect(names.filter((n) => n === "CallScheduled").length).toBeGreaterThanOrEqual(2); // one per call in the batch
 
-    // live events were broadcast with the slug
+    // Live events were broadcast with the slug. Only the listener that inserts an event broadcasts it, so when a
+    // backend dev server is running against the same database it may store (and broadcast) them first.
+    const otherListener = await fetch(`http://localhost:${process.env.PORT ?? 4000}/health`).then((r) => r.ok, () => false);
+    if (otherListener) return;
     const mine_ = live.filter((e) => e.proposalId === SLUG).map((e) => e.name);
     expect(mine_).toEqual(expect.arrayContaining(["ProposalCreated", "VoteCast", "ProposalQueued", "CallScheduled", "Flagged"]));
     const flagged = live.find((e) => e.name === "Flagged");
     expect(String(flagged?.args.operationId).toLowerCase()).toBe(operationId.toLowerCase());
-  }, 60_000);
+  }, 180_000);
 });

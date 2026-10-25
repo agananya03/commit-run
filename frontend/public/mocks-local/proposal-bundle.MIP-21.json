@@ -304,8 +304,10 @@
   "coi": {
     "proposalId": "MIP-21",
     "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
-    "disclosed": [],
-    "signatureValid": false,
+    "disclosed": [
+      "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec"
+    ],
+    "signatureValid": true,
     "undisclosedLinks": [
       {
         "from": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
@@ -316,7 +318,12 @@
         ],
         "hops": 1,
         "pLink": 0.95,
-        "reasons": ["Multiple direct funding transactions before proposal creation"]
+        "reasons": [
+          "Proposer was the first funder of wallet 0xdF3e...7097 (2.0 ETH pre-proposal staging)",
+          "Funded within 30 days before the proposal creation date",
+          "Omitted from the signed disclosure statement (missing wallets)",
+          "Becomes Vault owner and unlimited USDC spender in submitted execution code"
+        ]
       }
     ],
     "pCoi": 0.95

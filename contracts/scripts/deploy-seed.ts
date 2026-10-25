@@ -24,6 +24,7 @@ const MIP21_PROPOSER_INDEX = 13;
 interface DeployedContract { address: string; artifact: string; decimals?: number }
 
 async function main(): Promise<void> {
+  await waitForNode();
   const started = Date.now();
   const signers = await ethers.getSigners();
   const [deployer] = signers;
@@ -112,18 +113,37 @@ async function main(): Promise<void> {
   );
 }
 
+/**
+ * reset.sh starts the node and this script together (each takes ~15 s to load), so wait for the node instead of
+ * failing. Only for a real node: the in-process hardhat network is always there.
+ */
+async function waitForNode(timeoutMs = 60_000): Promise<void> {
+  if (network.name === "hardhat") return;
+  for (const until = Date.now() + timeoutMs; ; ) {
+    try {
+      await ethers.provider.send("eth_chainId", []);
+      return;
+    } catch (err) {
+      if (Date.now() > until) throw err;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+}
+
+// With automine every transaction is mined before eth_sendTransaction returns, and a revert throws right there, so
+// the seed does not wait for receipts: tx.wait() and pre-checks only cost round trips (~2 per transaction).
 async function seedWallets(wallets: SeedWallet[], prefunding: Prefunding, signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<void> {
   const deployer = signers[0]!;
   for (const w of wallets) {
     const account = signers[w.index]!;
-    if (w.mrd > 0n && w.index !== 0) await (await token.connect(deployer).transfer(account.address, w.mrd)).wait();
-    if (w.usdc > 0n) await (await usdc.connect(deployer).mint(account.address, w.usdc)).wait();
+    if (w.mrd > 0n && w.index !== 0) await token.connect(deployer).transfer(account.address, w.mrd);
+    if (w.usdc > 0n) await usdc.connect(deployer).mint(account.address, w.usdc);
   }
 
   // Balances the data assumes but never creates: USDC is minted (a mint comes from 0x0, so it adds no wallet
   // link); MRD comes from the deployer, which held it back from the largest allocation.
-  for (const [index, amount] of prefunding.usdc) await (await usdc.connect(deployer).mint(signers[index]!.address, amount)).wait();
-  for (const [index, amount] of prefunding.mrd) await (await token.connect(deployer).transfer(signers[index]!.address, amount)).wait();
+  for (const [index, amount] of prefunding.usdc) await usdc.connect(deployer).mint(signers[index]!.address, amount);
+  for (const [index, amount] of prefunding.mrd) await token.connect(deployer).transfer(signers[index]!.address, amount);
   const total = (m: Map<number, bigint>) => [...m.values()].reduce((s, x) => s + x, 0n);
   if (prefunding.usdc.size + prefunding.mrd.size > 0) {
     console.log(
@@ -137,13 +157,14 @@ async function seedWallets(wallets: SeedWallet[], prefunding: Prefunding, signer
   for (const w of wallets) {
     if (w.mrd === 0n && w.delegateTo === undefined) continue;
     const delegatee = signers[w.delegateTo ?? w.index]!;
-    await (await token.connect(signers[w.index]!).delegate(delegatee.address)).wait();
+    await token.connect(signers[w.index]!).delegate(delegatee.address);
   }
 }
 
 /** Transfers arrive sorted in replay order (blockOffset, then file position). */
 async function replayTransfers(ordered: SeedTransfer[], signers: HardhatEthersSigner[], token: MeridianToken, usdc: MockUSDC): Promise<number> {
   const startBlock = await ethers.provider.getBlockNumber();
+  let current = startBlock; // tracked locally: each transaction is one block, mine(n) is n blocks
 
   for (const t of ordered) {
     const from = signers[t.from]!;
@@ -151,9 +172,11 @@ async function replayTransfers(ordered: SeedTransfer[], signers: HardhatEthersSi
     const label = `transfer ${t.id ?? `#${t.i}`} (${ethers.formatUnits(t.amount, DECIMALS[t.token])} ${t.token} from #${t.from} to #${t.to})`;
 
     // Each tx is mined in the next block, so mine empty blocks until that block is startBlock + blockOffset.
-    const current = await ethers.provider.getBlockNumber();
     const gap = startBlock + t.blockOffset - current - 1;
-    if (gap > 0) await mine(gap);
+    if (gap > 0) {
+      await mine(gap);
+      current += gap;
+    }
 
     if (t.timestamp) {
       const at = Math.floor(Date.parse(t.timestamp) / 1000);
@@ -164,18 +187,19 @@ async function replayTransfers(ordered: SeedTransfer[], signers: HardhatEthersSi
       await ethers.provider.send("evm_setNextBlockTimestamp", [at]);
     }
 
-    if (t.token === "ETH") {
-      const balance = await ethers.provider.getBalance(from.address);
-      if (balance < t.amount) throw new Error(`${label}: account has ${ethers.formatEther(balance)} ETH`);
-      await (await from.sendTransaction({ to: to.address, value: t.amount })).wait();
-    } else {
-      const erc20 = t.token === "USDC" ? usdc : token;
-      const balance = await erc20.balanceOf(from.address);
+    const erc20 = t.token === "ETH" ? null : t.token === "USDC" ? usdc : token;
+    try {
+      if (erc20) await erc20.connect(from).transfer(to.address, t.amount);
+      else await from.sendTransaction({ to: to.address, value: t.amount });
+    } catch (err) {
       // planPrefunding() already covered every shortfall, so this only fires on a bug.
-      if (balance < t.amount) throw new Error(`${label}: account has ${ethers.formatUnits(balance, DECIMALS[t.token])} ${t.token}`);
-      await (await erc20.connect(from).transfer(to.address, t.amount)).wait();
+      const balance = erc20 ? await erc20.balanceOf(from.address) : await ethers.provider.getBalance(from.address);
+      throw new Error(`${label} failed; account has ${ethers.formatUnits(balance, DECIMALS[t.token])} ${t.token}: ${(err as Error).message.split("\n")[0]}`);
     }
+    current += 1;
   }
+  const latest = await ethers.provider.getBlockNumber();
+  if (latest !== current) throw new Error(`replay ended at block ${latest}, expected ${current}: a transfer was not mined in its own block (automine off?)`);
   return ordered.length;
 }
 
