@@ -1,0 +1,42 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-17",
+  "posts": [
+    {
+      "id": "soc_17_1",
+      "author": "@orion_dao",
+      "created_at": "2026-10-18T10:00:00Z",
+      "text": "MIP-17 is live on the governance forum! Bringing Nexus Labs into the Meridian ecosystem will unlock next-generation cross-chain routing and MEV protection."
+    },
+    {
+      "id": "soc_17_2",
+      "author": "@nexus_dev",
+      "created_at": "2026-10-18T10:30:00Z",
+      "text": "Honored to partner with Meridian DAO to deploy our high-throughput routing engine. Exciting milestones ahead for cross-chain liquidity."
+    },
+    {
+      "id": "soc_17_3",
+      "author": "@orion_dao",
+      "created_at": "2026-10-18T11:15:00Z",
+      "text": "Big shoutout to our longtime friends at Nexus Labs! Can't wait to run this playbook together again just like old times."
+    },
+    {
+      "id": "soc_17_4",
+      "author": "@chen_security",
+      "created_at": "2026-10-18T13:45:00Z",
+      "text": "Questions remain unanswered on the forum regarding MIP-17's $1.5M budget discrepancy and the anonymity of wallet 12 signers. Governance transparency is non-negotiable."
+    },
+    {
+      "id": "soc_17_5",
+      "author": "@aria_governance",
+      "created_at": "2026-10-18T15:20:00Z",
+      "text": "25% of liquid treasury is an unprecedented grant size without milestone-based escrow release. Urging delegates to review the numbers carefully."
+    },
+    {
+      "id": "soc_17_6",
+      "author": "@meridian_watcher",
+      "created_at": "2026-10-18T17:00:00Z",
+      "text": "Unusual on-chain transfer activity detected across intermediary addresses ahead of MIP-17 vote. Community monitoring required."
+    }
+  ]
+}

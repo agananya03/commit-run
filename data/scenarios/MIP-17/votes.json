@@ -1,0 +1,259 @@
+{
+  "synthetic": true,
+  "proposalId": "MIP-17",
+  "voterCount": 42,
+  "votes": [
+    {
+      "synthetic": true,
+      "index": 2,
+      "weight": "3000000",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 3,
+      "weight": "3000000",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 4,
+      "weight": "3000000",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 5,
+      "weight": "3000000",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 6,
+      "weight": "3000000",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 7,
+      "weight": "3000000",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 18,
+      "weight": "16000000",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 19,
+      "weight": "15000000",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 20,
+      "weight": "15000000",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 21,
+      "weight": "15000000",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 23,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 24,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 26,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 27,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 28,
+      "weight": "288136",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 29,
+      "weight": "288136",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 31,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 32,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 33,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 34,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 36,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 37,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 38,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 39,
+      "weight": "288136",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 40,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 41,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 42,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 43,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 44,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 45,
+      "weight": "288136",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 46,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 48,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 50,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 51,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 52,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 54,
+      "weight": "288136",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 55,
+      "weight": "288136",
+      "choice": "for"
+    },
+    {
+      "synthetic": true,
+      "index": 58,
+      "weight": "288135",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 59,
+      "weight": "288135",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 61,
+      "weight": "288135",
+      "choice": "against"
+    },
+    {
+      "synthetic": true,
+      "index": 62,
+      "weight": "288135",
+      "choice": "abstain"
+    },
+    {
+      "synthetic": true,
+      "index": 63,
+      "weight": "288135",
+      "choice": "abstain"
+    }
+  ]
+}

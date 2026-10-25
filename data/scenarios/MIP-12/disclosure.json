@@ -1,0 +1,9 @@
+{
+  "synthetic": true,
+  "proposerIndex": 8,
+  "walletIndices": [
+    8,
+    9
+  ],
+  "statement": "MIP-12 complete disclosure: Primary proposer index 8 and dev studio execution recipient index 9."
+}

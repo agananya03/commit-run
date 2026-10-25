@@ -1,0 +1,106 @@
+{
+  "proposalId": "MIP-21",
+  "tldr": "Upgrades the Vault to VaultV2, which the author says packs storage to make deposits and withdrawals ~1% cheaper, with no change to ownership.",
+  "treasuryImpact": {
+    "amountUsd": null,
+    "pctOfTreasury": null,
+    "recipients": [],
+    "citations": []
+  },
+  "dependencies": [
+    {
+      "text": "Relies on an internal core-team review; no external audit or published diff.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "the implementation was reviewed internally by the core team",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "text": "A delegate asked for the VaultV2 diff before voting and was pointed to the PDF instead.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "Can we see the actual VaultV2 diff before voting?",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+        }
+      ]
+    },
+    {
+      "text": "The proposer publicly thanks an unexplained wallet for running the benchmarks.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:social:0",
+          "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+          "quote": "Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks.",
+          "sourceUri": "social://MIP-21/social.json#msg=4"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl1",
+      "text": "VaultV2 makes deposits and withdrawals ~1% cheaper in gas.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:0",
+          "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
+          "quote": "Net effect: ~1% cheaper user operations.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=1"
+        },
+        {
+          "chunkId": "MIP-21:pdf:1",
+          "sha256": "0xd4290f802231197fc815df8a9ffa20358c572411b115094efc276216d4e1a4d0",
+          "quote": "deposit(uint256) falls from 48,712 to 48,390 gas",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=4"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl2",
+      "text": "No change to ownership: the Timelock remains sole owner of the Vault.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:1",
+          "sha256": "0xa36488be4755e2b1b986497b27fbf4fe7f7687c1a8192a820fdcd03c47e9fc8d",
+          "quote": "with no change to ownership",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=1"
+        },
+        {
+          "chunkId": "MIP-21:pdf:0",
+          "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311",
+          "quote": "The Timelock remains the sole owner of the Vault.",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.74
+    },
+    {
+      "id": "cl3",
+      "text": "The implementation was reviewed by the core team.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "reviewed internally by the core team",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+        }
+      ],
+      "support": "unsupported",
+      "pSupported": 0.3
+    }
+  ]
+}
