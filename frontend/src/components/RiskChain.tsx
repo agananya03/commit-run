@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,718 +8,439 @@ import {
   Users,
   Vote,
   Terminal,
-  ArrowRight,
-  ShieldAlert,
-  ShieldCheck,
+  CheckCircle2,
   AlertTriangle,
-  Info,
-  ExternalLink,
-  HelpCircle,
+  ShieldAlert,
+  ArrowRight,
   TrendingUp,
+  FileQuestion,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Finding, RiskChain as RiskChainType, RiskStage } from "@/types/shared";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-  CartesianGrid,
-} from "recharts";
+import { cn } from "@/lib/utils";
+import type { Finding, RiskChain as RiskChainType } from "@/types/shared";
 
 interface RiskChainProps {
   proposalId: string;
+  /** The backend's risk chain (bundle.risk). Without it, the scenario presets below are shown. */
   risk?: RiskChainType | null;
   findings?: Finding[];
+  onSelectTab?: (tab: string) => void;
 }
+
+type StageId = "claims" | "coi" | "voting" | "execution";
+type Severity = "critical" | "high" | "low";
+type Level = RiskChainType["level"];
+type Action = RiskChainType["action"];
 
 interface StageDetail {
-  id: "claims" | "coi" | "voting" | "execution";
-  stageNum: number;
-  title: string;
-  shortTitle: string;
-  icon: React.ReactNode;
+  id: StageId;
   likelihoodRatio: number;
-  runningProbability: number;
+  probability: number;
   explanation: string;
   findingIds: string[];
+  severity: Severity;
 }
 
-export function RiskChain({ proposalId, risk, findings = [] }: RiskChainProps) {
-  const [mounted, setMounted] = useState(false);
-  const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+interface Scenario {
+  prior: number;
+  posterior: number;
+  level: Level;
+  action: Action;
+  stages: StageDetail[];
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+const STAGE_ORDER: StageId[] = ["claims", "coi", "voting", "execution"];
 
-  // Standard scenario presets matching Meridian problem statement
-  const defaultScenarios: Record<
-    string,
-    {
-      prior: number;
-      stages: StageDetail[];
-      posterior: number;
-      level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-      action: "none" | "review" | "halt";
-    }
-  > = {
-    "MIP-21": {
-      prior: 0.05,
-      stages: [
-        {
-          id: "claims",
-          stageNum: 1,
-          title: "Proposal Claims",
-          shortTitle: "Claims",
-          icon: <FileText className="h-4 w-4 text-amber-400" />,
-          likelihoodRatio: 4.5,
-          runningProbability: 0.191,
-          explanation: "Storage layout optimization claims contradict byte-packed vault implementation.",
-          findingIds: ["fnd-1"],
-        },
-        {
-          id: "coi",
-          stageNum: 2,
-          title: "Conflict of Interest Risk",
-          shortTitle: "COI",
-          icon: <Users className="h-4 w-4 text-rose-400" />,
-          likelihoodRatio: 3.8,
-          runningProbability: 0.474,
-          explanation: "Undisclosed funding trace to unverified recipient wallet #14 (pLink: 95%).",
-          findingIds: ["fnd-coi-1"],
-        },
-        {
-          id: "voting",
-          stageNum: 3,
-          title: "On-Chain Voting",
-          shortTitle: "Voting",
-          icon: <Vote className="h-4 w-4 text-purple-400" />,
-          likelihoodRatio: 2.5,
-          runningProbability: 0.692,
-          explanation: "Delegate requested layout diff; proposer deflected before vote passed.",
-          findingIds: ["fnd-vote-1"],
-        },
-        {
-          id: "execution",
-          stageNum: 4,
-          title: "Execution Discrepancy",
-          shortTitle: "Execution",
-          icon: <Terminal className="h-4 w-4 text-red-500" />,
-          likelihoodRatio: 45.0,
-          runningProbability: 0.99,
-          explanation: "Simulation detected unauthorized ownership takeover and unlimited USDC drain.",
-          findingIds: ["fnd-2", "fnd-3"],
-        },
-      ],
-      posterior: 0.99,
-      level: "CRITICAL",
-      action: "halt",
-    },
-    "MIP-17": {
-      prior: 0.05,
-      stages: [
-        {
-          id: "claims",
-          stageNum: 1,
-          title: "Proposal Claims",
-          shortTitle: "Claims",
-          icon: <FileText className="h-4 w-4 text-amber-400" />,
-          likelihoodRatio: 4.0,
-          runningProbability: 0.174,
-          explanation: "$1.5M budget discrepancy between summary request and itemized workstreams.",
-          findingIds: ["fnd-17-1"],
-        },
-        {
-          id: "coi",
-          stageNum: 2,
-          title: "Conflict of Interest Risk",
-          shortTitle: "COI",
-          icon: <Users className="h-4 w-4 text-orange-400" />,
-          likelihoodRatio: 5.2,
-          runningProbability: 0.523,
-          explanation: "Nexus Labs wallet received prior stealth funding from proposer address.",
-          findingIds: ["fnd-17-2"],
-        },
-        {
-          id: "voting",
-          stageNum: 3,
-          title: "On-Chain Voting",
-          shortTitle: "Voting",
-          icon: <Vote className="h-4 w-4 text-amber-400" />,
-          likelihoodRatio: 3.5,
-          runningProbability: 0.793,
-          explanation: "High delegate dissent; quorum reached via concentrated whale voting weight.",
-          findingIds: ["fnd-17-3"],
-        },
-        {
-          id: "execution",
-          stageNum: 4,
-          title: "Execution Discrepancy",
-          shortTitle: "Execution",
-          icon: <Terminal className="h-4 w-4 text-orange-500" />,
-          likelihoodRatio: 1.8,
-          runningProbability: 0.873,
-          explanation: "Immediate full-sum treasury release without milestone escrow timelock.",
-          findingIds: ["fnd-17-4"],
-        },
-      ],
-      posterior: 0.88,
-      level: "HIGH",
-      action: "halt",
-    },
-    "MIP-12": {
-      prior: 0.05,
-      stages: [
-        {
-          id: "claims",
-          stageNum: 1,
-          title: "Proposal Claims",
-          shortTitle: "Claims",
-          icon: <FileText className="h-4 w-4 text-emerald-400" />,
-          likelihoodRatio: 0.4,
-          runningProbability: 0.021,
-          explanation: "100% of requested deliverables and timeline milestones backed by verified citations.",
-          findingIds: [],
-        },
-        {
-          id: "coi",
-          stageNum: 2,
-          title: "Conflict of Interest Risk",
-          shortTitle: "COI",
-          icon: <Users className="h-4 w-4 text-emerald-400" />,
-          likelihoodRatio: 0.5,
-          runningProbability: 0.01,
-          explanation: "Zero undisclosed links found; valid EIP-191 disclosure signature.",
-          findingIds: [],
-        },
-        {
-          id: "voting",
-          stageNum: 3,
-          title: "On-Chain Voting",
-          shortTitle: "Voting",
-          icon: <Vote className="h-4 w-4 text-emerald-400" />,
-          likelihoodRatio: 0.6,
-          runningProbability: 0.006,
-          explanation: "Broad decentralized delegate consensus with zero sybil clustering.",
-          findingIds: [],
-        },
-        {
-          id: "execution",
-          stageNum: 4,
-          title: "Execution Discrepancy",
-          shortTitle: "Execution",
-          icon: <Terminal className="h-4 w-4 text-emerald-400" />,
-          likelihoodRatio: 0.3,
-          runningProbability: 0.002,
-          explanation: "Calldata exactly matches 400,000 USDC transfer to audited dev escrow.",
-          findingIds: [],
-        },
-      ],
-      posterior: 0.02,
-      level: "LOW",
-      action: "none",
-    },
-  };
+const STAGE_META: Record<StageId, { title: string; short: string; Icon: typeof FileText }> = {
+  claims: { title: "Proposal Claims", short: "Claims", Icon: FileText },
+  coi: { title: "Conflict of Interest Risk", short: "COI", Icon: Users },
+  voting: { title: "On-Chain Voting", short: "Voting", Icon: Vote },
+  execution: { title: "Execution Discrepancy", short: "Execution", Icon: Terminal },
+};
 
-  const currentPreset = defaultScenarios[proposalId] || defaultScenarios["MIP-21"];
+const stage = (id: StageId, likelihoodRatio: number, probability: number, explanation: string, findingId: string, severity: Severity): StageDetail => ({
+  id,
+  likelihoodRatio,
+  probability,
+  explanation,
+  findingIds: [findingId],
+  severity,
+});
 
-  // Merge any dynamic risk data if provided
-  const riskData = useMemo(() => {
-    const prior = risk?.prior ?? currentPreset.prior;
-    const priorOdds = prior / (1 - prior);
+// Scenario-specific Bayesian data mirroring problem statement requirements (shown until the backend has a risk chain)
+const PRESETS: Record<string, Scenario> = {
+  "MIP-21": {
+    prior: 0.05,
+    posterior: 0.992,
+    level: "CRITICAL",
+    action: "halt",
+    stages: [
+      stage("claims", 4.2, 0.28, "Declared gas refactor explicitly promises 0 ownership changes and 0 new admin functions.", "ev_21_4", "high"),
+      stage("coi", 6.8, 0.64, "Undisclosed 2.0 ETH seed funding path from Proposer (wallet 13) to Alt recipient (wallet 14).", "coi_21_1", "high"),
+      stage("voting", 4.1, 0.88, "4 colluding whale delegators (wallets 18-21) control 61% voting power; denied diff requests.", "vote_21_1", "high"),
+      stage("execution", 18.5, 0.992, "Calldata silently executes reinitializeV2() vault ownership transfer & infinite USDC approval.", "ev_21_1", "critical"),
+    ],
+  },
+  "MIP-17": {
+    prior: 0.05,
+    posterior: 0.784,
+    level: "HIGH",
+    action: "review",
+    stages: [
+      stage("claims", 3.8, 0.24, "Contradiction detected: itemized budget describes $3,500,000 but calldata requests $5,000,000.", "ev_17_1", "high"),
+      stage("coi", 7.5, 0.67, "Undisclosed funding link: Proposer 10 funded intermediary 11 who funded Nexus recipient 12.", "ev_17_2", "high"),
+      stage("voting", 1.4, 0.74, "Split consensus: 3 core delegates raised concerns over missing 6-month milestone locks.", "vote_17_1", "high"),
+      stage("execution", 1.2, 0.784, "Direct Treasury transfer matches raw request amount but violates disclosed milestone schedule.", "ev_17_1", "high"),
+    ],
+  },
+  "MIP-12": {
+    prior: 0.05,
+    posterior: 0.012,
+    level: "LOW",
+    action: "none",
+    stages: [
+      stage("claims", 0.22, 0.032, "100% citation coverage for developer SDK grant deliverables, timeline, and multisig signers.", "ev_12_1", "low"),
+      stage("coi", 0.18, 0.021, "Zero undisclosed wallet relationships detected across historical 90-day transfer graph.", "coi_12_1", "low"),
+      stage("voting", 0.35, 0.016, "Broad decentralized community support with 89.2% approval and verified delegate quorum.", "vote_12_1", "low"),
+      stage("execution", 0.12, 0.012, "Exact calldata match: 400,000 USDC transfer to disclosed grant recipient contract.", "ev_12_1", "low"),
+    ],
+  },
+};
 
-    let runningOdds = priorOdds;
-    const stages: StageDetail[] = currentPreset.stages.map((stg) => {
-      const match = risk?.stages?.find((s) => s.stage === stg.id);
-      const lr = match?.likelihoodRatio ?? stg.likelihoodRatio;
-      runningOdds = runningOdds * lr;
-      const calcProb = runningOdds / (1 + runningOdds);
+/** A stage is as severe as its worst linked finding, or its likelihood ratio when it has none. */
+function severityOf(likelihoodRatio: number, findingIds: string[], findings: Finding[]): Severity {
+  const linked = findingIds.map((id) => findings.find((f) => f.id === id)?.severity);
+  if (linked.includes("critical") || likelihoodRatio >= 10) return "critical";
+  if (linked.includes("high") || likelihoodRatio > 1) return "high";
+  return "low";
+}
 
-      return {
-        ...stg,
-        likelihoodRatio: lr,
-        runningProbability: match?.probability ?? calcProb,
-        explanation: match?.explanation || stg.explanation,
-        findingIds: match?.findingIds && match.findingIds.length > 0 ? match.findingIds : stg.findingIds,
-      };
-    });
-
-    const posterior = risk?.posterior ?? stages[stages.length - 1].runningProbability;
-    const level = risk?.level ?? currentPreset.level;
-    const action = risk?.action ?? currentPreset.action;
-
-    return { prior, stages, posterior, level, action };
-  }, [risk, currentPreset]);
-
-  // Chart data points: Prior -> Stage 1 -> Stage 2 -> Stage 3 -> Stage 4
-  const chartData = useMemo(() => {
-    return [
-      {
-        name: "Prior",
-        label: "5% Prior",
-        probability: Number((riskData.prior * 100).toFixed(1)),
-        stageName: "Baseline Prior",
-        lr: "1.0x",
-      },
-      ...riskData.stages.map((s) => ({
-        name: s.shortTitle,
-        label: s.title,
-        probability: Number((s.runningProbability * 100).toFixed(1)),
-        stageName: s.title,
-        lr: `${s.likelihoodRatio.toFixed(1)}x`,
-      })),
-    ];
-  }, [riskData]);
-
-  // Handle finding click
-  const handleFindingClick = (findingId: string) => {
-    const found = findings.find((f) => f.id === findingId) || {
-      id: findingId,
-      severity: findingId.includes("2") || findingId.includes("3") ? "critical" : "high",
-      category: findingId.includes("coi")
-        ? "coi"
-        : findingId.includes("2")
-        ? "ownership_change"
-        : findingId.includes("3")
-        ? "unlimited_approval"
-        : "undeclared_action",
-      said: "The proposal promised gas optimizations and routine protocol improvements with no unauthorized state mutations.",
-      does: "Submitted transaction executes privileged ownership transfer and approves unrestricted asset draining.",
-      evidence: [],
+/** The backend's chain, stage by stage; a stage it did not report counts as LR 1 (no evidence either way). */
+function fromBackend(risk: RiskChainType, findings: Finding[]): Scenario {
+  let odds = risk.prior / (1 - risk.prior);
+  const stages = STAGE_ORDER.map((id): StageDetail => {
+    const real = risk.stages.find((s) => s.stage === id);
+    const likelihoodRatio = real?.likelihoodRatio ?? 1;
+    odds *= likelihoodRatio;
+    const findingIds = real?.findingIds ?? [];
+    return {
+      id,
+      likelihoodRatio,
+      probability: real?.probability ?? odds / (1 + odds),
+      explanation: real?.explanation || "Not evaluated for this proposal.",
+      findingIds,
+      severity: severityOf(likelihoodRatio, findingIds, findings),
     };
-    setSelectedFinding(found as Finding);
-    setDialogOpen(true);
-  };
+  });
+  return { prior: risk.prior, posterior: risk.posterior, level: risk.level, action: risk.action, stages };
+}
 
-  // Styling helpers
-  const getLevelBadge = (level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL") => {
+const pct = (p: number) => `${(p * 100).toFixed(1)}%`;
+const fmtLr = (lr: number) => `${lr < 1 ? lr.toFixed(2) : lr.toFixed(1)}x`;
+const ACTION_LABEL: Record<Action, string> = { halt: "HALT TIMELOCK", review: "SECURITY REVIEW", none: "NONE (PROCEED)" };
+const TONE: Record<Level, { stroke: string; fill: string; dot: string }> = {
+  CRITICAL: { stroke: "#ef4444", fill: "rgba(239, 68, 68, 0.4)", dot: "bg-red-400" },
+  HIGH: { stroke: "#f59e0b", fill: "rgba(245, 158, 11, 0.4)", dot: "bg-amber-400" },
+  MEDIUM: { stroke: "#f59e0b", fill: "rgba(245, 158, 11, 0.4)", dot: "bg-amber-400" },
+  LOW: { stroke: "#10b981", fill: "rgba(16, 185, 129, 0.4)", dot: "bg-emerald-400" },
+};
+const ICON_COLOR: Record<Severity, string> = { critical: "text-red-400", high: "text-indigo-400", low: "text-emerald-400" };
+
+export function RiskChain({ proposalId, risk, findings = [], onSelectTab }: RiskChainProps) {
+  const current = useMemo(() => (risk ? fromBackend(risk, findings) : PRESETS[proposalId] ?? null), [risk, findings, proposalId]);
+
+  // Empty State if proposal has no risk chain yet
+  if (!current) {
+    return (
+      <Card className="border-slate-800 bg-slate-900/60 p-8 text-center shadow-xl">
+        <div className="flex flex-col items-center justify-center space-y-3">
+          <div className="p-3 rounded-full bg-slate-800/80 border border-slate-700 text-slate-400">
+            <FileQuestion className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-200">
+            No Bayesian Risk Audit for {proposalId}
+          </h3>
+          <p className="text-sm text-slate-400 max-w-md">
+            The probabilistic risk engine has not evaluated this proposal yet. Run ingestion or select a known scenario (MIP-12, MIP-17, or MIP-21).
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  const tone = TONE[current.level];
+  const progressionPoints = [
+    { label: "Prior", prob: Number((current.prior * 100).toFixed(1)) },
+    ...current.stages.map((s) => ({ label: STAGE_META[s.id].short, prob: Number((s.probability * 100).toFixed(1)) })),
+  ];
+
+  const getLevelBadge = (level: Level) => {
     switch (level) {
       case "CRITICAL":
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/40 text-xs font-bold px-2.5 py-0.5">CRITICAL</Badge>;
+        return (
+          <Badge className="bg-red-950/90 text-red-400 border border-red-500 font-mono text-sm sm:text-base font-bold px-3.5 py-1 gap-1.5 shadow-lg shadow-red-950/50">
+            <ShieldAlert className="w-4 h-4 text-red-400" />
+            CRITICAL RISK
+          </Badge>
+        );
       case "HIGH":
-        return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/40 text-xs font-bold px-2.5 py-0.5">HIGH</Badge>;
       case "MEDIUM":
-        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 text-xs font-bold px-2.5 py-0.5">MEDIUM</Badge>;
-      case "LOW":
-      default:
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 text-xs font-bold px-2.5 py-0.5">LOW</Badge>;
-    }
-  };
-
-  const getActionBadge = (action: "none" | "review" | "halt") => {
-    switch (action) {
-      case "halt":
         return (
-          <div className="flex items-center gap-2 bg-red-950/60 border border-red-500/40 px-3 py-1.5 rounded-lg text-red-300 font-mono text-xs font-semibold">
-            <ShieldAlert className="w-4 h-4 text-red-400 animate-pulse" />
-            <span>ACTION: HALT</span>
-          </div>
-        );
-      case "review":
-        return (
-          <div className="flex items-center gap-2 bg-amber-950/60 border border-amber-500/40 px-3 py-1.5 rounded-lg text-amber-300 font-mono text-xs font-semibold">
+          <Badge className="bg-amber-950/90 text-amber-400 border border-amber-500 font-mono text-sm sm:text-base font-bold px-3.5 py-1 gap-1.5 shadow-lg shadow-amber-950/50">
             <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>ACTION: REVIEW</span>
-          </div>
+            {level} RISK
+          </Badge>
         );
-      case "none":
       default:
         return (
-          <div className="flex items-center gap-2 bg-emerald-950/60 border border-emerald-500/40 px-3 py-1.5 rounded-lg text-emerald-300 font-mono text-xs font-semibold">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>ACTION: NONE</span>
-          </div>
+          <Badge className="bg-emerald-950/90 text-emerald-400 border border-emerald-500 font-mono text-sm sm:text-base font-bold px-3.5 py-1 gap-1.5 shadow-lg shadow-emerald-950/50">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            LOW RISK
+          </Badge>
         );
     }
   };
 
-  const getStageBorder = (prob: number, lr: number) => {
-    if (prob > 0.75 || lr >= 5.0) return "border-red-500/40 bg-red-950/15";
-    if (prob > 0.35 || lr >= 2.0) return "border-amber-500/30 bg-amber-950/10";
-    return "border-emerald-500/30 bg-emerald-950/10";
-  };
-
-  const getLrColor = (lr: number) => {
-    if (lr >= 4.0) return "text-red-400 bg-red-500/10 border-red-500/30";
-    if (lr > 1.0) return "text-amber-400 bg-amber-500/10 border-amber-500/30";
-    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+  const getActionBadge = (action: Action) => {
+    if (action === "halt") {
+      return (
+        <Badge className="bg-red-900/80 text-white border border-red-500/80 font-mono text-sm font-bold px-3 py-1">
+          ACTION: {ACTION_LABEL[action]}
+        </Badge>
+      );
+    }
+    if (action === "review") {
+      return (
+        <Badge className="bg-amber-900/80 text-white border border-amber-500/80 font-mono text-sm font-bold px-3 py-1">
+          ACTION: {ACTION_LABEL[action]}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-emerald-900/80 text-white border border-emerald-500/80 font-mono text-sm font-bold px-3 py-1">
+        ACTION: {ACTION_LABEL[action]}
+      </Badge>
+    );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner / Chain Overview */}
-      <Card className="border-slate-800 bg-slate-900/60 backdrop-blur-sm">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center space-x-2">
-                <CardTitle className="text-base font-semibold text-slate-100 flex items-center gap-2">
-                  <span>Bayesian Risk Propagation Chain</span>
-                  <Badge variant="outline" className="text-[10px] font-mono text-slate-400">
-                    {proposalId}
-                  </Badge>
-                </CardTitle>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Sequential Bayesian update tracking adversarial probability across the problem statement&apos;s 4 verification stages.
-              </p>
+    <Card className="border-slate-800 bg-slate-900/60 shadow-2xl">
+      {/* Header with Projector-Ready Type */}
+      <CardHeader className="pb-4 border-b border-slate-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-xs uppercase tracking-widest text-indigo-400 font-bold">
+                Bayesian Probabilistic Watchdog
+              </span>
+              <span className="text-slate-600">|</span>
+              <span className="text-xs text-slate-400 font-mono">Prior: {pct(current.prior)}</span>
+              <span className="text-slate-600">|</span>
+              <span className={cn("text-xs font-mono", risk ? "text-emerald-400" : "text-slate-500")}>
+                {risk ? "live from backend" : "scenario preset"}
+              </span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <div className="text-right mr-1">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 block">Posterior</span>
-                <span className="font-mono font-bold text-sm text-slate-100">
-                  {(riskData.posterior * 100).toFixed(1)}%
-                </span>
-              </div>
-              {getLevelBadge(riskData.level)}
-              {getActionBadge(riskData.action)}
-            </div>
+            <CardTitle className="text-lg sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+              <span>4-Stage Risk Progression Chain</span>
+              <Badge variant="outline" className="text-xs font-mono border-slate-700 text-slate-300">
+                P(Malicious | Evidence)
+              </Badge>
+            </CardTitle>
           </div>
-        </CardHeader>
 
-        <CardContent className="pt-1 pb-5">
-          {/* 4 Connected Stage Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
-            {riskData.stages.map((stage, idx) => {
-              const probPercent = (stage.runningProbability * 100).toFixed(1);
-              const isLast = idx === riskData.stages.length - 1;
+          <div className="flex flex-wrap items-center gap-2.5">
+            {getLevelBadge(current.level)}
+            {getActionBadge(current.action)}
+          </div>
+        </div>
+      </CardHeader>
 
-              return (
-                <div
-                  key={stage.id}
-                  className={`p-4 rounded-xl border flex flex-col justify-between transition-all duration-200 relative ${getStageBorder(
-                    stage.runningProbability,
-                    stage.likelihoodRatio
-                  )}`}
-                >
-                  <div>
-                    {/* Header: Stage index and LR badge */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
-                        {stage.icon}
-                        <span>Stage {stage.stageNum}</span>
+      <CardContent className="space-y-6 pt-5">
+        {/* 4 Connected Stage Cards - Large Type for Projector */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {current.stages.map((stage, idx) => {
+            const isCritical = stage.severity === "critical";
+            const isHigh = stage.severity === "high";
+            const { title, Icon } = STAGE_META[stage.id];
+
+            const cardBorder = isCritical
+              ? "border-red-500/80 bg-red-950/20 shadow-red-950/30"
+              : isHigh
+              ? "border-amber-500/70 bg-amber-950/15 shadow-amber-950/30"
+              : "border-slate-800 bg-slate-950/70";
+
+            return (
+              <div
+                key={stage.id}
+                className={cn(
+                  "p-5 rounded-xl border flex flex-col justify-between shadow-xl transition-all relative",
+                  cardBorder
+                )}
+              >
+                {/* Stage Header */}
+                <div>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <Icon className={cn("h-5 w-5", ICON_COLOR[stage.severity])} />
                       </div>
-                      <span
-                        className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border ${getLrColor(
-                          stage.likelihoodRatio
-                        )}`}
-                      >
-                        LR: {stage.likelihoodRatio.toFixed(1)}x
+                      <span className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+                        Stage {idx + 1}
                       </span>
                     </div>
 
-                    {/* Stage Title */}
-                    <h4 className="text-sm font-semibold text-white mb-2">{stage.title}</h4>
-
-                    {/* Running Probability Metric */}
-                    <div className="mb-3 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
-                      <div className="flex justify-between items-baseline mb-1">
-                        <span className="text-[11px] text-slate-400">Running Probability</span>
-                        <span
-                          className={`text-base font-mono font-bold ${
-                            stage.runningProbability > 0.75
-                              ? "text-red-400"
-                              : stage.runningProbability > 0.35
-                              ? "text-amber-400"
-                              : "text-emerald-400"
-                          }`}
-                        >
-                          {probPercent}%
-                        </span>
-                      </div>
-                      {/* Progress bar */}
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            stage.runningProbability > 0.75
-                              ? "bg-red-500"
-                              : stage.runningProbability > 0.35
-                              ? "bg-amber-400"
-                              : "bg-emerald-400"
-                          }`}
-                          style={{ width: `${Math.min(100, Math.max(2, stage.runningProbability * 100))}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* One-line explanation */}
-                    <p className="text-xs text-slate-300 leading-relaxed mb-3 min-h-[36px]">
-                      {stage.explanation}
-                    </p>
-                  </div>
-
-                  {/* Findings links */}
-                  <div className="pt-3 border-t border-slate-800/80 mt-auto">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[11px] text-slate-400">Findings:</span>
-                      {stage.findingIds.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5 justify-end">
-                          {stage.findingIds.map((fId) => (
-                            <button
-                              key={fId}
-                              onClick={() => handleFindingClick(fId)}
-                              className="inline-flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 hover:border-sky-500/50 transition-colors"
-                              title={`View finding details for ${fId}`}
-                            >
-                              <span>{fId}</span>
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-emerald-400/80 font-mono">None (Clean)</span>
+                    <Badge
+                      className={cn(
+                        "font-mono text-xs font-bold px-2 py-0.5",
+                        isCritical
+                          ? "bg-red-950 text-red-400 border border-red-500/60"
+                          : isHigh
+                          ? "bg-amber-950 text-amber-400 border border-amber-500/60"
+                          : "bg-emerald-950 text-emerald-400 border border-emerald-500/60"
                       )}
-                    </div>
+                    >
+                      LR = {fmtLr(stage.likelihoodRatio)}
+                    </Badge>
                   </div>
 
-                  {/* Desktop connector arrow */}
-                  {!isLast && (
-                    <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 items-center justify-center rounded-full bg-slate-900 border border-slate-700 text-slate-400 shadow-md">
-                      <ArrowRight className="w-3.5 h-3.5" />
+                  <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-tight">
+                    {title}
+                  </h4>
+
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans mb-3">
+                    {stage.explanation}
+                  </p>
+                </div>
+
+                {/* Card Bottom: Running Probability and Finding Link */}
+                <div className="pt-3 border-t border-slate-800/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-400 font-mono">Running Risk:</span>
+                    <span
+                      className={cn(
+                        "font-mono text-xl sm:text-2xl font-black",
+                        isCritical
+                          ? "text-red-400"
+                          : isHigh
+                          ? "text-amber-400"
+                          : "text-emerald-400"
+                      )}
+                    >
+                      {pct(stage.probability)}
+                    </span>
+                  </div>
+
+                  {stage.findingIds.length > 0 && (
+                    <div className="text-right">
+                      <button
+                        onClick={() => onSelectTab && onSelectTab(stage.id === "coi" ? "conflicts" : "execution")}
+                        className="inline-flex items-center gap-1 text-[11px] font-mono text-indigo-400 hover:text-indigo-300 transition-colors"
+                      >
+                        <span>
+                          Inspect finding ({stage.findingIds[0]}
+                          {stage.findingIds.length > 1 ? ` +${stage.findingIds.length - 1}` : ""})
+                        </span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
                     </div>
                   )}
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SVG Probability Progression Chart - Crisp & Visible from across the room */}
+        <div className="p-5 rounded-xl border border-slate-800 bg-slate-950/80 shadow-lg space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-indigo-400" />
+              <h4 className="text-sm sm:text-base font-semibold text-slate-200">
+                Stage-by-Stage Posterior Probability Progression
+              </h4>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-mono text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                <span>Prior: {pct(current.prior)}</span>
+              </span>
+              <span>➔</span>
+              <span className="flex items-center gap-1.5 font-bold text-white">
+                <span className={cn("w-2.5 h-2.5 rounded-full", tone.dot)} />
+                <span>Posterior: {pct(current.posterior)}</span>
+              </span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Bottom Row: Recharts Line Chart & Final Verdict Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Recharts Line Chart (8 cols) */}
-        <Card className="lg:col-span-8 border-slate-800 bg-slate-900/60 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-sky-400" />
-                <span>Bayesian Probability Trajectory (5% Prior → Posterior)</span>
-              </CardTitle>
-              <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Halt (&gt;80%)
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Review (&gt;50%)
-                </span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="h-[210px] w-full">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 12, right: 24, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis
-                      dataKey="name"
-                      stroke="#64748b"
-                      fontSize={11}
-                      tickLine={false}
-                      axisLine={{ stroke: "#334155" }}
+          {/* Responsive SVG Progression Visualization */}
+          <div className="relative pt-2 pb-1">
+            <svg
+              viewBox="0 0 800 160"
+              className="w-full h-32 overflow-visible select-none"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id={`gradient-${proposalId}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={tone.fill} />
+                  <stop offset="100%" stopColor="rgba(15, 23, 42, 0.0)" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid Lines */}
+              <line x1="40" y1="20" x2="760" y2="20" stroke="#1e293b" strokeDasharray="4 4" />
+              <line x1="40" y1="65" x2="760" y2="65" stroke="#1e293b" strokeDasharray="4 4" />
+              <line x1="40" y1="110" x2="760" y2="110" stroke="#1e293b" strokeDasharray="4 4" />
+
+              {/* Area Under Curve */}
+              {(() => {
+                const pts = progressionPoints;
+                const coords = pts.map((p, i) => {
+                  const x = 50 + (i / (pts.length - 1)) * 700;
+                  // Map prob 0% -> 130, 100% -> 20
+                  const y = 130 - (p.prob / 100) * 110;
+                  return { x, y };
+                });
+
+                const pathD = coords.reduce((acc, c, i) => `${acc} ${i === 0 ? "M" : "L"} ${c.x} ${c.y}`, "");
+                const areaD = `${pathD} L ${coords[coords.length - 1].x} 140 L ${coords[0].x} 140 Z`;
+
+                return (
+                  <>
+                    <path d={areaD} fill={`url(#gradient-${proposalId})`} />
+                    <path
+                      d={pathD}
+                      fill="none"
+                      stroke={tone.stroke}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
                     />
-                    <YAxis
-                      domain={[0, 100]}
-                      stroke="#64748b"
-                      fontSize={11}
-                      tickFormatter={(v) => `${v}%`}
-                      tickLine={false}
-                      axisLine={{ stroke: "#334155" }}
-                    />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-slate-950/95 border border-slate-800 rounded-lg p-2.5 shadow-xl text-xs space-y-1">
-                              <p className="font-semibold text-slate-200">{data.stageName}</p>
-                              <div className="flex justify-between gap-4 font-mono text-[11px]">
-                                <span className="text-slate-400">Likelihood Ratio:</span>
-                                <span className="text-sky-400 font-bold">{data.lr}</span>
-                              </div>
-                              <div className="flex justify-between gap-4 font-mono text-[11px]">
-                                <span className="text-slate-400">Running Prob:</span>
-                                <span className="text-amber-400 font-bold">{data.probability}%</span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <ReferenceLine y={80} stroke="#ef4444" strokeDasharray="3 3" strokeOpacity={0.6} />
-                    <ReferenceLine y={50} stroke="#f59e0b" strokeDasharray="3 3" strokeOpacity={0.4} />
-                    <Line
-                      type="monotone"
-                      dataKey="probability"
-                      stroke={
-                        riskData.level === "CRITICAL"
-                          ? "#ef4444"
-                          : riskData.level === "HIGH"
-                          ? "#f97316"
-                          : riskData.level === "MEDIUM"
-                          ? "#f59e0b"
-                          : "#10b981"
-                      }
-                      strokeWidth={3}
-                      dot={{ r: 5, fill: "#0f172a", strokeWidth: 2 }}
-                      activeDot={{ r: 7 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-xs text-slate-500">
-                  Loading Bayesian trajectory chart...
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Final Level & Action Verdict Card (4 cols) */}
-        <Card className="lg:col-span-4 border-slate-800 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-between">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-200 flex items-center justify-between">
-              <span>Final Risk Assessment</span>
-              {getLevelBadge(riskData.level)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-1 pb-4">
-            {/* Level Banner */}
-            <div className="bg-slate-950/70 border border-slate-800/80 p-3 rounded-xl space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Calculated Level</span>
-                <span className="font-bold text-slate-200">{riskData.level}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Recommended Action</span>
-                <span className="font-mono font-bold uppercase text-slate-200">{riskData.action}</span>
-              </div>
-              <div className="pt-1">{getActionBadge(riskData.action)}</div>
-            </div>
-
-            {/* Action explanation */}
-            <div className="text-xs text-slate-400 leading-relaxed bg-slate-900/80 p-2.5 rounded-lg border border-slate-800/80">
-              {riskData.action === "halt" && (
-                <p>
-                  <strong className="text-red-400">Autonomous Timelock Halt:</strong> High posterior anomaly probability triggers automatic cancel proposal in timelock queue.
-                </p>
-              )}
-              {riskData.action === "review" && (
-                <p>
-                  <strong className="text-amber-400">Manual Review Required:</strong> Escalated to DAO security council for secondary inspection before execution.
-                </p>
-              )}
-              {riskData.action === "none" && (
-                <p>
-                  <strong className="text-emerald-400">Timelock Safe:</strong> Zero critical discrepancies found. Transaction permitted to proceed normally.
-                </p>
-              )}
-            </div>
-
-            {/* Odds Progression Summary */}
-            <div className="grid grid-cols-3 gap-1 pt-1 text-center font-mono">
-              <div className="bg-slate-950/60 p-1.5 rounded border border-slate-800">
-                <span className="text-[10px] text-slate-500 block">PRIOR</span>
-                <span className="text-xs font-bold text-slate-300">5.0%</span>
-              </div>
-              <div className="bg-slate-950/60 p-1.5 rounded border border-slate-800">
-                <span className="text-[10px] text-slate-500 block">TOTAL LR</span>
-                <span className="text-xs font-bold text-sky-400">
-                  {riskData.stages.reduce((acc, s) => acc * s.likelihoodRatio, 1).toFixed(0)}x
-                </span>
-              </div>
-              <div className="bg-slate-950/60 p-1.5 rounded border border-slate-800">
-                <span className="text-[10px] text-slate-500 block">POSTERIOR</span>
-                <span
-                  className={`text-xs font-bold ${
-                    riskData.posterior > 0.8 ? "text-red-400" : "text-emerald-400"
-                  }`}
-                >
-                  {(riskData.posterior * 100).toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Finding Detail Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-800 text-slate-100">
-          <DialogHeader>
-            <div className="flex items-center justify-between pr-4">
-              <DialogTitle className="text-base font-semibold font-mono flex items-center gap-2">
-                <span>{selectedFinding?.id}</span>
-                <Badge variant="outline" className="text-[10px] uppercase font-sans">
-                  {selectedFinding?.category}
-                </Badge>
-              </DialogTitle>
-              <Badge
-                className={`text-xs font-bold ${
-                  selectedFinding?.severity === "critical"
-                    ? "bg-red-500/20 text-red-400 border-red-500/40"
-                    : selectedFinding?.severity === "high"
-                    ? "bg-orange-500/20 text-orange-400 border-orange-500/40"
-                    : "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                }`}
-              >
-                {selectedFinding?.severity}
-              </Badge>
-            </div>
-            <DialogDescription className="text-xs text-slate-400">
-              Evidence item linked to Bayesian likelihood ratio calculation
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedFinding && (
-            <div className="space-y-3 pt-2 text-xs">
-              <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-1">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block">
-                  What Proposal Claimed
-                </span>
-                <p className="text-slate-300 italic">&ldquo;{selectedFinding.said}&rdquo;</p>
-              </div>
-
-              <div className="bg-red-950/20 p-3 rounded-lg border border-red-500/30 space-y-1">
-                <span className="text-[10px] uppercase tracking-wider text-red-400 font-semibold block">
-                  What Code / Calldata Does
-                </span>
-                <p className="text-red-200">{selectedFinding.does}</p>
-              </div>
-
-              {selectedFinding.evidence && selectedFinding.evidence.length > 0 && (
-                <div className="pt-1">
-                  <span className="text-[10px] uppercase text-slate-400 font-semibold block mb-1">
-                    Citations ({selectedFinding.evidence.length})
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedFinding.evidence.map((cit, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
-                      >
-                        {cit.chunkId} ({cit.sourceUri || "doc"})
-                      </span>
+                    {coords.map((c, i) => (
+                      <g key={i}>
+                        <circle cx={c.x} cy={c.y} r="5" fill="#0f172a" stroke={tone.stroke} strokeWidth="3" />
+                        <text
+                          x={c.x}
+                          y={c.y - 12}
+                          textAnchor="middle"
+                          className="font-mono text-[12px] font-bold fill-slate-200"
+                        >
+                          {pts[i].prob}%
+                        </text>
+                        <text
+                          x={c.x}
+                          y="152"
+                          textAnchor="middle"
+                          className="font-mono text-[11px] fill-slate-400"
+                        >
+                          {pts[i].label}
+                        </text>
+                      </g>
                     ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

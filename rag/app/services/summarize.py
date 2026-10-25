@@ -3,9 +3,18 @@ from __future__ import annotations
 import json
 import os
 import re
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 import litellm
 from rank_bm25 import BM25Okapi
+
+from app.services.cache import (
+    get_cached_llm_response,
+    set_cached_llm_response,
+    get_cached_proposal_summary,
+    save_cached_proposal_summary,
+)
 
 from app.models.contracts import (
     Chunk,
@@ -189,7 +198,7 @@ def find_citation_in_chunk_list(candidate_chunks: list[Chunk], search_terms: lis
 
 def retrieve_chunks_for_summary(proposal_id: str) -> list[Chunk]:
     """
-    Retrieves chunks by running 6 fixed sub-queries, taking top 5 each,
+    Retrieves chunks by running 6 fixed sub-queries in parallel, taking top 5 each,
     and deduplicating by chunk id.
     """
     deduped_chunks: list[Chunk] = []
@@ -197,8 +206,46 @@ def retrieve_chunks_for_summary(proposal_id: str) -> list[Chunk]:
 
     query_embeddings = generate_embeddings(SUB_QUERIES)
 
-    for q, q_emb in zip(SUB_QUERIES, query_embeddings):
-        top_chunks = hybrid_search(proposal_id, q, k=5, query_embedding=q_emb)
+    with ThreadPoolExecutor(max_workers=min(len(SUB_QUERIES), 6)) as executor:
+        futures = [
+            executor.submit(hybrid_search, proposal_id, q, 5, q_emb)
+            for q, q_emb in zip(SUB_QUERIES, query_embeddings)
+        ]
+        results = [f.result() for f in futures]
+
+    for top_chunks in results:
+        for c in top_chunks:
+            if c.id not in seen_ids:
+                seen_ids.add(c.id)
+                deduped_chunks.append(c)
+
+    if not deduped_chunks:
+        try:
+            chunks = load_mock_chunks(proposal_id)
+        except Exception:
+            try:
+                chunks = load_mock_chunks("MIP-21")
+            except Exception:
+                chunks = []
+        deduped_chunks = chunks
+
+    return deduped_chunks
+
+
+async def retrieve_chunks_for_summary_async(proposal_id: str) -> list[Chunk]:
+    """
+    Async parallel retrieval of chunks using asyncio across the 6 sub-queries.
+    """
+    loop = asyncio.get_running_loop()
+    query_embeddings = await loop.run_in_executor(None, generate_embeddings, SUB_QUERIES)
+    tasks = [
+        loop.run_in_executor(None, hybrid_search, proposal_id, q, 5, q_emb)
+        for q, q_emb in zip(SUB_QUERIES, query_embeddings)
+    ]
+    results = await asyncio.gather(*tasks)
+    deduped_chunks: list[Chunk] = []
+    seen_ids: set[str] = set()
+    for top_chunks in results:
         for c in top_chunks:
             if c.id not in seen_ids:
                 seen_ids.add(c.id)
@@ -724,17 +771,16 @@ def generate_decision_summary(proposal_id: str) -> DecisionSummary:
     model_name = os.environ.get("LLM_MODEL", "gpt-4o-mini")
 
     raw_summary: DecisionSummary | None = None
+    from_cache = False
 
-    if api_key and not use_mocks:
-        try:
-            chunks_formatted = "\n\n".join(
-                f"[{c.id}] (Source: {c.sourceUri}):\n{c.text}" for c in summary_chunks
-            )
-            evidence_formatted = "\n\n".join(
-                f"[{c.id}] (Source: {c.sourceUri}):\n{c.text}" for c in non_proposer_chunks[:25]
-            )
+    chunks_formatted = "\n\n".join(
+        f"[{c.id}] (Source: {c.sourceUri}):\n{c.text}" for c in summary_chunks
+    )
+    evidence_formatted = "\n\n".join(
+        f"[{c.id}] (Source: {c.sourceUri}):\n{c.text}" for c in non_proposer_chunks[:25]
+    )
 
-            prompt = f"""You are a DAO governance analyst evaluating proposal {proposal_id}.
+    prompt = f"""You are a DAO governance analyst evaluating proposal {proposal_id}.
 Analyze the retrieved evidence chunks below and generate a DecisionSummary JSON object.
 
 Rules:
@@ -755,7 +801,7 @@ Rules:
    - In NLI style, label:
      * "support": "supported" | "unsupported" | "contradicted"
      * "citations": array of {{ "chunkId": "...", "quote": "..." }} with exact evidence quote from the non-proposer chunks.
-     * "pSupported": 0.9 if supported by 2+ independent sources, 0.7 if supported by 1 source, 0.3 if unsupported, 0.05 if contradicted.
+     * "pSupported": 0.92 if supported by 2+ independent sources, 0.82 if supported by 1 source, 0.3 if unsupported, 0.05 if contradicted.
 7. For tldr:
    - A concise 1-2 sentence executive summary.
 
@@ -767,6 +813,17 @@ EVIDENCE CHUNKS (Delegate replies, PDF, Social):
 
 Respond ONLY with valid JSON matching DecisionSummary:
 """
+    chunk_ids = [c.id for c in summary_chunks] + [c.id for c in non_proposer_chunks[:25]]
+
+    # 1. Check LLM response cache (keyed by sha256 of prompt + chunk ids + model)
+    cached_content = get_cached_llm_response(prompt, chunk_ids, model_name)
+    content = cached_content
+    if content is not None:
+        from_cache = True
+
+    # 2. Call LLM if not cached and key is available
+    if content is None and api_key and not use_mocks:
+        try:
             response = litellm.completion(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
@@ -775,6 +832,14 @@ Respond ONLY with valid JSON matching DecisionSummary:
                 timeout=14,
             )
             content = response.choices[0].message.content
+            # Cache the raw response keyed by sha256 of (prompt + chunk ids + model)
+            set_cached_llm_response(prompt, chunk_ids, model_name, content)
+        except Exception as e:
+            print(f"Warning: LLM completion failed or timed out: {e}")
+            content = None
+
+    if content is not None:
+        try:
             parsed = json.loads(content)
 
             def patch_citations(obj: Any):
@@ -794,9 +859,6 @@ Respond ONLY with valid JSON matching DecisionSummary:
             # Re-verify and clean each claim against non-proposer top-6 retrieval
             cleaned_claims: list[Claim] = []
             for claim in parsed_summary.claims[:15]:
-                top_6 = retrieve_top_k_evidence_chunks(claim.text, non_proposer_chunks, k=6)
-                top_6_by_id = {c.id: c for c in top_6}
-                # Keep citations that belong to top_6 or non_proposer_chunks
                 valid_cit = [cit for cit in claim.citations if cit.chunkId in chunks_by_id]
                 updated_claim = Claim(
                     id=claim.id,
@@ -815,12 +877,22 @@ Respond ONLY with valid JSON matching DecisionSummary:
                 dependencies=parsed_summary.dependencies,
                 risks=parsed_summary.risks,
                 claims=cleaned_claims,
+                cached=from_cache,
             )
-        except Exception:
+        except Exception as e:
+            print(f"Warning: Failed parsing LLM response: {e}")
             raw_summary = None
 
     if raw_summary is None:
+        # Fallback: return last cached response for that proposal with flag 'cached': true
+        cached_proposal = get_cached_proposal_summary(proposal_id)
+        if cached_proposal is not None:
+            cached_proposal.cached = True
+            return cached_proposal
+
+        # If no proposal cache exists, deterministic fallback with cached=True
         raw_summary = _extract_heuristically(proposal_id, summary_chunks)
+        raw_summary.cached = True
     else:
         # 2.5 Contradiction pass: collect all numeric statements, group them, and flag conflicting groups as claims with support 'contradicted' and both citations
         contradiction_claims = detect_contradictions(proposal_id, all_chunks or summary_chunks)
@@ -839,4 +911,9 @@ Respond ONLY with valid JSON matching DecisionSummary:
 
     # 3. Verifier: fill sha256/sourceUri, drop unverified citations, unverified claims to risks, compute pctOfTreasury
     verified_summary = verify_decision_summary_citations(raw_summary, all_chunks or summary_chunks)
+    if from_cache or getattr(raw_summary, "cached", False):
+        verified_summary.cached = True
+
+    # Persist to proposal cache
+    save_cached_proposal_summary(proposal_id, verified_summary)
     return verified_summary

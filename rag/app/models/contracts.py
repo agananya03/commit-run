@@ -102,7 +102,7 @@ class Risk(BaseModel):
 
 class DecisionSummary(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra='allow',
     )
     proposalId: str
     tldr: str
@@ -110,6 +110,7 @@ class DecisionSummary(BaseModel):
     dependencies: list[Dependency]
     risks: list[Risk]
     claims: list[Claim]
+    cached: bool | None = None
 
 
 class Kind1(Enum):

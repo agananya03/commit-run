@@ -86,7 +86,7 @@ export function DecisionSummaryCard({ summary, isLoading }: DecisionSummaryCardP
       case "unsupported":
       default:
         return (
-          <Badge className="bg-yellow-950/80 text-yellow-400 border border-yellow-500/50 text-[10px] font-mono uppercase px-2 py-0.5">
+          <Badge className="bg-amber-950/80 text-amber-400 border border-amber-500/50 text-[10px] font-mono uppercase px-2 py-0.5">
             UNSUPPORTED
           </Badge>
         );

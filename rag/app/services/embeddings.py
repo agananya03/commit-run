@@ -102,18 +102,34 @@ def _fallback_embedding(text: str, dim: int = 384) -> list[float]:
     return vec
 
 
+from app.services.cache import get_cached_embedding, set_cached_embedding
+
+
 def generate_embeddings(texts: Sequence[str]) -> list[list[float]]:
     if not texts:
         return []
 
-    embedder = load_embedding_model()
-    if embedder is not None:
-        try:
-            return embedder.encode(list(texts), normalize_embeddings=True)
-        except Exception as e:
-            print(f"Warning: Embedding generation failed: {e}")
+    results: list[list[float] | None] = [get_cached_embedding(t) for t in texts]
+    missing_indices = [i for i, r in enumerate(results) if r is None]
 
-    return [_fallback_embedding(t) for t in texts]
+    if missing_indices:
+        missing_texts = [texts[i] for i in missing_indices]
+        embedder = load_embedding_model()
+        computed: list[list[float]] = []
+        if embedder is not None:
+            try:
+                computed = embedder.encode(list(missing_texts), normalize_embeddings=True)
+            except Exception as e:
+                print(f"Warning: Embedding generation failed: {e}")
+                computed = [_fallback_embedding(t) for t in missing_texts]
+        else:
+            computed = [_fallback_embedding(t) for t in missing_texts]
+
+        for idx, emb in zip(missing_indices, computed):
+            set_cached_embedding(texts[idx], emb)
+            results[idx] = emb
+
+    return [r for r in results if r is not None]
 
 
 def generate_single_embedding(text: str) -> list[float]:

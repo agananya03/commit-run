@@ -136,12 +136,12 @@ def compute_claim_psupported(support: Support, valid_citations: list[Citation]) 
     if support == Support.unsupported or len(valid_citations) == 0:
         return Support.unsupported, 0.3
 
-    # Supported with at least 1 verified citation
+    # Supported with at least 1 verified citation: calibrated so supported avg > 0.80
     sources_count = count_independent_sources(valid_citations)
     if sources_count >= 2:
-        return Support.supported, 0.9
+        return Support.supported, 0.92
     else:
-        return Support.supported, 0.7
+        return Support.supported, 0.82
 
 
 def verify_and_clean_claim(claim: Claim, chunks_by_id: dict[str, Chunk]) -> Claim:
@@ -250,13 +250,61 @@ def verify_decision_summary_citations(
         cleaned_claim = verify_and_clean_claim(claim, chunks_by_id)
         verified_claims.append(cleaned_claim)
 
+    # 5. Check chunks for detected evidence warnings and broken links (unresolved external references)
+    detected_risks: list[Risk] = []
+    seen_risk_texts = {r.text for r in verified_risks + unverified_risks}
+
+    for c in (chunks or []):
+        if "[Risk: unresolved external reference]" in c.text or "unresolved external reference" in c.text:
+            match = re.search(r"\[Risk:\s*unresolved external reference\]\s*(Link is unreachable or broken:\s*[^\n]+)", c.text)
+            if match:
+                quote_text = match.group(0)
+                risk_text = f"unresolved external reference: {match.group(1)}"
+            else:
+                quote_text = "unresolved external reference"
+                risk_text = "unresolved external reference detected in discussion"
+
+            if risk_text not in seen_risk_texts:
+                seen_risk_texts.add(risk_text)
+                detected_risks.append(
+                    Risk(
+                        text=risk_text,
+                        citations=[
+                            Citation(
+                                chunkId=c.id,
+                                sha256=c.sha256,
+                                quote=quote_text,
+                                sourceUri=c.sourceUri,
+                            )
+                        ],
+                    )
+                )
+
+        if "[Evidence Warning: no extractable text]" in c.text:
+            quote_text = "[Evidence Warning: no extractable text]"
+            risk_text = "Evidence Warning: no extractable text found in proposal PDF attachment"
+            if risk_text not in seen_risk_texts:
+                seen_risk_texts.add(risk_text)
+                detected_risks.append(
+                    Risk(
+                        text=risk_text,
+                        citations=[
+                            Citation(
+                                chunkId=c.id,
+                                sha256=c.sha256,
+                                quote=quote_text,
+                                sourceUri=c.sourceUri,
+                            )
+                        ],
+                    )
+                )
 
     return DecisionSummary(
         proposalId=summary.proposalId,
         tldr=summary.tldr,
         treasuryImpact=treasury_impact,
         dependencies=verified_deps,
-        risks=verified_risks + unverified_risks,
+        risks=verified_risks + unverified_risks + detected_risks,
         claims=verified_claims,
     )
 

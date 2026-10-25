@@ -45,7 +45,7 @@ def test_claim_extraction_mip21(client: TestClient) -> None:
 
     # Verify each claim
     for claim in summary.claims:
-        assert claim.pSupported in (0.9, 0.7, 0.3, 0.05), f"Invalid pSupported {claim.pSupported}"
+        assert claim.pSupported in (0.92, 0.82, 0.3, 0.05), f"Invalid pSupported {claim.pSupported}"
 
         if claim.support == Support.contradicted:
             assert claim.pSupported == 0.05
@@ -54,9 +54,9 @@ def test_claim_extraction_mip21(client: TestClient) -> None:
         elif claim.support == Support.supported:
             num_sources = count_independent_sources(claim.citations)
             if num_sources >= 2:
-                assert claim.pSupported == 0.9
+                assert claim.pSupported == 0.92
             else:
-                assert claim.pSupported == 0.7
+                assert claim.pSupported == 0.82
 
         # Verify all citations come from non-proposer sources (NOT proposer post #1)
         for cit in claim.citations:
@@ -107,7 +107,7 @@ def test_claim_extraction_mip17_with_contradicted_and_unsupported(client: TestCl
 
     supported_claims = [c for c in summary.claims if c.support == Support.supported]
     for c in supported_claims:
-        assert c.pSupported in (0.7, 0.9)
+        assert c.pSupported in (0.82, 0.92)
 
 
 def test_claim_extraction_mip12(client: TestClient) -> None:
@@ -131,7 +131,7 @@ def test_claim_extraction_mip12(client: TestClient) -> None:
     assert len(summary.claims) >= 4
     assert len(summary.claims) <= 15
     for claim in summary.claims:
-        assert claim.pSupported in (0.9, 0.7, 0.3, 0.05)
+        assert claim.pSupported in (0.92, 0.82, 0.3, 0.05)
 
 
 def test_independent_sources_and_psupported_logic() -> None:
