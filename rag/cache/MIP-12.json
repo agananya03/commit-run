@@ -1,0 +1,187 @@
+{
+  "proposalId": "MIP-12",
+  "tldr": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph",
+  "treasuryImpact": {
+    "amountUsd": 400000.0,
+    "pctOfTreasury": 0.8,
+    "recipients": [
+      "Meridian Studio Collective"
+    ],
+    "citations": [
+      {
+        "chunkId": "MIP-12:pdf:2",
+        "sha256": "0x70dca942ef3aeacf510e565fdfb1e62b043cff3024afc2971518b8d56ae5aff8",
+        "quote": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph",
+        "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "text": "[[MIP-12] Developer SDK and Subgraph Indexer Infrastructure Grant] Post #1 by proposer_8:",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:0",
+          "sha256": "0xb15c61d4e722a6a7fbdeb819a04f0108ed505c25d74e4ee63dcbf5014ed831ba",
+          "quote": "[[MIP-12] Developer SDK and Subgraph Indexer Infrastructure Grant] Post #1 by proposer_8:",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=1"
+        }
+      ]
+    },
+    {
+      "text": "4. Concrete Milestones & Timeline",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:5",
+          "sha256": "0x2f3cf637e8f111d3996fa39352a085818e65b2a1cd7d16376b3b1f73b21226a5",
+          "quote": "4. Concrete Milestones & Timeline",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "text": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:2",
+          "sha256": "0x70dca942ef3aeacf510e565fdfb1e62b043cff3024afc2971518b8d56ae5aff8",
+          "quote": "We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source s",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ]
+    },
+    {
+      "text": "@aria_governance: Thoroughly analyzed the financial scope of MIP-12. At 400K USDC (2.0% treasury), with transparent milestones and clear del",
+      "citations": [
+        {
+          "chunkId": "MIP-12:social:1",
+          "sha256": "0xa27a1738f3132adf52be543cc542d5e3a0eebb4ec59e6b88d0207b4ec6f8bf79",
+          "quote": "@aria_governance: Thoroughly analyzed the financial scope of MIP-12. At 400K USDC (2.0% treasury), w",
+          "sourceUri": "social://MIP-12/social.json#msg=soc_12_2"
+        }
+      ]
+    },
+    {
+      "text": "{\"synthetic\": true, \"contract\": \"Treasury\", \"function\": \"transfer\", \"args\": [9, \"400000000000\"]}",
+      "citations": [
+        {
+          "chunkId": "MIP-12:onchain:0",
+          "sha256": "0xb4364c72c9579587352eeec42d50a95e59dabe6fdb2ab30cff54a4002988a160",
+          "quote": "{\"synthetic\": true, \"contract\": \"Treasury\", \"function\": \"transfer\", \"args\": [9, \"400000000000\"]}",
+          "sourceUri": "onchain://MIP-12/onchain_actions.json#call=0"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl1",
+      "text": "MIP-12 requests a 400,000 USDC grant to build an official TypeScript SDK and subgraph indexer.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-12:pdf:2",
+          "sha256": "0x70dca942ef3aeacf510e565fdfb1e62b043cff3024afc2971518b8d56ae5aff8",
+          "quote": "400,000 USDC",
+          "sourceUri": "pdf://MIP-12/proposal.pdf#page=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl2",
+      "text": "The SDK is purely client-side and interacts strictly with public view calls.",
+      "kind": "technical",
+      "citations": [],
+      "support": "unsupported",
+      "pSupported": 0.3
+    },
+    {
+      "id": "cl3",
+      "text": "Zero private keys, zero admin roles, and zero proxy upgrades are involved.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:6",
+          "sha256": "0x5d1b2a4a5bb741ea6a43ee8136b98ab63b822eb28de0f9fd7ad6dcd80c2010a1",
+          "quote": "funds are sent directly to the disclosed dev studio wallet 9, the vault remains untouched.",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=7"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl4",
+      "text": "Subgraphs track real-time loan book health and reserve utilization.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:5",
+          "sha256": "0xc515f1c2675d700c6103d304d832887a476458c3fe4b6c308bde3591bf27b229",
+          "quote": "Having subgraphs tracking real-time loan book health and reserve utilization will make liquidity rebalancing bots far more efficient.",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=6"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl5",
+      "text": "Recipient is wallet index 9 (Meridian Studio Collective).",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:6",
+          "sha256": "0x5d1b2a4a5bb741ea6a43ee8136b98ab63b822eb28de0f9fd7ad6dcd80c2010a1",
+          "quote": "funds are sent directly to the disclosed dev studio wallet 9",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=7"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl6",
+      "text": "Meridian Studio Collective will open-source all tooling under MIT license.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:2",
+          "sha256": "0xee2a80abdadb3887742d09fa5f6933a5cf0a40d3604d2bf5316fa64808374ca5",
+          "quote": "Having open-source tooling under MIT license ensures that third-party integrations aren't bottlenecked by core contributor bandwidth.",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=3"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl7",
+      "text": "Month 1 alpha SDK release gives delegates enough time to verify deliverables.",
+      "kind": "timeline",
+      "citations": [
+        {
+          "chunkId": "MIP-12:forum:7",
+          "sha256": "0x86c4dd6eb52c24f0ecccd6dc58efa28cdf55e12b2114f61628100c4c7a38d2ce",
+          "quote": "Month 1 alpha SDK release gives delegates enough time to verify the deliverables before follow-up sprints.",
+          "sourceUri": "forum://MIP-12/forum_thread.json#post=8"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl8",
+      "text": "Three-phase milestone schedule delivers SDK, subgraph, and documentation.",
+      "kind": "timeline",
+      "citations": [],
+      "support": "unsupported",
+      "pSupported": 0.3
+    }
+  ],
+  "cached": true
+}

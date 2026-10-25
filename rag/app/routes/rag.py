@@ -5,6 +5,8 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.models.contracts import Chunk, DecisionSummary, IntentSpec
 from app.models.requests import (
+    AskRequest,
+    AskResponse,
     ExplainRequest,
     ExtractIntentRequest,
     IngestRequest,
@@ -22,6 +24,7 @@ from app.services.ingest import ingest_proposal_files
 from app.services.search import hybrid_search
 from app.services.summarize import generate_decision_summary
 from app.services.extract_intent import extract_intent_spec
+from app.services.ask import answer_proposal_question
 
 router = APIRouter()
 
@@ -92,6 +95,15 @@ def explain(request: ExplainRequest) -> dict[str, Any]:
             for i, f in enumerate(request.findings)
         ],
     }
+
+
+@router.post("/ask", response_model=AskResponse)
+def ask(request: AskRequest) -> AskResponse:
+    """
+    Answers a question about a proposal using verified citations only.
+    Refuses when evidence is missing.
+    """
+    return answer_proposal_question(request.proposalId, request.question)
 
 
 @router.get("/chunks/{chunk_id:path}", response_model=Chunk)

@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.contracts import Citation
+
 
 class ErrorDetail(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -48,3 +50,18 @@ class ExplainRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     proposalId: str
     findings: list[Any] = Field(default_factory=list)
+
+
+class AskRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    proposalId: str
+    question: str
+
+
+class AskResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    proposalId: str
+    question: str
+    answer: str
+    citations: list[Citation] = Field(default_factory=list)
+    refused: bool = False

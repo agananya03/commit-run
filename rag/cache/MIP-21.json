@@ -1,0 +1,216 @@
+{
+  "proposalId": "MIP-21",
+  "tldr": "MIP-21: Governance proposal with requested actions and delegate feedback.",
+  "treasuryImpact": {
+    "amountUsd": null,
+    "pctOfTreasury": null,
+    "recipients": [],
+    "citations": []
+  },
+  "dependencies": [],
+  "risks": [
+    {
+      "text": "@chen_security: Still reviewing the UUPS upgrade payload and AST storage diff. Upgrades to core vault contracts must be audited thoroughly.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:social:4",
+          "sha256": "0x34e4913d769ca2c8f44e9aed07e0674c357ee93c41de1c272d64e0c916545917",
+          "quote": "@chen_security: Still reviewing the UUPS upgrade payload and AST storage diff. Upgrades to core vaul",
+          "sourceUri": "social://MIP-21/social.json#msg=5"
+        }
+      ]
+    },
+    {
+      "text": "6. Risk Analysis & Safety Guarantees",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:9",
+          "sha256": "0xaeef14f5d57eeed8db93e5ff30af81935aecae15d82a7ca29ba5705c2d0e90bf",
+          "quote": "6. Risk Analysis & Safety Guarantees",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ]
+    },
+    {
+      "text": "The VaultV2 implementation and storage diff were developed and benchmarked by core protocol engineers:",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:8",
+          "sha256": "0xb0a8aa6ad3abd3f6966074a684c2fa5e7a4398cca47dae00afedb36ef26fe2d1",
+          "quote": "The VaultV2 implementation and storage diff were developed and benchmarked by core protocol engineer",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ]
+    },
+    {
+      "text": "Unverified claim: Treasury request of $unknown lacks verified source citations",
+      "citations": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl1",
+      "text": "VaultV2 makes deposits and withdrawals ~1% cheaper in gas.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:7",
+          "sha256": "0xd9f753f155bffa5a300298e3d486d43c0158902b5e9c154c5b9caa722fdc7fda",
+          "quote": "deposit(uint256) falls from 48,712 to 48,390 gas",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        },
+        {
+          "chunkId": "MIP-21:forum:1",
+          "sha256": "0xffd7a223b6e56774de28de446d29459a06962f0aa3975576b87ffe2a1f59cd44",
+          "quote": "~1% gas savings on user deposits and withdrawals",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.92
+    },
+    {
+      "id": "cl2",
+      "text": "No change to ownership: the Timelock remains sole owner of the Vault.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:2",
+          "sha256": "0x9d1b65e2863ef364d94034199cc26581b41d29e7c7c7b97b16008d8ef8a015aa",
+          "quote": "The Timelock remains the sole owner of the Vault.",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=2"
+        },
+        {
+          "chunkId": "MIP-21:forum:4",
+          "sha256": "0xb8443454e4c109749e72e5e9ac26df285655747130c7872db5bcfe38e133ab42",
+          "quote": "retaining existing Timelock ownership",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=5"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.92
+    },
+    {
+      "id": "cl3",
+      "text": "Changes are limited to slot packing and EIP-2929 warm-access savings.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:4",
+          "sha256": "0xbaa1716d8c40acaac3369a234dab4351c041ef7f92e2c173bec87a4b15cdd8a1",
+          "quote": "Changes are limited to slot packing and EIP-2929\nwarm-access savings.",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl4",
+      "text": "deposit(uint256) falls from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:pdf:7",
+          "sha256": "0xd9f753f155bffa5a300298e3d486d43c0158902b5e9c154c5b9caa722fdc7fda",
+          "quote": "deposit(uint256) falls from 48,712 to 48,390 gas",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl5",
+      "text": "Rebalancing saves 2,240 gas by mitigating cold SLOAD reads under EIP-2929.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x4dc3de38a2bb5cc61602739f4152b7e1c641337d2dcdc69200caa81d90e79193",
+          "quote": "Mitigating redundant cold SLOAD reads under EIP-2929 is very welcome.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=3"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl6",
+      "text": "Gas optimizations preserve substantial capital across the 8M USDC Vault.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:1",
+          "sha256": "0xffd7a223b6e56774de28de446d29459a06962f0aa3975576b87ffe2a1f59cd44",
+          "quote": "Over annualized volumes, this preserves substantial capital for retail depositors.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl7",
+      "text": "Zero modifications are made to lending reserve calculations or collateral debt ratios.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:4",
+          "sha256": "0xb8443454e4c109749e72e5e9ac26df285655747130c7872db5bcfe38e133ab42",
+          "quote": "Because this touches our core 8M USDC lending reserves, preserving storage slot compatibility is critical.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=5"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl8",
+      "text": "The implementation was reviewed internally by the core team.",
+      "kind": "team",
+      "citations": [],
+      "support": "unsupported",
+      "pSupported": 0.3
+    },
+    {
+      "id": "cl9",
+      "text": "Benchmarks and gas traces were developed in coordination with community contributors.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-21:social:3",
+          "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+          "quote": "Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks.",
+          "sourceUri": "social://MIP-21/social.json#msg=4"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl10",
+      "text": "VaultV2 upgrade execution is scheduled immediately following the governance vote.",
+      "kind": "timeline",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:7",
+          "sha256": "0x9abf82e81302e5b332662323001a08692b4897b696283d1a3249fac36a47ef45",
+          "quote": "Assuming the UUPS upgrade call executes cleanly without modifying any external roles, this looks like a straightforward technical enhancement.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=8"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl11",
+      "text": "Automated Foundry fuzzing tests were conducted across 10,000 randomized state profiles.",
+      "kind": "timeline",
+      "citations": [],
+      "support": "unsupported",
+      "pSupported": 0.3
+    }
+  ],
+  "cached": true
+}

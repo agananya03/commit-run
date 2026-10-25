@@ -55,6 +55,17 @@ def parse_pdf(
             page_num = page_idx + 1
             raw_text = page.extract_text() or ""
 
+            # If text is empty, attempt pytesseract OCR if installed
+            if not raw_text.strip():
+                try:
+                    import pytesseract
+                    page_image = page.to_image(resolution=300).original
+                    ocr_res = pytesseract.image_to_string(page_image)
+                    if ocr_res and ocr_res.strip():
+                        raw_text = ocr_res.strip()
+                except Exception:
+                    pass
+
             # Extract tables and convert to markdown rows
             table_markdowns: list[str] = []
             try:
@@ -101,5 +112,24 @@ def parse_pdf(
                 )
                 chunks.append(chunk)
                 chunk_counter += 1
+
+    # If no text was extracted at all across all pages (empty or image-only PDF),
+    # emit a clear 'no extractable text' evidence warning chunk.
+    if not chunks:
+        warning_text = (
+            f"[Evidence Warning: no extractable text] PDF document '{filename}' contains no extractable text. "
+            "File is empty or image-only."
+        )
+        h = hashlib.sha256(warning_text.encode("utf-8")).hexdigest()
+        warning_chunk = Chunk(
+            id=f"{proposal_id}:pdf:{chunk_counter}",
+            proposalId=proposal_id,
+            sourceType=SourceType.pdf,
+            sourceUri=f"pdf://{proposal_id}/{filename}#warning=no_extractable_text",
+            page=1.0,
+            text=warning_text,
+            sha256=Hex(f"0x{h}"),
+        )
+        chunks.append(warning_chunk)
 
     return chunks

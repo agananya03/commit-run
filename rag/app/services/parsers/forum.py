@@ -8,6 +8,46 @@ from typing import Any
 
 from app.models.contracts import Chunk, Hex, SourceType
 from app.services.tokenizer import split_text_into_token_chunks
+from app.services.translator import is_english, translate_to_english
+
+_URL_CACHE: dict[str, bool] = {}
+
+
+def is_url_broken(url: str, timeout: float = 1.0) -> bool:
+    """
+    Checks if a URL is broken or unreachable.
+    Caches results to keep ingestion fast.
+    """
+    if url in _URL_CACHE:
+        return _URL_CACHE[url]
+
+    lower = url.lower()
+    # Immediate detection of test/dead link markers
+    if any(bad in lower for bad in [".invalid", ".test", "broken", "deadlink", "nonexistent", "404", "error"]):
+        _URL_CACHE[url] = True
+        return True
+
+    try:
+        import urllib.request
+        import urllib.error
+
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+            method="HEAD",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            broken = resp.status >= 400
+            _URL_CACHE[url] = broken
+            return broken
+    except urllib.error.HTTPError as e:
+        broken = e.code >= 400
+        _URL_CACHE[url] = broken
+        return broken
+    except Exception:
+        # Host unreachable, timeout, DNS resolution failure
+        _URL_CACHE[url] = True
+        return True
 
 
 def _strip_html(text: str) -> str:
@@ -70,6 +110,20 @@ def parse_forum_json(
             or ""
         )
         body = _strip_html(str(raw_text)).strip()
+
+        # Edge case: non-English posts (translate before embedding)
+        if body and not is_english(body):
+            translated_body = translate_to_english(body)
+            body = f"[Translated]: {translated_body}\n(Original): {body}"
+
+        # Edge case: broken links in forum posts (record as 'unresolved external reference' risk)
+        urls = re.findall(r"https?://[^\s<>\"'\)\]\}]+", body)
+        broken_links = [u for u in urls if is_url_broken(u)]
+        if broken_links:
+            body += "\n\n" + "\n".join(
+                f"[Risk: unresolved external reference] Link is unreachable or broken: {u}"
+                for u in broken_links
+            )
 
         # Build clean formatted text with author and reply context
         reply_context = f" (in reply to #{reply_to})" if reply_to else ""

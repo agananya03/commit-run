@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldAlert, AlertTriangle, CheckCircle2, Shield, Layers, Landmark } from "lucide-react";
+import { ShieldAlert, AlertTriangle, CheckCircle2, Shield, Layers, Landmark, UploadCloud, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { IngestProposalDialog } from "@/components/IngestProposalDialog";
 
 interface ProposalNav {
   slug: string;
@@ -41,6 +43,7 @@ const PROPOSALS: ProposalNav[] = [
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const [ingestOpen, setIngestOpen] = useState(false);
 
   const getRiskBadge = (risk: string) => {
     switch (risk) {
@@ -87,8 +90,8 @@ export function Sidebar({ className }: { className?: string }) {
         </div>
 
         {/* Navigation Section */}
-        <div className="px-3 py-4 space-y-1">
-          <div className="px-2 pb-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500">
+        <div className="px-3 py-3 space-y-2">
+          <div className="px-2 pb-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500">
             Navigation
           </div>
           <Link
@@ -103,6 +106,15 @@ export function Sidebar({ className }: { className?: string }) {
             <Layers className="w-3.5 h-3.5 text-indigo-400" />
             <span>All Proposals</span>
           </Link>
+
+          <Button
+            size="sm"
+            onClick={() => setIngestOpen(true)}
+            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium text-xs h-8 gap-2 shadow-sm border border-indigo-500/30"
+          >
+            <UploadCloud className="w-3.5 h-3.5" />
+            <span>Ingest New Proposal</span>
+          </Button>
         </div>
 
         {/* Proposals List Section */}
@@ -152,7 +164,14 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* Protocol Health Sidebar Footer */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950/80">
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/80 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/50 font-mono font-bold text-[9px] uppercase tracking-wider">
+            SYNTHETIC DATA
+          </span>
+          <span className="text-[10px] font-mono text-slate-500">Testnet Sim</span>
+        </div>
+
         <div className="rounded-lg bg-slate-900/60 border border-slate-800 p-2.5 space-y-2">
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-300">
             <Landmark className="w-3.5 h-3.5 text-indigo-400" />
@@ -170,6 +189,9 @@ export function Sidebar({ className }: { className?: string }) {
           </div>
         </div>
       </div>
+
+      {/* Ingest Proposal Dialog */}
+      <IngestProposalDialog open={ingestOpen} onOpenChange={setIngestOpen} />
     </aside>
   );
 }

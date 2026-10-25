@@ -1,0 +1,230 @@
+{
+  "proposalId": "MIP-17",
+  "tldr": "MIP-17: Governance proposal with requested actions and delegate feedback.",
+  "treasuryImpact": {
+    "amountUsd": 5000000.0,
+    "pctOfTreasury": 10.0,
+    "recipients": [
+      "Nexus Labs"
+    ],
+    "citations": [
+      {
+        "chunkId": "MIP-17:pdf:2",
+        "sha256": "0x98aa51218ad544a44c81652ac1107c413d719fe7f458cd7e6390d86fe3f9feab",
+        "quote": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol",
+        "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "text": "Can the proposer clarify the exact milestone deliverables and who the ultimate recipient multisig signers are? The propo",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:3",
+          "sha256": "0xdca8767b0d43eb105eadaeb34ef716c830ac195f2c6c9b62b5b6e47d9b66a114",
+          "quote": "Can the proposer clarify the exact milestone deliverables and who the ultimate recipient multisig si",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=4"
+        }
+      ]
+    },
+    {
+      "text": "The capital required for research, smart contract development, infrastructure deployment, and integration is outlined",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:4",
+          "sha256": "0xaaed4260e05d364367135053ac1d26953b0293be25c40c61ec2f74f5ab71b1ed",
+          "quote": "The capital required for research, smart contract development, infrastructure deployment, and integr",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "text": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:2",
+          "sha256": "0x98aa51218ad544a44c81652ac1107c413d719fe7f458cd7e6390d86fe3f9feab",
+          "quote": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund th",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+        }
+      ]
+    },
+    {
+      "text": "Can the proposer clarify the exact milestone deliverables and who the ultimate recipient multisig signers are? The proposal contains no deli",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:3",
+          "sha256": "0xdca8767b0d43eb105eadaeb34ef716c830ac195f2c6c9b62b5b6e47d9b66a114",
+          "quote": "Can the proposer clarify the exact milestone deliverables and who the ultimate recipient multisig si",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=4"
+        }
+      ]
+    },
+    {
+      "text": "The proposer's deflection on both the milestone roadmap and signer identities fails basic governance due diligence. Until concrete deliverab",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:7",
+          "sha256": "0x2623559c97122b4a2b24b181c84df45ed55ad89a311d861e43f44c84fc13834d",
+          "quote": "The proposer's deflection on both the milestone roadmap and signer identities fails basic governance",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=8"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl1",
+      "text": "MIP-17 requests a $5,000,000 USDC allocation from the Meridian Treasury with reconciled budget.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:1",
+          "sha256": "0x9b5f7557452b357d45100ecfc9061aaae672b01cb4c580c87e7d06998e87e222",
+          "quote": "the three workstreams total $3,500,000 USDC",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=2"
+        }
+      ],
+      "support": "contradicted",
+      "pSupported": 0.05
+    },
+    {
+      "id": "cl2",
+      "text": "Phase 1: Core Routing Engine & Algorithmic Settlement requires $1,500,000 USDC.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:4",
+          "sha256": "0xaaed4260e05d364367135053ac1d26953b0293be25c40c61ec2f74f5ab71b1ed",
+          "quote": "Phase 1: Core Routing Engine",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+        },
+        {
+          "chunkId": "MIP-17:forum:1",
+          "sha256": "0x9b5f7557452b357d45100ecfc9061aaae672b01cb4c580c87e7d06998e87e222",
+          "quote": "the three workstreams total $3,500,000 USDC",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.92
+    },
+    {
+      "id": "cl3",
+      "text": "Phase 2: Cross-Chain Liquidity Infrastructure & Node Mesh requires $1,200,000 USDC.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:4",
+          "sha256": "0xaaed4260e05d364367135053ac1d26953b0293be25c40c61ec2f74f5ab71b1ed",
+          "quote": "Phase 2: Cross-Chain Liquidity Infrastructure & Node Mesh",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=2"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl4",
+      "text": "Phase 3: Security Auditing & Ecosystem Integration requires $800,000 USDC.",
+      "kind": "financial",
+      "citations": [
+        {
+          "chunkId": "MIP-17:pdf:7",
+          "sha256": "0xb1409b0434f4f9ce15376a1df8b7795ec86bda2bdb07dde0cbb4f1aa7318496b",
+          "quote": "Phase 3: Security Auditing & Ecosystem Integration",
+          "sourceUri": "pdf://MIP-17/proposal.pdf#page=3"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl5",
+      "text": "The proposal establishes concrete milestone deliverables and delivery dates.",
+      "kind": "timeline",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:3",
+          "sha256": "0xdca8767b0d43eb105eadaeb34ef716c830ac195f2c6c9b62b5b6e47d9b66a114",
+          "quote": "The proposal contains no delivery dates, no testnet criteria",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=4"
+        }
+      ],
+      "support": "contradicted",
+      "pSupported": 0.05
+    },
+    {
+      "id": "cl6",
+      "text": "Deliverables will be managed on an agile rolling basis with quarterly updates.",
+      "kind": "timeline",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:7",
+          "sha256": "0x2623559c97122b4a2b24b181c84df45ed55ad89a311d861e43f44c84fc13834d",
+          "quote": "Until concrete deliverables, verifiable escrow signers, and an reconciled budget are submitted, I cannot support this proposal.",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=8"
+        }
+      ],
+      "support": "unsupported",
+      "pSupported": 0.3
+    },
+    {
+      "id": "cl7",
+      "text": "Signers are senior domain engineers who maintain operational security.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:7",
+          "sha256": "0x2623559c97122b4a2b24b181c84df45ed55ad89a311d861e43f44c84fc13834d",
+          "quote": "The proposer's deflection on both the milestone roadmap and signer identities fails basic governance due diligence.",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=8"
+        }
+      ],
+      "support": "contradicted",
+      "pSupported": 0.05
+    },
+    {
+      "id": "cl8",
+      "text": "Nexus Labs is an established and transparent research collective.",
+      "kind": "team",
+      "citations": [],
+      "support": "unsupported",
+      "pSupported": 0.3
+    },
+    {
+      "id": "cl9",
+      "text": "Nexus Labs deploys audited cross-chain liquidity rails and MEV-shielded routing.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:5",
+          "sha256": "0x736a0ca89eac3863232772ab4f75bedb93d4164b23556bf6cde69ba00b4ce185",
+          "quote": "without audited code, published testnet repos, or verifiable benchmarks",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=6"
+        }
+      ],
+      "support": "unsupported",
+      "pSupported": 0.3
+    },
+    {
+      "id": "cl10",
+      "text": "Direct transfer to wallet index 12 bypasses essential protocol safety checks.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-17:forum:6",
+          "sha256": "0x94263bb835023237650fa771dd2542974394797f109d1ff7c691c473d889e56e",
+          "quote": "Proposing a single lump-sum transfer of 5M USDC directly to an unverified multisig bypasses essential protocol safety checks.",
+          "sourceUri": "forum://MIP-17/forum_thread.json#post=7"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    }
+  ],
+  "cached": true
+}

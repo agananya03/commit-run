@@ -54,6 +54,8 @@ def ingest_proposal_files(request: IngestRequest) -> list[Chunk]:
         "onchain": 0,
     }
 
+    seen_file_shas: set[str] = set()
+
     for f in request.files:
         file_path = _resolve_path(f.path)
         if file_path is None or not file_path.exists():
@@ -62,6 +64,11 @@ def ingest_proposal_files(request: IngestRequest) -> list[Chunk]:
         with open(file_path, "rb") as fp:
             file_bytes = fp.read()
         file_sha = f"0x{hashlib.sha256(file_bytes).hexdigest()}"
+
+        # Deduplicate files by sha256
+        if file_sha in seen_file_shas:
+            continue
+        seen_file_shas.add(file_sha)
 
         docs_to_store.append({
             "id": f"{request.proposalId}:{f.type}:{f.path}",

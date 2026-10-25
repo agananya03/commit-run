@@ -9,6 +9,8 @@ interface ToastProps {
   title: string;
   description?: string;
   type?: "success" | "warning" | "error" | "info";
+  content?: React.ReactNode;
+  duration?: number;
 }
 
 interface ToastContextValue {
@@ -21,13 +23,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastProps[]>([]);
 
   const showToast = React.useCallback(
-    ({ title, description, type = "info" }: Omit<ToastProps, "id">) => {
+    ({ title, description, type = "info", content, duration = 8000 }: Omit<ToastProps, "id">) => {
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, title, description, type }]);
+      setToasts((prev) => [...prev, { id, title, description, type, content, duration }]);
 
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 4000);
+      }, duration);
     },
     []
   );
@@ -48,15 +50,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               key={t.id}
               className={cn(
-                "pointer-events-auto flex items-start space-x-3 rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl backdrop-blur-md text-white transition-all w-80 animate-in slide-in-from-bottom-5"
+                "pointer-events-auto flex items-start space-x-3 rounded-xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md text-white transition-all animate-in slide-in-from-bottom-5",
+                t.content ? "w-96 max-w-[90vw]" : "w-80"
               )}
             >
               {icons[t.type || "info"]}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">{t.title}</p>
                 {t.description && (
                   <p className="text-xs text-slate-400 mt-0.5">{t.description}</p>
                 )}
+                {t.content && <div className="mt-2 text-xs">{t.content}</div>}
               </div>
               <button
                 onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}

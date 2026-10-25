@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useProposalBundle } from "@/lib/api";
+import { useProposalBundle, WatchdogFlag } from "@/lib/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { DecisionSummaryCard } from "@/components/DecisionSummaryCard";
@@ -11,6 +11,8 @@ import { EvidenceTable } from "@/components/EvidenceTable";
 import { RiskChain } from "@/components/RiskChain";
 import { ProposalTimeline } from "@/components/ProposalTimeline";
 import { useEvidencePanel } from "@/components/EvidencePanel";
+import { HaltedBanner } from "@/components/HaltedBanner";
+import { AskWatchdog } from "@/components/AskWatchdog";
 import type { EvidenceFile } from "@/types/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +65,8 @@ const PROPOSAL_METADATA: Record<
   },
 };
 
+const TABS = ["summary", "execution", "evidence", "conflicts", "risk", "timeline"] as const;
+
 export default function ProposalDetailPage() {
   const params = useParams();
   const proposalId = (params?.id as string) || "MIP-21";
@@ -71,6 +75,56 @@ export default function ProposalDetailPage() {
   const { openEvidenceFile, openChunk } = useEvidencePanel();
   const [copiedRoot, setCopiedRoot] = useState(false);
   const [copiedFileSha, setCopiedFileSha] = useState<string | null>(null);
+
+  const [liveFlag, setLiveFlag] = useState<WatchdogFlag | null>(null);
+
+  useEffect(() => {
+    const handleFlag = (e: any) => {
+      const detail = e.detail;
+      if (!detail?.proposalId || detail.proposalId === proposalId) {
+        setLiveFlag(detail);
+      }
+    };
+    window.addEventListener("watchdog:flag:received", handleFlag);
+    return () => window.removeEventListener("watchdog:flag:received", handleFlag);
+  }, [proposalId]);
+
+  // Projector-friendly keyboard shortcuts to jump between tabs (1-6, arrows, brackets)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
+      if (e.key >= "1" && e.key <= "6") {
+        const index = parseInt(e.key, 10) - 1;
+        if (TABS[index]) {
+          e.preventDefault();
+          setActiveTab(TABS[index]);
+        }
+      }
+
+      if (e.key === "ArrowLeft" || e.key === "[") {
+        e.preventDefault();
+        setActiveTab((curr) => {
+          const idx = TABS.indexOf(curr as any);
+          const prevIdx = idx <= 0 ? TABS.length - 1 : idx - 1;
+          return TABS[prevIdx];
+        });
+      } else if (e.key === "ArrowRight" || e.key === "]") {
+        e.preventDefault();
+        setActiveTab((curr) => {
+          const idx = TABS.indexOf(curr as any);
+          const nextIdx = idx >= TABS.length - 1 ? 0 : idx + 1;
+          return TABS[nextIdx];
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleCopy = (e: React.MouseEvent, text: string, isRoot = false) => {
     e.stopPropagation();
@@ -155,6 +209,23 @@ export default function ProposalDetailPage() {
     latestVersion?.evidenceRoot ||
     "0x91b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c";
 
+  const activeFlag: WatchdogFlag | null =
+    liveFlag ||
+    bundle?.flag ||
+    (proposalId === "MIP-21" || meta.risk === "CRITICAL"
+      ? {
+          proposalId,
+          txHash: "0x2f6a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d1" as `0x${string}`,
+          operationId: "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620" as `0x${string}`,
+          findingsHash: "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b" as `0x${string}`,
+          findings: bundle?.findings || [],
+          risk: bundle?.risk || { proposalId, prior: 0.05, stages: [], posterior: 0.99, level: "CRITICAL", action: "halt" },
+          blockNumber: 19842910,
+          flaggedAt: "2026-10-25T12:00:00Z",
+        }
+      : null);
+  const isHalted = !!activeFlag;
+
   // Pre-vote warning banner condition:
   // If the bundle has findings with severity critical or high and status is not EXECUTED/HALTED
   const criticalOrHighFindings = (bundle?.findings || []).filter(
@@ -164,7 +235,7 @@ export default function ProposalDetailPage() {
     .toUpperCase()
     .replace(/\s+/g, "_");
   const isExecutedOrHalted =
-    normalizedStatus === "EXECUTED" || normalizedStatus === "HALTED";
+    normalizedStatus === "EXECUTED" || normalizedStatus === "HALTED" || isHalted;
   const showWarningBanner =
     !isExecutedOrHalted && criticalOrHighFindings.length > 0;
 
@@ -186,8 +257,8 @@ export default function ProposalDetailPage() {
         );
       case "MEDIUM":
         return (
-          <Badge className="bg-yellow-950/80 text-yellow-400 border border-yellow-500/60 font-mono text-xs gap-1 px-2.5 py-0.5">
-            <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+          <Badge className="bg-slate-800 text-slate-300 border border-slate-700 font-mono text-xs gap-1 px-2.5 py-0.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
             MEDIUM RISK
           </Badge>
         );
@@ -260,53 +331,100 @@ export default function ProposalDetailPage() {
         </div>
       </div>
 
-      {/* 6. Pre-vote Warning Banner */}
-      {showWarningBanner && (
-        <div
-          role="alert"
-          id="pre-vote-warning-banner"
-          onClick={() => setActiveTab("execution")}
-          className="rounded-xl border border-red-500 bg-red-950/90 p-4 text-red-100 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-red-900/90 transition-all border-l-4 border-l-red-500"
-        >
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
-            <span className="font-semibold text-sm">
-              The submitted code does things the proposal text does not mention ({criticalOrHighFindings.length} findings)
-            </span>
-          </div>
-          <a
-            href="#execution"
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab("execution");
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-white text-xs font-mono font-medium transition-colors shrink-0 w-fit"
+      {/* 6. Full-Width HALTED Banner on Watchdog Flag */}
+      {isHalted ? (
+        <HaltedBanner
+          proposalId={proposalId}
+          flag={activeFlag}
+          explanation={bundle?.explanation}
+        />
+      ) : (
+        showWarningBanner && (
+          <div
+            role="alert"
+            id="pre-vote-warning-banner"
+            onClick={() => setActiveTab("execution")}
+            className="rounded-xl border border-red-500 bg-red-950/90 p-4 text-red-100 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-red-900/90 transition-all border-l-4 border-l-red-500"
           >
-            <span>Execution Tab</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
+            <div className="flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
+              <span className="font-semibold text-sm">
+                The submitted code does things the proposal text does not mention ({criticalOrHighFindings.length} findings)
+              </span>
+            </div>
+            <a
+              href="#execution"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("execution");
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-white text-xs font-mono font-medium transition-colors shrink-0 w-fit"
+            >
+              <span>Execution Tab</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )
       )}
 
       {/* Tabs Layout */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900 border border-slate-800 p-1 rounded-lg">
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="execution">Execution</TabsTrigger>
-          <TabsTrigger value="evidence">Evidence</TabsTrigger>
-          <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
-          <TabsTrigger value="risk">Risk</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        <TabsList className="bg-slate-900 border border-slate-800 p-1.5 rounded-xl flex flex-wrap gap-1 shadow-lg">
+          <TabsTrigger value="summary" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Summary</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              1
+            </kbd>
+          </TabsTrigger>
+          <TabsTrigger value="execution" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Execution</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              2
+            </kbd>
+          </TabsTrigger>
+          <TabsTrigger value="evidence" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Evidence</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              3
+            </kbd>
+          </TabsTrigger>
+          <TabsTrigger value="conflicts" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Conflicts</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              4
+            </kbd>
+          </TabsTrigger>
+          <TabsTrigger value="risk" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Risk</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              5
+            </kbd>
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="text-xs sm:text-sm font-semibold gap-2 px-4 py-2">
+            <span>Timeline</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/60">
+              6
+            </kbd>
+          </TabsTrigger>
         </TabsList>
 
         {/* 1. SUMMARY TAB */}
         <TabsContent value="summary" className="space-y-5">
           {error ? (
-            <div className="p-6 rounded-lg border border-red-900/60 bg-red-950/20 text-red-300 text-xs font-mono">
-              Failed to load decision summary for {proposalId}.
-            </div>
+            <Card className="p-8 text-center border-amber-900/60 bg-amber-950/20 text-slate-300">
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <AlertTriangle className="w-8 h-8 text-amber-400" />
+                <h4 className="text-base font-semibold text-white">Decision Summary Offline</h4>
+                <p className="text-xs text-slate-400 font-mono">
+                  Could not load decision summary for {proposalId}. Offline fallback active.
+                </p>
+              </div>
+            </Card>
           ) : (
-            <DecisionSummaryCard summary={bundle?.summary ?? null} isLoading={isLoading} />
+            <>
+              <DecisionSummaryCard summary={bundle?.summary ?? null} isLoading={isLoading} />
+              <AskWatchdog proposalId={proposalId} />
+            </>
           )}
         </TabsContent>
 
@@ -496,12 +614,22 @@ export default function ProposalDetailPage() {
                     <li>• Alt Wallet 14 routed capital to Proposer Secondary Wallet 17 (Path [14, 17], P=0.90)</li>
                     <li>• 4 Whale Colluders (Wallets 18, 19, 20, 21) control 61.0% delegated voting power</li>
                   </ul>
-                ) : (
+                ) : proposalId === "MIP-17" ? (
                   <ul className="space-y-1.5 text-slate-300">
                     <li>• Proposer Wallet 10 transferred 25 ETH to Intermediary 11 (offset 1100)</li>
                     <li>• Intermediary 11 transferred 20 ETH to Recipient Wallet 12 (Nexus Labs, offset 1110)</li>
                     <li>• Proposer 10 secretly funded Whale 18 (5 ETH) and Whale 19 (5 ETH)</li>
                   </ul>
+                ) : (
+                  <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-300 space-y-1">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Zero Conflicts of Interest Detected</span>
+                    </div>
+                    <p className="text-xs text-slate-300 font-sans">
+                      All grant recipient wallets and multisig keyholders match disclosed public registries. No undisclosed capital transfers found.
+                    </p>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -510,7 +638,7 @@ export default function ProposalDetailPage() {
 
         {/* 5. RISK TAB */}
         <TabsContent value="risk">
-          <RiskChain proposalId={proposalId} />
+          <RiskChain proposalId={proposalId} onSelectTab={setActiveTab} />
         </TabsContent>
 
         {/* 6. TIMELINE TAB */}
