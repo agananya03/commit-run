@@ -1,0 +1,39 @@
+{
+  "$id": "https://proofofintent.local/schemas/CommitResult.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CommitResult",
+  "definitions": {
+    "CommitResult": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "versionHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "blockNumber": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "version",
+        "versionHash",
+        "txHash",
+        "blockNumber"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/commit"
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

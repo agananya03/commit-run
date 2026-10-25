@@ -777,6 +777,870 @@
         "action"
       ],
       "additionalProperties": false
+    },
+    "IngestRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "forum",
+                  "pdf",
+                  "social",
+                  "onchain"
+                ]
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "proposalId",
+        "files"
+      ],
+      "additionalProperties": false,
+      "description": "POST /ingest -> Chunk[]"
+    },
+    "SummarizeRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ],
+      "additionalProperties": false,
+      "description": "POST /summarize -> DecisionSummary"
+    },
+    "ExtractIntentRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ],
+      "additionalProperties": false,
+      "description": "POST /extract-intent -> IntentSpec"
+    },
+    "SearchRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "k": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "query"
+      ],
+      "additionalProperties": false,
+      "description": "POST /search -> Chunk[] ranked by hybrid score (0.7 cosine + 0.3 BM25), filtered to proposalId"
+    },
+    "ExplainRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        }
+      },
+      "required": [
+        "proposalId",
+        "findings"
+      ],
+      "additionalProperties": false,
+      "description": "POST /explain -> Explanation"
+    },
+    "Explanation": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string"
+        },
+        "paragraph": {
+          "type": "string"
+        },
+        "perFinding": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "findingId": {
+                "type": "string"
+              },
+              "sentence": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "findingId",
+              "sentence"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "headline",
+        "paragraph",
+        "perFinding"
+      ],
+      "additionalProperties": false
+    },
+    "SimulateRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "calldatas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hex"
+          }
+        },
+        "forkBlock": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "targets",
+        "values",
+        "calldatas"
+      ],
+      "additionalProperties": false,
+      "description": "POST /simulate -> SimulationResult. Executed as the timelock on the Anvil fork."
+    },
+    "Deployments": {
+      "type": "object",
+      "properties": {
+        "chainId": {
+          "type": "number"
+        },
+        "deployBlock": {
+          "type": "number"
+        },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "abi": {
+                "type": "array",
+                "items": {}
+              },
+              "decimals": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "address",
+              "abi"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "chainId",
+        "deployBlock",
+        "contracts"
+      ],
+      "additionalProperties": false,
+      "description": "GET /deployments and /contracts/deployments/localhost.json. decimals only on token contracts."
+    },
+    "ProposalStatus": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "INGESTED",
+        "COMMITTED",
+        "ACTIVE",
+        "QUEUED",
+        "HALTED",
+        "EXECUTED",
+        "DEFEATED"
+      ]
+    },
+    "Proposal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "proposer": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/ProposalStatus"
+        },
+        "governorProposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "title",
+        "proposer",
+        "status",
+        "governorProposalId",
+        "operationId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceFile": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "forum",
+            "pdf",
+            "social",
+            "onchain",
+            "disclosure"
+          ]
+        },
+        "uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "proof": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hex"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "uri",
+        "sha256",
+        "bytes",
+        "proof"
+      ],
+      "additionalProperties": false,
+      "description": "One evidence file of a version. proof = Merkle proof of leaf [type, sha256] in StandardMerkleTree."
+    },
+    "ProposalVersion": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "canonicalJson": {},
+        "versionHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "prevHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "evidenceRoot": {
+          "$ref": "#/definitions/Hex"
+        },
+        "commitTxHash": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceFile"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "version",
+        "canonicalJson",
+        "versionHash",
+        "prevHash",
+        "evidenceRoot",
+        "commitTxHash",
+        "files",
+        "createdAt"
+      ],
+      "additionalProperties": false,
+      "description": "versionHash = keccak256(RFC 8785 canonical JSON of canonicalJson); canonicalJson includes prevHash. prevHash of version 1 is 0x00..00. Committed via ProposalRegistry.commit(...)."
+    },
+    "ChainEvent": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "logIndex": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "contract",
+        "name",
+        "args",
+        "blockNumber",
+        "txHash",
+        "logIndex"
+      ],
+      "additionalProperties": false,
+      "description": "Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry."
+    },
+    "ProposalBundle": {
+      "type": "object",
+      "properties": {
+        "proposal": {
+          "$ref": "#/definitions/Proposal"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProposalVersion"
+          }
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DecisionSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/IntentSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "simulation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SimulationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coi": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CoiReport"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Explanation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "risk": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RiskChain"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "chainEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChainEvent"
+          }
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/WatchdogFlag"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "proposal",
+        "versions",
+        "summary",
+        "intent",
+        "simulation",
+        "coi",
+        "findings",
+        "explanation",
+        "risk",
+        "chainEvents",
+        "flag"
+      ],
+      "additionalProperties": false,
+      "description": "GET /proposals/:id: full bundle."
+    },
+    "WatchdogFlag": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "operationId": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findingsHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        },
+        "risk": {
+          "$ref": "#/definitions/RiskChain"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "flaggedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "operationId",
+        "findingsHash",
+        "findings",
+        "risk",
+        "txHash",
+        "blockNumber",
+        "flaggedAt"
+      ],
+      "additionalProperties": false,
+      "description": "watchdog:flag payload. findingsHash = keccak256(canonical JSON of findings), passed to GovernanceGuard.flag()."
+    },
+    "CreateProposalRequest": {
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "slug"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals (JSON form; multipart upload of files is the other form)."
+    },
+    "CommitResult": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "versionHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "blockNumber": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "version",
+        "versionHash",
+        "txHash",
+        "blockNumber"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/commit"
+    },
+    "RunResult": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "flowId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "flowId"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/run: starts the BullMQ flow."
+    },
+    "DisclosureRequest": {
+      "type": "object",
+      "properties": {
+        "proposer": {
+          "type": "string"
+        },
+        "wallets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "statement": {
+          "type": "string"
+        },
+        "signature": {
+          "$ref": "#/definitions/Hex"
+        }
+      },
+      "required": [
+        "proposer",
+        "wallets",
+        "statement",
+        "signature"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/disclosure -> CoiReport. signature = EIP-191 personal_sign by proposer over the RFC 8785 canonical JSON string of { proposalSlug, wallets (sorted), statement }; verified with ethers.verifyMessage."
+    },
+    "ReverifyResult": {
+      "type": "object",
+      "properties": {
+        "allMatch": {
+          "type": "boolean"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number"
+              },
+              "versionHash": {
+                "$ref": "#/definitions/Hex"
+              },
+              "onchainVersionHash": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Hex"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "evidenceRootMatch": {
+                "type": "boolean"
+              },
+              "match": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "version",
+              "versionHash",
+              "onchainVersionHash",
+              "evidenceRootMatch",
+              "match"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "simMatch": {
+          "type": "boolean"
+        },
+        "findingsMatch": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allMatch",
+        "versions",
+        "simMatch",
+        "findingsMatch"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/reverify"
+    },
+    "PipelineStep": {
+      "type": "string",
+      "enum": [
+        "ingest",
+        "summarize",
+        "extractIntent",
+        "commit",
+        "coi",
+        "simulate",
+        "verdict",
+        "risk"
+      ]
+    },
+    "PipelineProgress": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "step": {
+          "$ref": "#/definitions/PipelineStep"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "started",
+            "completed",
+            "failed"
+          ]
+        },
+        "ms": {
+          "type": "number"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "step",
+        "status"
+      ],
+      "additionalProperties": false,
+      "description": "pipeline:progress payload. ms = step duration, set when completed or failed."
+    },
+    "SocketEvents": {
+      "type": "object",
+      "properties": {
+        "pipeline:progress": {
+          "$ref": "#/definitions/PipelineProgress"
+        },
+        "chain:event": {
+          "$ref": "#/definitions/ChainEvent"
+        },
+        "watchdog:flag": {
+          "$ref": "#/definitions/WatchdogFlag"
+        }
+      },
+      "required": [
+        "pipeline:progress",
+        "chain:event",
+        "watchdog:flag"
+      ],
+      "additionalProperties": false,
+      "description": "Socket.IO event name -> payload."
+    },
+    "ApiError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "VALIDATION_FAILED",
+                "NOT_FOUND",
+                "CONFLICT",
+                "UPSTREAM_UNAVAILABLE",
+                "UPSTREAM_INVALID",
+                "CHAIN_REVERT",
+                "INTERNAL"
+              ]
+            },
+            "message": {
+              "type": "string"
+            },
+            "details": {}
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false,
+      "description": "Body of every 4xx/5xx. UPSTREAM_INVALID = a rag/sim response failed zod validation in the backend."
+    },
+    "Health": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string",
+          "enum": [
+            "backend",
+            "rag",
+            "sim"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "degraded"
+          ]
+        },
+        "mocks": {
+          "type": "boolean"
+        },
+        "deps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "down"
+            ]
+          }
+        }
+      },
+      "required": [
+        "service",
+        "status",
+        "mocks",
+        "deps"
+      ],
+      "additionalProperties": false,
+      "description": "GET /health. Backend deps: postgres, redis, rpc, rag, sim."
     }
   }
 }

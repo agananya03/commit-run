@@ -1,0 +1,51 @@
+{
+  "$id": "https://proofofintent.local/schemas/ChainEvent.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ChainEvent",
+  "definitions": {
+    "ChainEvent": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "logIndex": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "contract",
+        "name",
+        "args",
+        "blockNumber",
+        "txHash",
+        "logIndex"
+      ],
+      "additionalProperties": false,
+      "description": "Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry."
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$id": "https://proofofintent.local/schemas/SearchRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SearchRequest",
+  "definitions": {
+    "SearchRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "k": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "query"
+      ],
+      "additionalProperties": false,
+      "description": "POST /search -> Chunk[] ranked by hybrid score (0.7 cosine + 0.3 BM25), filtered to proposalId"
+    }
+  }
+}

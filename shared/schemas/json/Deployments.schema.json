@@ -1,0 +1,48 @@
+{
+  "$id": "https://proofofintent.local/schemas/Deployments.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Deployments",
+  "definitions": {
+    "Deployments": {
+      "type": "object",
+      "properties": {
+        "chainId": {
+          "type": "number"
+        },
+        "deployBlock": {
+          "type": "number"
+        },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "abi": {
+                "type": "array",
+                "items": {}
+              },
+              "decimals": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "address",
+              "abi"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "chainId",
+        "deployBlock",
+        "contracts"
+      ],
+      "additionalProperties": false,
+      "description": "GET /deployments and /contracts/deployments/localhost.json. decimals only on token contracts."
+    }
+  }
+}

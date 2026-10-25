@@ -1,0 +1,38 @@
+{
+  "$id": "https://proofofintent.local/schemas/DisclosureRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DisclosureRequest",
+  "definitions": {
+    "DisclosureRequest": {
+      "type": "object",
+      "properties": {
+        "proposer": {
+          "type": "string"
+        },
+        "wallets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "statement": {
+          "type": "string"
+        },
+        "signature": {
+          "$ref": "#/definitions/Hex"
+        }
+      },
+      "required": [
+        "proposer",
+        "wallets",
+        "statement",
+        "signature"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/disclosure -> CoiReport. signature = EIP-191 personal_sign by proposer over the RFC 8785 canonical JSON string of { proposalSlug, wallets (sorted), statement }; verified with ethers.verifyMessage."
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

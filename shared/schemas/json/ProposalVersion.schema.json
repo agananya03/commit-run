@@ -1,0 +1,102 @@
+{
+  "$id": "https://proofofintent.local/schemas/ProposalVersion.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ProposalVersion",
+  "definitions": {
+    "ProposalVersion": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "canonicalJson": {},
+        "versionHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "prevHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "evidenceRoot": {
+          "$ref": "#/definitions/Hex"
+        },
+        "commitTxHash": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceFile"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "version",
+        "canonicalJson",
+        "versionHash",
+        "prevHash",
+        "evidenceRoot",
+        "commitTxHash",
+        "files",
+        "createdAt"
+      ],
+      "additionalProperties": false,
+      "description": "versionHash = keccak256(RFC 8785 canonical JSON of canonicalJson); canonicalJson includes prevHash. prevHash of version 1 is 0x00..00. Committed via ProposalRegistry.commit(...)."
+    },
+    "Hex": {
+      "type": "string"
+    },
+    "EvidenceFile": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "forum",
+            "pdf",
+            "social",
+            "onchain",
+            "disclosure"
+          ]
+        },
+        "uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "proof": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hex"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "uri",
+        "sha256",
+        "bytes",
+        "proof"
+      ],
+      "additionalProperties": false,
+      "description": "One evidence file of a version. proof = Merkle proof of leaf [type, sha256] in StandardMerkleTree."
+    }
+  }
+}

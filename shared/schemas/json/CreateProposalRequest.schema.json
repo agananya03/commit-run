@@ -1,0 +1,20 @@
+{
+  "$id": "https://proofofintent.local/schemas/CreateProposalRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CreateProposalRequest",
+  "definitions": {
+    "CreateProposalRequest": {
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "slug"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals (JSON form; multipart upload of files is the other form)."
+    }
+  }
+}

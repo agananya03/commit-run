@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Ajv } from "ajv";
 import addFormatsModule from "ajv-formats";
 import { describe, expect, it } from "vitest";
-import type { Chunk, Citation } from "../schemas/types.js";
+import type { Chunk, Citation, Deployments, SimulationResult } from "../schemas/types.js";
 
 const addFormats = addFormatsModule as unknown as (ajv: Ajv) => Ajv;
 
@@ -13,8 +13,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const mocksDir = join(root, "mocks");
 const schemasDir = join(root, "schemas", "json");
 
-/** Mock file prefix (<endpoint>.<proposalId>.json) -> response type. */
+/** Mock file prefix (<endpoint>.<proposalId>.json, or <name>.json) -> response type. */
 const schemaForMock: Record<string, { type: string; array?: boolean }> = {
+  deployments: { type: "Deployments" },
   ingest: { type: "Chunk", array: true },
   summarize: { type: "DecisionSummary" },
   "extract-intent": { type: "IntentSpec" },
@@ -65,6 +66,13 @@ describe.each(["MIP-21"])("%s mock integrity", (proposalId) => {
 
   it("chunk sha256 is the hash of its text", () => {
     for (const c of chunks) expect(c.sha256, c.id).toBe(sha256(c.text));
+  });
+
+  it("simulated call targets exist in deployments.json", () => {
+    const { contracts } = readJson(join(mocksDir, "deployments.json")) as Deployments;
+    const known = new Set(Object.values(contracts).map((c) => c.address.toLowerCase()));
+    const sim = readJson(join(mocksDir, `simulate.${proposalId}.json`)) as SimulationResult;
+    for (const call of sim.decodedCalls) expect(known, call.target).toContain(call.target.toLowerCase());
   });
 
   it.each(["summarize", "extract-intent"])("%s citations point at real chunks", (endpoint) => {

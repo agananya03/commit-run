@@ -1,0 +1,70 @@
+{
+  "$id": "https://proofofintent.local/schemas/ReverifyResult.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ReverifyResult",
+  "definitions": {
+    "ReverifyResult": {
+      "type": "object",
+      "properties": {
+        "allMatch": {
+          "type": "boolean"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number"
+              },
+              "versionHash": {
+                "$ref": "#/definitions/Hex"
+              },
+              "onchainVersionHash": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Hex"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "evidenceRootMatch": {
+                "type": "boolean"
+              },
+              "match": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "version",
+              "versionHash",
+              "onchainVersionHash",
+              "evidenceRootMatch",
+              "match"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "simMatch": {
+          "type": "boolean"
+        },
+        "findingsMatch": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allMatch",
+        "versions",
+        "simMatch",
+        "findingsMatch"
+      ],
+      "additionalProperties": false,
+      "description": "POST /proposals/:id/reverify"
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

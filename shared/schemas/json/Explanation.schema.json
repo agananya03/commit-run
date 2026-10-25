@@ -1,0 +1,43 @@
+{
+  "$id": "https://proofofintent.local/schemas/Explanation.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Explanation",
+  "definitions": {
+    "Explanation": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string"
+        },
+        "paragraph": {
+          "type": "string"
+        },
+        "perFinding": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "findingId": {
+                "type": "string"
+              },
+              "sentence": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "findingId",
+              "sentence"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "headline",
+        "paragraph",
+        "perFinding"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

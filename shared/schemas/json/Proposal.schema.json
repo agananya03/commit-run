@@ -1,0 +1,77 @@
+{
+  "$id": "https://proofofintent.local/schemas/Proposal.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Proposal",
+  "definitions": {
+    "Proposal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "proposer": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/ProposalStatus"
+        },
+        "governorProposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "title",
+        "proposer",
+        "status",
+        "governorProposalId",
+        "operationId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "ProposalStatus": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "INGESTED",
+        "COMMITTED",
+        "ACTIVE",
+        "QUEUED",
+        "HALTED",
+        "EXECUTED",
+        "DEFEATED"
+      ]
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

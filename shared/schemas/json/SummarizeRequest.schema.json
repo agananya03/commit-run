@@ -1,0 +1,20 @@
+{
+  "$id": "https://proofofintent.local/schemas/SummarizeRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SummarizeRequest",
+  "definitions": {
+    "SummarizeRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ],
+      "additionalProperties": false,
+      "description": "POST /summarize -> DecisionSummary"
+    }
+  }
+}

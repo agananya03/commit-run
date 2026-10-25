@@ -3,58 +3,58 @@
     "id": "MIP-21:forum:0",
     "proposalId": "MIP-21",
     "sourceType": "forum",
-    "sourceUri": "data/MIP-21/forum.json",
-    "text": "[MIP-21] MeridianReserve gas optimisation, posted by kestrel.eth. TL;DR: we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters). Deposits and withdrawals get ~1% cheaper.",
-    "sha256": "0xa30f48cc75931deb0b0ef67287a166109a41a38ba4d53643b7ce92525ca733e6"
+    "sourceUri": "forum://MIP-21/forum_thread.json#post=1",
+    "text": "[MIP-21] VaultV2: storage packing and gas optimisation, posted by kestrel.eth. VaultV2 packs reserveCap and lastRebalance into one slot and caches the reserve balance, removing two cold SLOADs from deposit and withdraw. Net effect: ~1% cheaper user operations.",
+    "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe"
   },
   {
     "id": "MIP-21:forum:1",
     "proposalId": "MIP-21",
     "sourceType": "forum",
-    "sourceUri": "data/MIP-21/forum.json",
-    "text": "This is purely a gas optimisation, with no change to ownership. The Timelock stays in control of the Reserve.",
-    "sha256": "0x4cb88b32f56cbb14f4d1e54aff6cb22bb4480f97c98e52344d865dba4f6c654b"
+    "sourceUri": "forum://MIP-21/forum_thread.json#post=1",
+    "text": "This is purely a gas optimisation, with no change to ownership. Storage layout is preserved and the Timelock stays in control of the Vault.",
+    "sha256": "0xa36488be4755e2b1b986497b27fbf4fe7f7687c1a8192a820fdcd03c47e9fc8d"
   },
   {
     "id": "MIP-21:forum:2",
     "proposalId": "MIP-21",
     "sourceType": "forum",
-    "sourceUri": "data/MIP-21/forum.json",
-    "text": "The new implementation was reviewed internally by the Meridian core team. An external audit is planned after deployment.",
-    "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46"
+    "sourceUri": "forum://MIP-21/forum_thread.json#post=6",
+    "text": "auditooor: Can we see the actual VaultV2 diff before voting? kestrel.eth: Everything is in the spec PDF, and the implementation was reviewed internally by the core team.",
+    "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2"
   },
   {
     "id": "MIP-21:pdf:0",
     "proposalId": "MIP-21",
     "sourceType": "pdf",
-    "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf",
+    "sourceUri": "pdf://MIP-21/proposal.pdf#page=3",
     "page": 3,
-    "text": "3. Scope. The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy at 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707. Storage layout is preserved. The Timelock remains the sole owner of the Reserve.",
-    "sha256": "0x47c2d4ef19fc40dea80df0407b0b202525c23819d470dcc126ad65876541d1c8"
+    "text": "3. Scope. The upgrade replaces the Vault implementation behind the existing UUPS proxy at 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853. Changes are limited to slot packing and EIP-2929 warm-access savings. The Timelock remains the sole owner of the Vault.",
+    "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311"
   },
   {
     "id": "MIP-21:pdf:1",
     "proposalId": "MIP-21",
     "sourceType": "pdf",
-    "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf",
+    "sourceUri": "pdf://MIP-21/proposal.pdf#page=4",
     "page": 4,
-    "text": "4. Gas. Benchmarks show deposit(uint256) falling from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas.",
-    "sha256": "0x61e57004283724792915300c5c0760818a923cd4d13de783645cf0017e931da2"
+    "text": "4. Benchmarks. deposit(uint256) falls from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas.",
+    "sha256": "0xd4290f802231197fc815df8a9ffa20358c572411b115094efc276216d4e1a4d0"
   },
   {
     "id": "MIP-21:social:0",
     "proposalId": "MIP-21",
     "sourceType": "social",
-    "sourceUri": "data/MIP-21/social.json",
-    "text": "@kestrel_builds: MIP-21 is live for voting, small gas win for every Meridian depositor. Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books.",
-    "sha256": "0xd237f4c62b6b45aa2761c25bd4a07fa98c044276a8d57ea477e930000181a0d9"
+    "sourceUri": "social://MIP-21/social.json#msg=4",
+    "text": "@kestrel_builds: MIP-21 is up for vote, a small gas win for every Meridian depositor. Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks.",
+    "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21"
   },
   {
     "id": "MIP-21:onchain:0",
     "proposalId": "MIP-21",
     "sourceType": "onchain",
-    "sourceUri": "data/MIP-21/calldata.json",
-    "text": "ProposalCreated proposalId=71240117917747628806640772231852050840836735106339123343864741404726318379014 proposer=0x90F79bf6EB2c4f870365E785982E1f101E93b906 targets=[0x5FC8d32690cc91D4c39d9d3abcBD16989F875707] values=[0] calldatas=[0x4f1ef286000000000000000000000000057ef64e23666f000b34ae31332854acbd1c85440000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000002429b6eca90000000000000000000000009f2c188225babb8ac51c8b49c850678558fefb7b00000000000000000000000000000000000000000000000000000000] description=\"# MIP-21: MeridianReserve gas optimisation\"",
-    "sha256": "0xfafed0a2048f849ec4e36a344aa8912f0858cb126e9dc97c2c47edcf638fdf2d"
+    "sourceUri": "onchain://MIP-21/onchain_actions.json",
+    "text": "ProposalCreated proposalId=110193499427897605679396190369830864647872962332488067644179343601487952341172 proposer=0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec targets=[0xa513E6E4b8f2a923D98304ec87F64353C4D5C853,0x5FC8d32690cc91D4c39d9d3abcBD16989F875707] values=[0,0] calldatas=[0x4f1ef2860000000000000000000000008a791620dd6260079bf849dc5567adc3f2fdc31800000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000024be6b99e3000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c709700000000000000000000000000000000000000000000000000000000,0xe1f21c67000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c7097ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff] description=\"# MIP-21: VaultV2 storage packing and gas optimisation\"",
+    "sha256": "0x0473a5268267d5a5a483349cf7e7a5a1d006921495235187dc2c32b18e19d61e"
   }
 ]

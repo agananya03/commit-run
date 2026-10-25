@@ -1,0 +1,43 @@
+{
+  "$id": "https://proofofintent.local/schemas/ApiError.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ApiError",
+  "definitions": {
+    "ApiError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "VALIDATION_FAILED",
+                "NOT_FOUND",
+                "CONFLICT",
+                "UPSTREAM_UNAVAILABLE",
+                "UPSTREAM_INVALID",
+                "CHAIN_REVERT",
+                "INTERNAL"
+              ]
+            },
+            "message": {
+              "type": "string"
+            },
+            "details": {}
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false,
+      "description": "Body of every 4xx/5xx. UPSTREAM_INVALID = a rag/sim response failed zod validation in the backend."
+    }
+  }
+}

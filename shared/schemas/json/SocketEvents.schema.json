@@ -1,0 +1,324 @@
+{
+  "$id": "https://proofofintent.local/schemas/SocketEvents.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SocketEvents",
+  "definitions": {
+    "SocketEvents": {
+      "type": "object",
+      "properties": {
+        "pipeline:progress": {
+          "$ref": "#/definitions/PipelineProgress"
+        },
+        "chain:event": {
+          "$ref": "#/definitions/ChainEvent"
+        },
+        "watchdog:flag": {
+          "$ref": "#/definitions/WatchdogFlag"
+        }
+      },
+      "required": [
+        "pipeline:progress",
+        "chain:event",
+        "watchdog:flag"
+      ],
+      "additionalProperties": false,
+      "description": "Socket.IO event name -> payload."
+    },
+    "PipelineProgress": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "step": {
+          "$ref": "#/definitions/PipelineStep"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "started",
+            "completed",
+            "failed"
+          ]
+        },
+        "ms": {
+          "type": "number"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "step",
+        "status"
+      ],
+      "additionalProperties": false,
+      "description": "pipeline:progress payload. ms = step duration, set when completed or failed."
+    },
+    "PipelineStep": {
+      "type": "string",
+      "enum": [
+        "ingest",
+        "summarize",
+        "extractIntent",
+        "commit",
+        "coi",
+        "simulate",
+        "verdict",
+        "risk"
+      ]
+    },
+    "ChainEvent": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "logIndex": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "contract",
+        "name",
+        "args",
+        "blockNumber",
+        "txHash",
+        "logIndex"
+      ],
+      "additionalProperties": false,
+      "description": "Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry."
+    },
+    "Hex": {
+      "type": "string"
+    },
+    "WatchdogFlag": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "operationId": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findingsHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        },
+        "risk": {
+          "$ref": "#/definitions/RiskChain"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "flaggedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "operationId",
+        "findingsHash",
+        "findings",
+        "risk",
+        "txHash",
+        "blockNumber",
+        "flaggedAt"
+      ],
+      "additionalProperties": false,
+      "description": "watchdog:flag payload. findingsHash = keccak256(canonical JSON of findings), passed to GovernanceGuard.flag()."
+    },
+    "Finding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "recipient_mismatch",
+            "amount_mismatch",
+            "undeclared_action",
+            "ownership_change",
+            "unlimited_approval",
+            "new_privileged_function",
+            "coi",
+            "unsupported_claim",
+            "contradiction"
+          ]
+        },
+        "said": {
+          "type": "string"
+        },
+        "does": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "simRef": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "severity",
+        "category",
+        "said",
+        "does",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "chunkId": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunkId",
+        "sha256",
+        "quote",
+        "sourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "RiskChain": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "prior": {
+          "type": "number"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RiskStage"
+          }
+        },
+        "posterior": {
+          "type": "number"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "none",
+            "review",
+            "halt"
+          ]
+        }
+      },
+      "required": [
+        "proposalId",
+        "prior",
+        "stages",
+        "posterior",
+        "level",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    "RiskStage": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "claims",
+            "coi",
+            "voting",
+            "execution"
+          ]
+        },
+        "probability": {
+          "type": "number"
+        },
+        "likelihoodRatio": {
+          "type": "number"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "findingIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "stage",
+        "probability",
+        "likelihoodRatio",
+        "explanation",
+        "findingIds"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

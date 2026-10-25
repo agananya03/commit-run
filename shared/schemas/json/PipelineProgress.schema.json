@@ -1,0 +1,52 @@
+{
+  "$id": "https://proofofintent.local/schemas/PipelineProgress.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PipelineProgress",
+  "definitions": {
+    "PipelineProgress": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "step": {
+          "$ref": "#/definitions/PipelineStep"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "started",
+            "completed",
+            "failed"
+          ]
+        },
+        "ms": {
+          "type": "number"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "step",
+        "status"
+      ],
+      "additionalProperties": false,
+      "description": "pipeline:progress payload. ms = step duration, set when completed or failed."
+    },
+    "PipelineStep": {
+      "type": "string",
+      "enum": [
+        "ingest",
+        "summarize",
+        "extractIntent",
+        "commit",
+        "coi",
+        "simulate",
+        "verdict",
+        "risk"
+      ]
+    }
+  }
+}

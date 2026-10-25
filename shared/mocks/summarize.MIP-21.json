@@ -1,6 +1,6 @@
 {
   "proposalId": "MIP-21",
-  "tldr": "Upgrades MeridianReserve to a new implementation that the author says makes deposits and withdrawals ~1% cheaper, with no change to ownership.",
+  "tldr": "Upgrades the Vault to VaultV2, which the author says packs storage to make deposits and withdrawals ~1% cheaper, with no change to ownership.",
   "treasuryImpact": {
     "amountUsd": null,
     "pctOfTreasury": null,
@@ -9,37 +9,37 @@
   },
   "dependencies": [
     {
-      "text": "Relies on an internal review only; the external audit happens after deployment.",
+      "text": "Relies on an internal core-team review; no external audit or published diff.",
       "citations": [
         {
           "chunkId": "MIP-21:forum:2",
-          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
-          "quote": "An external audit is planned after deployment.",
-          "sourceUri": "data/MIP-21/forum.json"
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "the implementation was reviewed internally by the core team",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
         }
       ]
     }
   ],
   "risks": [
     {
-      "text": "The new implementation is unaudited at execution time and its address is not named in the text.",
+      "text": "A delegate asked for the VaultV2 diff before voting and was pointed to the PDF instead.",
       "citations": [
         {
           "chunkId": "MIP-21:forum:2",
-          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
-          "quote": "The new implementation was reviewed internally by the Meridian core team.",
-          "sourceUri": "data/MIP-21/forum.json"
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "Can we see the actual VaultV2 diff before voting?",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
         }
       ]
     },
     {
-      "text": "The proposer announced a new wallet while voting is open.",
+      "text": "The proposer publicly thanks an unexplained wallet for running the benchmarks.",
       "citations": [
         {
           "chunkId": "MIP-21:social:0",
-          "sha256": "0xd237f4c62b6b45aa2761c25bd4a07fa98c044276a8d57ea477e930000181a0d9",
-          "quote": "Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B",
-          "sourceUri": "data/MIP-21/social.json"
+          "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+          "quote": "Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks.",
+          "sourceUri": "social://MIP-21/social.json#msg=4"
         }
       ]
     }
@@ -47,20 +47,20 @@
   "claims": [
     {
       "id": "cl1",
-      "text": "The upgrade makes deposits and withdrawals ~1% cheaper in gas.",
+      "text": "VaultV2 makes deposits and withdrawals ~1% cheaper in gas.",
       "kind": "technical",
       "citations": [
         {
           "chunkId": "MIP-21:forum:0",
-          "sha256": "0xa30f48cc75931deb0b0ef67287a166109a41a38ba4d53643b7ce92525ca733e6",
-          "quote": "Deposits and withdrawals get ~1% cheaper.",
-          "sourceUri": "data/MIP-21/forum.json"
+          "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
+          "quote": "Net effect: ~1% cheaper user operations.",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=1"
         },
         {
           "chunkId": "MIP-21:pdf:1",
-          "sha256": "0x61e57004283724792915300c5c0760818a923cd4d13de783645cf0017e931da2",
-          "quote": "deposit(uint256) falling from 48,712 to 48,390 gas",
-          "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf"
+          "sha256": "0xd4290f802231197fc815df8a9ffa20358c572411b115094efc276216d4e1a4d0",
+          "quote": "deposit(uint256) falls from 48,712 to 48,390 gas",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=4"
         }
       ],
       "support": "supported",
@@ -68,20 +68,20 @@
     },
     {
       "id": "cl2",
-      "text": "No change to ownership: the Timelock remains sole owner of the Reserve.",
+      "text": "No change to ownership: the Timelock remains sole owner of the Vault.",
       "kind": "technical",
       "citations": [
         {
           "chunkId": "MIP-21:forum:1",
-          "sha256": "0x4cb88b32f56cbb14f4d1e54aff6cb22bb4480f97c98e52344d865dba4f6c654b",
+          "sha256": "0xa36488be4755e2b1b986497b27fbf4fe7f7687c1a8192a820fdcd03c47e9fc8d",
           "quote": "with no change to ownership",
-          "sourceUri": "data/MIP-21/forum.json"
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=1"
         },
         {
           "chunkId": "MIP-21:pdf:0",
-          "sha256": "0x47c2d4ef19fc40dea80df0407b0b202525c23819d470dcc126ad65876541d1c8",
-          "quote": "The Timelock remains the sole owner of the Reserve.",
-          "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf"
+          "sha256": "0x7e3e2ad20b88a3f9b52900eacb9fcf7cc414287fc08d229a13d5de6e856f8311",
+          "quote": "The Timelock remains the sole owner of the Vault.",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
         }
       ],
       "support": "supported",
@@ -89,18 +89,18 @@
     },
     {
       "id": "cl3",
-      "text": "The implementation was reviewed by the Meridian core team.",
+      "text": "The implementation was reviewed by the core team.",
       "kind": "team",
       "citations": [
         {
           "chunkId": "MIP-21:forum:2",
-          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
-          "quote": "reviewed internally by the Meridian core team",
-          "sourceUri": "data/MIP-21/forum.json"
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "quote": "reviewed internally by the core team",
+          "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
         }
       ],
       "support": "unsupported",
-      "pSupported": 0.35
+      "pSupported": 0.3
     }
   ]
 }

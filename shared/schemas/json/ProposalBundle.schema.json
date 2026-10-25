@@ -1,0 +1,1132 @@
+{
+  "$id": "https://proofofintent.local/schemas/ProposalBundle.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ProposalBundle",
+  "definitions": {
+    "ProposalBundle": {
+      "type": "object",
+      "properties": {
+        "proposal": {
+          "$ref": "#/definitions/Proposal"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProposalVersion"
+          }
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DecisionSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/IntentSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "simulation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SimulationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coi": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CoiReport"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Explanation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "risk": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RiskChain"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "chainEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChainEvent"
+          }
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/WatchdogFlag"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "proposal",
+        "versions",
+        "summary",
+        "intent",
+        "simulation",
+        "coi",
+        "findings",
+        "explanation",
+        "risk",
+        "chainEvents",
+        "flag"
+      ],
+      "additionalProperties": false,
+      "description": "GET /proposals/:id: full bundle."
+    },
+    "Proposal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "proposer": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/ProposalStatus"
+        },
+        "governorProposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "title",
+        "proposer",
+        "status",
+        "governorProposalId",
+        "operationId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "ProposalStatus": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "INGESTED",
+        "COMMITTED",
+        "ACTIVE",
+        "QUEUED",
+        "HALTED",
+        "EXECUTED",
+        "DEFEATED"
+      ]
+    },
+    "Hex": {
+      "type": "string"
+    },
+    "ProposalVersion": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "canonicalJson": {},
+        "versionHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "prevHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "evidenceRoot": {
+          "$ref": "#/definitions/Hex"
+        },
+        "commitTxHash": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceFile"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "version",
+        "canonicalJson",
+        "versionHash",
+        "prevHash",
+        "evidenceRoot",
+        "commitTxHash",
+        "files",
+        "createdAt"
+      ],
+      "additionalProperties": false,
+      "description": "versionHash = keccak256(RFC 8785 canonical JSON of canonicalJson); canonicalJson includes prevHash. prevHash of version 1 is 0x00..00. Committed via ProposalRegistry.commit(...)."
+    },
+    "EvidenceFile": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "forum",
+            "pdf",
+            "social",
+            "onchain",
+            "disclosure"
+          ]
+        },
+        "uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "proof": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hex"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "uri",
+        "sha256",
+        "bytes",
+        "proof"
+      ],
+      "additionalProperties": false,
+      "description": "One evidence file of a version. proof = Merkle proof of leaf [type, sha256] in StandardMerkleTree."
+    },
+    "DecisionSummary": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "tldr": {
+          "type": "string"
+        },
+        "treasuryImpact": {
+          "type": "object",
+          "properties": {
+            "amountUsd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "pctOfTreasury": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Citation"
+              }
+            }
+          },
+          "required": [
+            "amountUsd",
+            "pctOfTreasury",
+            "recipients",
+            "citations"
+          ],
+          "additionalProperties": false
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Citation"
+                }
+              }
+            },
+            "required": [
+              "text",
+              "citations"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Citation"
+                }
+              }
+            },
+            "required": [
+              "text",
+              "citations"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Claim"
+          }
+        }
+      },
+      "required": [
+        "proposalId",
+        "tldr",
+        "treasuryImpact",
+        "dependencies",
+        "risks",
+        "claims"
+      ],
+      "additionalProperties": false
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "chunkId": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunkId",
+        "sha256",
+        "quote",
+        "sourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "Claim": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "financial",
+            "technical",
+            "team",
+            "timeline",
+            "other"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "support": {
+          "type": "string",
+          "enum": [
+            "supported",
+            "unsupported",
+            "contradicted"
+          ]
+        },
+        "pSupported": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "kind",
+        "citations",
+        "support",
+        "pSupported"
+      ],
+      "additionalProperties": false
+    },
+    "IntentSpec": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IntentAction"
+          }
+        },
+        "explicitlyExcluded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "summary",
+        "actions",
+        "explicitlyExcluded",
+        "confidence"
+      ],
+      "additionalProperties": false
+    },
+    "IntentAction": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "transfer",
+            "upgrade",
+            "param_change",
+            "approve",
+            "call"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "recipient": {
+          "type": "string"
+        },
+        "newImplementation": {
+          "type": "string"
+        },
+        "functionSignature": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "citations"
+      ],
+      "additionalProperties": false
+    },
+    "SimulationResult": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "revertReason": {
+          "type": "string"
+        },
+        "decodedCalls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "contractName": {
+                "type": "string"
+              },
+              "selector": {
+                "$ref": "#/definitions/Hex"
+              },
+              "signature": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              "target",
+              "selector",
+              "args"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "tokenTransfers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "token",
+              "from",
+              "to",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "approvals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "string"
+              },
+              "spender": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "token",
+              "owner",
+              "spender",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "ownershipChanges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string"
+              },
+              "after": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "contract",
+              "role",
+              "before",
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "implementationChanges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "proxy": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string"
+              },
+              "after": {
+                "type": "string"
+              },
+              "addedSelectors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "selector": {
+                      "$ref": "#/definitions/Hex"
+                    },
+                    "signature": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "selector"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "removedSelectors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "selector": {
+                      "$ref": "#/definitions/Hex"
+                    },
+                    "signature": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "selector"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "proxy",
+              "before",
+              "after",
+              "addedSelectors",
+              "removedSelectors"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "storageDiffs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "slot": {
+                "$ref": "#/definitions/Hex"
+              },
+              "before": {
+                "$ref": "#/definitions/Hex"
+              },
+              "after": {
+                "$ref": "#/definitions/Hex"
+              }
+            },
+            "required": [
+              "contract",
+              "slot",
+              "before",
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "args": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "contract",
+              "name",
+              "args"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "bytecodeHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "simHash": {
+          "$ref": "#/definitions/Hex"
+        }
+      },
+      "required": [
+        "proposalId",
+        "success",
+        "decodedCalls",
+        "tokenTransfers",
+        "approvals",
+        "ownershipChanges",
+        "implementationChanges",
+        "storageDiffs",
+        "events",
+        "bytecodeHash",
+        "simHash"
+      ],
+      "additionalProperties": false
+    },
+    "CoiReport": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "proposer": {
+          "type": "string"
+        },
+        "disclosed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "signatureValid": {
+          "type": "boolean"
+        },
+        "undisclosedLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WalletLink"
+          }
+        },
+        "pCoi": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "proposer",
+        "disclosed",
+        "signatureValid",
+        "undisclosedLinks",
+        "pCoi"
+      ],
+      "additionalProperties": false
+    },
+    "WalletLink": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hops": {
+          "type": "number"
+        },
+        "pLink": {
+          "type": "number"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "path",
+        "hops",
+        "pLink",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "Finding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "recipient_mismatch",
+            "amount_mismatch",
+            "undeclared_action",
+            "ownership_change",
+            "unlimited_approval",
+            "new_privileged_function",
+            "coi",
+            "unsupported_claim",
+            "contradiction"
+          ]
+        },
+        "said": {
+          "type": "string"
+        },
+        "does": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "simRef": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "severity",
+        "category",
+        "said",
+        "does",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "Explanation": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string"
+        },
+        "paragraph": {
+          "type": "string"
+        },
+        "perFinding": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "findingId": {
+                "type": "string"
+              },
+              "sentence": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "findingId",
+              "sentence"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "headline",
+        "paragraph",
+        "perFinding"
+      ],
+      "additionalProperties": false
+    },
+    "RiskChain": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "prior": {
+          "type": "number"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RiskStage"
+          }
+        },
+        "posterior": {
+          "type": "number"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "none",
+            "review",
+            "halt"
+          ]
+        }
+      },
+      "required": [
+        "proposalId",
+        "prior",
+        "stages",
+        "posterior",
+        "level",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    "RiskStage": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "claims",
+            "coi",
+            "voting",
+            "execution"
+          ]
+        },
+        "probability": {
+          "type": "number"
+        },
+        "likelihoodRatio": {
+          "type": "number"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "findingIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "stage",
+        "probability",
+        "likelihoodRatio",
+        "explanation",
+        "findingIds"
+      ],
+      "additionalProperties": false
+    },
+    "ChainEvent": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "logIndex": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "contract",
+        "name",
+        "args",
+        "blockNumber",
+        "txHash",
+        "logIndex"
+      ],
+      "additionalProperties": false,
+      "description": "Decoded log from Governor, GuardedTimelock, GovernanceGuard or ProposalRegistry."
+    },
+    "WatchdogFlag": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "operationId": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findingsHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Finding"
+          }
+        },
+        "risk": {
+          "$ref": "#/definitions/RiskChain"
+        },
+        "txHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "blockNumber": {
+          "type": "number"
+        },
+        "flaggedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId",
+        "operationId",
+        "findingsHash",
+        "findings",
+        "risk",
+        "txHash",
+        "blockNumber",
+        "flaggedAt"
+      ],
+      "additionalProperties": false,
+      "description": "watchdog:flag payload. findingsHash = keccak256(canonical JSON of findings), passed to GovernanceGuard.flag()."
+    }
+  }
+}

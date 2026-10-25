@@ -1,0 +1,48 @@
+{
+  "$id": "https://proofofintent.local/schemas/Health.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Health",
+  "definitions": {
+    "Health": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string",
+          "enum": [
+            "backend",
+            "rag",
+            "sim"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "degraded"
+          ]
+        },
+        "mocks": {
+          "type": "boolean"
+        },
+        "deps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "down"
+            ]
+          }
+        }
+      },
+      "required": [
+        "service",
+        "status",
+        "mocks",
+        "deps"
+      ],
+      "additionalProperties": false,
+      "description": "GET /health. Backend deps: postgres, redis, rpc, rag, sim."
+    }
+  }
+}

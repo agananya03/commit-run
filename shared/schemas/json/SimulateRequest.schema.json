@@ -1,0 +1,47 @@
+{
+  "$id": "https://proofofintent.local/schemas/SimulateRequest.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SimulateRequest",
+  "definitions": {
+    "SimulateRequest": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "calldatas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hex"
+          }
+        },
+        "forkBlock": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "targets",
+        "values",
+        "calldatas"
+      ],
+      "additionalProperties": false,
+      "description": "POST /simulate -> SimulationResult. Executed as the timelock on the Anvil fork."
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}
