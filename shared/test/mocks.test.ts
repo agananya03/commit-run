@@ -87,3 +87,14 @@ describe.each(["MIP-21"])("%s mock integrity", (proposalId) => {
     }
   });
 });
+
+describe("every simulate mock", () => {
+  const { contracts } = readJson(join(mocksDir, "deployments.json")) as Deployments;
+  const known = new Set(Object.values(contracts).map((c) => c.address.toLowerCase()));
+  const files = mockFiles.filter((f) => f.startsWith("simulate."));
+
+  it.each(files)("%s only calls contracts that exist in deployments.json", (file) => {
+    const sim = readJson(join(mocksDir, file)) as SimulationResult;
+    for (const call of sim.decodedCalls) expect(known, `${file}: ${call.target}`).toContain(call.target.toLowerCase());
+  });
+});
