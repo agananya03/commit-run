@@ -92,10 +92,10 @@ export function Sidebar({ className }: { className?: string }) {
             Navigation
           </div>
           <Link
-            href="/"
+            href="/dashboard"
             className={cn(
               "flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors",
-              pathname === "/"
+              pathname === "/dashboard"
                 ? "bg-indigo-950/60 text-indigo-300 border border-indigo-800/60"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
             )}

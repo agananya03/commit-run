@@ -1,0 +1,237 @@
+/* Intro-only styles. Kept in a module so the dashboard's globals.css stays untouched. */
+
+.root {
+  position: fixed;
+  inset: 0;
+  background: #03050a;
+  color: #e6f6ff;
+  overflow: hidden;
+}
+
+/* Hide the scroll container's scrollbar: the progress rail replaces it */
+.root :global(div[style*="overflow"]) {
+  scrollbar-width: none;
+}
+.root :global(div[style*="overflow"])::-webkit-scrollbar {
+  display: none;
+}
+
+.section {
+  position: absolute;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 8vw;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(155, 231, 255, 0.7);
+}
+
+.title {
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-size: clamp(40px, 6.4vw, 104px);
+  text-wrap: balance;
+}
+
+.hero {
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  font-size: clamp(56px, 11vw, 190px);
+  background: linear-gradient(180deg, #ffffff 0%, #bfeeff 55%, rgba(155, 231, 255, 0.35) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.body {
+  max-width: 34ch;
+  font-size: clamp(15px, 1.25vw, 19px);
+  line-height: 1.55;
+  color: rgba(214, 236, 248, 0.72);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.cta {
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 30px;
+  border: 1px solid rgba(255, 45, 85, 0.6);
+  border-radius: 999px;
+  background: rgba(255, 45, 85, 0.08);
+  color: #ffe3e8;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  box-shadow: 0 0 40px rgba(255, 45, 85, 0.15);
+}
+.cta:hover,
+.cta:focus-visible {
+  background: rgba(255, 45, 85, 0.2);
+  border-color: #ff2d55;
+  box-shadow: 0 0 60px rgba(255, 45, 85, 0.4);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+/* Fixed chrome around the viewport */
+.chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(214, 236, 248, 0.75);
+}
+
+.corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(155, 231, 255, 0.45);
+  border-style: solid;
+  border-width: 0;
+}
+
+.skip {
+  pointer-events: auto;
+  padding: 8px 14px;
+  border: 1px solid rgba(155, 231, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(3, 5, 10, 0.4);
+  backdrop-filter: blur(8px);
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.skip:hover,
+.skip:focus-visible {
+  border-color: rgba(155, 231, 255, 0.8);
+  color: #fff;
+  outline: none;
+}
+
+.rail {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  height: 34vh;
+  width: 1px;
+  transform: translateY(-50%);
+  background: rgba(155, 231, 255, 0.15);
+}
+.railFill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #9be7ff, #ff2d55);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+.hint {
+  animation: bob 2.2s ease-in-out infinite;
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+/* Boot screen */
+.boot {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8vh 8vw;
+  background: #03050a;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(155, 231, 255, 0.8);
+  transition: opacity 0.9s ease, visibility 0.9s;
+}
+.bootDone {
+  opacity: 0;
+  visibility: hidden;
+}
+.bootLine {
+  opacity: 0;
+  animation: lineIn 0.25s ease forwards;
+}
+@keyframes lineIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+.bootBar {
+  margin-top: 18px;
+  height: 1px;
+  width: min(420px, 80vw);
+  background: rgba(155, 231, 255, 0.15);
+  overflow: hidden;
+}
+.bootBarFill {
+  height: 100%;
+  background: #9be7ff;
+  animation: fill 1.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+@keyframes fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Exit flash before routing to the dashboard */
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #ffd6de 30%, #03050a 75%);
+  opacity: 0;
+}
+.flashOn {
+  animation: flash 0.7s ease-in forwards;
+}
+@keyframes flash {
+  0% { opacity: 0; transform: scale(0.6); }
+  45% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1.4); background: #020617; }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 0 20px;
+    align-items: flex-end;
+    padding-bottom: 14vh;
+  }
+  .rail {
+    right: 12px;
+  }
+}
