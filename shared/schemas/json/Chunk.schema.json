@@ -1,0 +1,51 @@
+{
+  "$id": "https://proofofintent.local/schemas/Chunk.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Chunk",
+  "definitions": {
+    "Chunk": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "proposalId": {
+          "type": "string"
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": [
+            "forum",
+            "pdf",
+            "social",
+            "onchain"
+          ]
+        },
+        "sourceUri": {
+          "type": "string"
+        },
+        "page": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        }
+      },
+      "required": [
+        "id",
+        "proposalId",
+        "sourceType",
+        "sourceUri",
+        "text",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

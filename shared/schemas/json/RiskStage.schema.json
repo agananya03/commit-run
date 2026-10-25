@@ -7,71 +7,36 @@
       "type": "object",
       "properties": {
         "stage": {
-          "$ref": "#/definitions/RiskStageName"
+          "type": "string",
+          "enum": [
+            "claims",
+            "coi",
+            "voting",
+            "execution"
+          ]
         },
-        "prior": {
-          "$ref": "#/definitions/Probability"
+        "probability": {
+          "type": "number"
         },
         "likelihoodRatio": {
           "type": "number"
         },
-        "posterior": {
-          "$ref": "#/definitions/Probability"
+        "explanation": {
+          "type": "string"
         },
-        "signals": {
+        "findingIds": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/RiskSignal"
+            "type": "string"
           }
         }
       },
       "required": [
         "stage",
-        "prior",
+        "probability",
         "likelihoodRatio",
-        "posterior",
-        "signals"
-      ],
-      "additionalProperties": false,
-      "description": "One Bayesian update: posterior odds = prior odds * likelihoodRatio, where likelihoodRatio is the product of the signals' ratios. Each stage's prior is the previous stage's posterior."
-    },
-    "RiskStageName": {
-      "type": "string",
-      "enum": [
-        "claims",
-        "coi",
-        "voting",
-        "execution"
-      ]
-    },
-    "Probability": {
-      "type": "number",
-      "description": "Probability in [0, 1].",
-      "minimum": 0,
-      "maximum": 1
-    },
-    "RiskSignal": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "likelihoodRatio": {
-          "type": "number",
-          "description": "Likelihood ratio this signal contributes; >1 raises risk, <1 lowers it."
-        },
-        "evidenceIndex": {
-          "type": "number",
-          "description": "EvidenceEntry.index backing this signal."
-        }
-      },
-      "required": [
-        "id",
-        "description",
-        "likelihoodRatio"
+        "explanation",
+        "findingIds"
       ],
       "additionalProperties": false
     }

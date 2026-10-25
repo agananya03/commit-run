@@ -1,0 +1,267 @@
+{
+  "$id": "https://proofofintent.local/schemas/SimulationResult.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SimulationResult",
+  "definitions": {
+    "SimulationResult": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "revertReason": {
+          "type": "string"
+        },
+        "decodedCalls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "contractName": {
+                "type": "string"
+              },
+              "selector": {
+                "$ref": "#/definitions/Hex"
+              },
+              "signature": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              "target",
+              "selector",
+              "args"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "tokenTransfers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "token",
+              "from",
+              "to",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "approvals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "string"
+              },
+              "spender": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "token",
+              "owner",
+              "spender",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "ownershipChanges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string"
+              },
+              "after": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "contract",
+              "role",
+              "before",
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "implementationChanges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "proxy": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string"
+              },
+              "after": {
+                "type": "string"
+              },
+              "addedSelectors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "selector": {
+                      "$ref": "#/definitions/Hex"
+                    },
+                    "signature": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "selector"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "removedSelectors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "selector": {
+                      "$ref": "#/definitions/Hex"
+                    },
+                    "signature": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "selector"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "proxy",
+              "before",
+              "after",
+              "addedSelectors",
+              "removedSelectors"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "storageDiffs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "slot": {
+                "$ref": "#/definitions/Hex"
+              },
+              "before": {
+                "$ref": "#/definitions/Hex"
+              },
+              "after": {
+                "$ref": "#/definitions/Hex"
+              }
+            },
+            "required": [
+              "contract",
+              "slot",
+              "before",
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "args": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "contract",
+              "name",
+              "args"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "bytecodeHash": {
+          "$ref": "#/definitions/Hex"
+        },
+        "simHash": {
+          "$ref": "#/definitions/Hex"
+        }
+      },
+      "required": [
+        "proposalId",
+        "success",
+        "decodedCalls",
+        "tokenTransfers",
+        "approvals",
+        "ownershipChanges",
+        "implementationChanges",
+        "storageDiffs",
+        "events",
+        "bytecodeHash",
+        "simHash"
+      ],
+      "additionalProperties": false
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

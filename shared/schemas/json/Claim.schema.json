@@ -1,0 +1,81 @@
+{
+  "$id": "https://proofofintent.local/schemas/Claim.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Claim",
+  "definitions": {
+    "Claim": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "financial",
+            "technical",
+            "team",
+            "timeline",
+            "other"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "support": {
+          "type": "string",
+          "enum": [
+            "supported",
+            "unsupported",
+            "contradicted"
+          ]
+        },
+        "pSupported": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "kind",
+        "citations",
+        "support",
+        "pSupported"
+      ],
+      "additionalProperties": false
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "chunkId": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunkId",
+        "sha256",
+        "quote",
+        "sourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

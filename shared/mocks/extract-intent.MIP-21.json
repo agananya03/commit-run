@@ -1,52 +1,29 @@
 {
   "proposalId": "MIP-21",
-  "claims": [
+  "summary": "Gas optimisation of MeridianReserve via an implementation upgrade; no change to ownership.",
+  "actions": [
     {
-      "id": "c1",
-      "category": "gas",
-      "statement": "Gas optimisation of MeridianReserve deposit/withdraw",
-      "expectation": "change",
-      "subject": "MeridianReserve implementation",
-      "confidence": 0.96,
+      "kind": "upgrade",
+      "target": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "description": "Upgrade MeridianReserve to a gas-optimised implementation (gas optimisation only).",
       "citations": [
         {
-          "documentId": "MIP-21:forum:0",
-          "chunkId": "MIP-21:forum:0#0",
-          "quote": "we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters)"
-        }
-      ]
-    },
-    {
-      "id": "c2",
-      "category": "ownership",
-      "statement": "No change to ownership",
-      "expectation": "no_change",
-      "subject": "MeridianReserve.owner",
-      "confidence": 0.93,
-      "citations": [
-        {
-          "documentId": "MIP-21:forum:0",
-          "chunkId": "MIP-21:forum:0#1",
-          "quote": "no change to ownership, permissions or treasury funds"
+          "chunkId": "MIP-21:forum:0",
+          "sha256": "0xa30f48cc75931deb0b0ef67287a166109a41a38ba4d53643b7ce92525ca733e6",
+          "quote": "we upgrade MeridianReserve to a gas-optimised implementation",
+          "sourceUri": "data/MIP-21/forum.json"
         },
         {
-          "documentId": "MIP-21:pdf:0",
-          "chunkId": "MIP-21:pdf:0#4",
-          "quote": "The Timelock remains the sole owner of the Reserve.",
-          "page": 3
+          "chunkId": "MIP-21:pdf:0",
+          "sha256": "0x47c2d4ef19fc40dea80df0407b0b202525c23819d470dcc126ad65876541d1c8",
+          "quote": "The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy",
+          "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf"
         }
       ]
     }
   ],
-  "declaredTargets": [
-    "MeridianReserve"
+  "explicitlyExcluded": [
+    "change to ownership"
   ],
-  "walletMentions": [
-    {
-      "address": "0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B",
-      "documentId": "MIP-21:social:0",
-      "context": "Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books."
-    }
-  ],
-  "model": "mock"
+  "confidence": 0.91
 }

@@ -1,0 +1,116 @@
+{
+  "$id": "https://proofofintent.local/schemas/IntentSpec.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/IntentSpec",
+  "definitions": {
+    "IntentSpec": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IntentAction"
+          }
+        },
+        "explicitlyExcluded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "summary",
+        "actions",
+        "explicitlyExcluded",
+        "confidence"
+      ],
+      "additionalProperties": false
+    },
+    "IntentAction": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "transfer",
+            "upgrade",
+            "param_change",
+            "approve",
+            "call"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "recipient": {
+          "type": "string"
+        },
+        "newImplementation": {
+          "type": "string"
+        },
+        "functionSignature": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "citations"
+      ],
+      "additionalProperties": false
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "chunkId": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunkId",
+        "sha256",
+        "quote",
+        "sourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "Hex": {
+      "type": "string"
+    }
+  }
+}

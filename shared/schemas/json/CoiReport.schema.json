@@ -1,0 +1,83 @@
+{
+  "$id": "https://proofofintent.local/schemas/CoiReport.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CoiReport",
+  "definitions": {
+    "CoiReport": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "proposer": {
+          "type": "string"
+        },
+        "disclosed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "signatureValid": {
+          "type": "boolean"
+        },
+        "undisclosedLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WalletLink"
+          }
+        },
+        "pCoi": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "proposalId",
+        "proposer",
+        "disclosed",
+        "signatureValid",
+        "undisclosedLinks",
+        "pCoi"
+      ],
+      "additionalProperties": false
+    },
+    "WalletLink": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hops": {
+          "type": "number"
+        },
+        "pLink": {
+          "type": "number"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "path",
+        "hops",
+        "pLink",
+        "reasons"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

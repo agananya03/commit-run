@@ -1,73 +1,60 @@
-{
-  "proposalId": "MIP-21",
-  "documents": [
-    {
-      "id": "MIP-21:forum:0",
-      "proposalId": "MIP-21",
-      "kind": "forum",
-      "uri": "data/MIP-21/forum.json",
-      "title": "[MIP-21] MeridianReserve gas optimisation",
-      "author": "kestrel.eth",
-      "publishedAt": "2026-10-20T14:03:11Z",
-      "contentHash": "0xb9dc02a4ea65633c3f431cf8b57381d90bc6ed4920ef0ce0bdd796a98da6ea0d",
-      "chunkCount": 9,
-      "excerpt": "TL;DR: we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters). Deposits and withdrawals get ~1% cheaper. This is a pure gas optimisation: no change to ownership, permissions or treasury funds."
-    },
-    {
-      "id": "MIP-21:pdf:0",
-      "proposalId": "MIP-21",
-      "kind": "pdf",
-      "uri": "data/MIP-21/MIP-21-technical-spec.pdf",
-      "title": "MIP-21 Technical Specification v1.2",
-      "author": "kestrel.eth",
-      "publishedAt": "2026-10-20T13:40:00Z",
-      "contentHash": "0xb0ff28b9f88f91cf5c8d6d534e7adfe3f445e7d1ada4009026ac46b434c636c0",
-      "chunkCount": 14,
-      "excerpt": "3. Scope. The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy. Storage layout is preserved. The Timelock remains the sole owner of the Reserve."
-    },
-    {
-      "id": "MIP-21:social:0",
-      "proposalId": "MIP-21",
-      "kind": "social",
-      "uri": "data/MIP-21/social.json",
-      "title": "Post by @kestrel_builds",
-      "author": "@kestrel_builds",
-      "publishedAt": "2026-10-21T08:17:45Z",
-      "contentHash": "0x6a88927a6efaaff51fa36e2bf74d731abb98fd5c7a995cee87888a617133abcf",
-      "chunkCount": 2,
-      "excerpt": "MIP-21 is live for voting, small gas win for every Meridian depositor. Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books."
-    },
-    {
-      "id": "MIP-21:calldata:0",
-      "proposalId": "MIP-21",
-      "kind": "calldata",
-      "uri": "data/MIP-21/calldata.json",
-      "title": "MeridianGovernor ProposalCreated (MIP-21)",
-      "author": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-      "publishedAt": "2026-10-21T09:00:12Z",
-      "contentHash": "0x4355f77648ecb3c9b0cdafcd44d77103ac17c886ed7a8c271619acd6a7b3a290",
-      "chunkCount": 1,
-      "excerpt": "targets=[0x5FC8d32690cc91D4c39d9d3abcBD16989F875707] values=[0] calldatas=[0x4f1ef286…]"
-    }
-  ],
-  "chunkCount": 26,
-  "onchain": {
-    "governorProposalId": "71240117917747628806640772231852050840836735106339123343864741404726318379014",
-    "proposer": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-    "governor": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-    "timelock": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-    "calls": [
-      {
-        "target": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-        "value": "0",
-        "data": "0x4f1ef286000000000000000000000000057ef64e23666f000b34ae31332854acbd1c85440000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000002429b6eca90000000000000000000000009f2c188225babb8ac51c8b49c850678558fefb7b00000000000000000000000000000000000000000000000000000000"
-      }
-    ],
-    "descriptionHash": "0x1af95546fe3f7411660d911aa922f2158f9fe394c0513576d4ba842ccf17b9bf",
-    "operationId": "0x1479f0221f839edab5b6bd6509e1d8de7cd01691d05237a1ce45da57ad021396"
+[
+  {
+    "id": "MIP-21:forum:0",
+    "proposalId": "MIP-21",
+    "sourceType": "forum",
+    "sourceUri": "data/MIP-21/forum.json",
+    "text": "[MIP-21] MeridianReserve gas optimisation, posted by kestrel.eth. TL;DR: we upgrade MeridianReserve to a gas-optimised implementation (packed storage slots, unchecked loop counters). Deposits and withdrawals get ~1% cheaper.",
+    "sha256": "0xa30f48cc75931deb0b0ef67287a166109a41a38ba4d53643b7ce92525ca733e6"
   },
-  "warnings": [
-    "MIP-21:pdf:0 page 6 is an image-only diagram; no text extracted"
-  ],
-  "ingestedAt": "2026-10-25T09:12:04Z"
-}
+  {
+    "id": "MIP-21:forum:1",
+    "proposalId": "MIP-21",
+    "sourceType": "forum",
+    "sourceUri": "data/MIP-21/forum.json",
+    "text": "This is purely a gas optimisation, with no change to ownership. The Timelock stays in control of the Reserve.",
+    "sha256": "0x4cb88b32f56cbb14f4d1e54aff6cb22bb4480f97c98e52344d865dba4f6c654b"
+  },
+  {
+    "id": "MIP-21:forum:2",
+    "proposalId": "MIP-21",
+    "sourceType": "forum",
+    "sourceUri": "data/MIP-21/forum.json",
+    "text": "The new implementation was reviewed internally by the Meridian core team. An external audit is planned after deployment.",
+    "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46"
+  },
+  {
+    "id": "MIP-21:pdf:0",
+    "proposalId": "MIP-21",
+    "sourceType": "pdf",
+    "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf",
+    "page": 3,
+    "text": "3. Scope. The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy at 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707. Storage layout is preserved. The Timelock remains the sole owner of the Reserve.",
+    "sha256": "0x47c2d4ef19fc40dea80df0407b0b202525c23819d470dcc126ad65876541d1c8"
+  },
+  {
+    "id": "MIP-21:pdf:1",
+    "proposalId": "MIP-21",
+    "sourceType": "pdf",
+    "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf",
+    "page": 4,
+    "text": "4. Gas. Benchmarks show deposit(uint256) falling from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas.",
+    "sha256": "0x61e57004283724792915300c5c0760818a923cd4d13de783645cf0017e931da2"
+  },
+  {
+    "id": "MIP-21:social:0",
+    "proposalId": "MIP-21",
+    "sourceType": "social",
+    "sourceUri": "data/MIP-21/social.json",
+    "text": "@kestrel_builds: MIP-21 is live for voting, small gas win for every Meridian depositor. Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B, update your address books.",
+    "sha256": "0xd237f4c62b6b45aa2761c25bd4a07fa98c044276a8d57ea477e930000181a0d9"
+  },
+  {
+    "id": "MIP-21:onchain:0",
+    "proposalId": "MIP-21",
+    "sourceType": "onchain",
+    "sourceUri": "data/MIP-21/calldata.json",
+    "text": "ProposalCreated proposalId=71240117917747628806640772231852050840836735106339123343864741404726318379014 proposer=0x90F79bf6EB2c4f870365E785982E1f101E93b906 targets=[0x5FC8d32690cc91D4c39d9d3abcBD16989F875707] values=[0] calldatas=[0x4f1ef286000000000000000000000000057ef64e23666f000b34ae31332854acbd1c85440000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000002429b6eca90000000000000000000000009f2c188225babb8ac51c8b49c850678558fefb7b00000000000000000000000000000000000000000000000000000000] description=\"# MIP-21: MeridianReserve gas optimisation\"",
+    "sha256": "0xfafed0a2048f849ec4e36a344aa8912f0858cb126e9dc97c2c47edcf638fdf2d"
+  }
+]

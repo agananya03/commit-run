@@ -1,0 +1,187 @@
+{
+  "$id": "https://proofofintent.local/schemas/DecisionSummary.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DecisionSummary",
+  "definitions": {
+    "DecisionSummary": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "tldr": {
+          "type": "string"
+        },
+        "treasuryImpact": {
+          "type": "object",
+          "properties": {
+            "amountUsd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "pctOfTreasury": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Citation"
+              }
+            }
+          },
+          "required": [
+            "amountUsd",
+            "pctOfTreasury",
+            "recipients",
+            "citations"
+          ],
+          "additionalProperties": false
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Citation"
+                }
+              }
+            },
+            "required": [
+              "text",
+              "citations"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Citation"
+                }
+              }
+            },
+            "required": [
+              "text",
+              "citations"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Claim"
+          }
+        }
+      },
+      "required": [
+        "proposalId",
+        "tldr",
+        "treasuryImpact",
+        "dependencies",
+        "risks",
+        "claims"
+      ],
+      "additionalProperties": false
+    },
+    "Citation": {
+      "type": "object",
+      "properties": {
+        "chunkId": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/definitions/Hex"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunkId",
+        "sha256",
+        "quote",
+        "sourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "Hex": {
+      "type": "string"
+    },
+    "Claim": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "financial",
+            "technical",
+            "team",
+            "timeline",
+            "other"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Citation"
+          }
+        },
+        "support": {
+          "type": "string",
+          "enum": [
+            "supported",
+            "unsupported",
+            "contradicted"
+          ]
+        },
+        "pSupported": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "kind",
+        "citations",
+        "support",
+        "pSupported"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

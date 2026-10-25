@@ -1,0 +1,90 @@
+{
+  "$id": "https://proofofintent.local/schemas/RiskChain.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RiskChain",
+  "definitions": {
+    "RiskChain": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        },
+        "prior": {
+          "type": "number"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RiskStage"
+          }
+        },
+        "posterior": {
+          "type": "number"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "none",
+            "review",
+            "halt"
+          ]
+        }
+      },
+      "required": [
+        "proposalId",
+        "prior",
+        "stages",
+        "posterior",
+        "level",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    "RiskStage": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "claims",
+            "coi",
+            "voting",
+            "execution"
+          ]
+        },
+        "probability": {
+          "type": "number"
+        },
+        "likelihoodRatio": {
+          "type": "number"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "findingIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "stage",
+        "probability",
+        "likelihoodRatio",
+        "explanation",
+        "findingIds"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

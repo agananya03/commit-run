@@ -1,37 +1,106 @@
 {
   "proposalId": "MIP-21",
-  "title": "MIP-21: MeridianReserve gas optimisation",
-  "summary": "MIP-21, proposed by kestrel.eth, upgrades the MeridianReserve contract to a new implementation behind its existing UUPS proxy. The proposal says the new code packs storage slots and uses unchecked loop counters so deposits and withdrawals cost roughly 1% less gas. The author states that storage layout is preserved, that the Timelock remains the sole owner of the Reserve, and that no permissions or treasury funds change. The on-chain proposal contains a single call to the Reserve proxy.",
-  "keyPoints": [
-    "Upgrades MeridianReserve implementation via the UUPS proxy",
-    "Claimed benefit: ~1% cheaper deposit/withdraw gas",
-    "Claims no change to ownership: Timelock stays sole owner",
-    "Claims no change to permissions or treasury funds",
-    "One on-chain call, targeting the Reserve proxy"
-  ],
-  "citations": [
+  "tldr": "Upgrades MeridianReserve to a new implementation that the author says makes deposits and withdrawals ~1% cheaper, with no change to ownership.",
+  "treasuryImpact": {
+    "amountUsd": null,
+    "pctOfTreasury": null,
+    "recipients": [],
+    "citations": []
+  },
+  "dependencies": [
     {
-      "documentId": "MIP-21:forum:0",
-      "chunkId": "MIP-21:forum:0#0",
-      "quote": "This is a pure gas optimisation: no change to ownership, permissions or treasury funds."
-    },
-    {
-      "documentId": "MIP-21:forum:0",
-      "chunkId": "MIP-21:forum:0#1",
-      "quote": "Deposits and withdrawals get ~1% cheaper."
-    },
-    {
-      "documentId": "MIP-21:pdf:0",
-      "chunkId": "MIP-21:pdf:0#4",
-      "quote": "The Timelock remains the sole owner of the Reserve.",
-      "page": 3
-    },
-    {
-      "documentId": "MIP-21:pdf:0",
-      "chunkId": "MIP-21:pdf:0#3",
-      "quote": "The upgrade replaces the MeridianReserve implementation behind the existing UUPS proxy. Storage layout is preserved.",
-      "page": 3
+      "text": "Relies on an internal review only; the external audit happens after deployment.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
+          "quote": "An external audit is planned after deployment.",
+          "sourceUri": "data/MIP-21/forum.json"
+        }
+      ]
     }
   ],
-  "model": "mock"
+  "risks": [
+    {
+      "text": "The new implementation is unaudited at execution time and its address is not named in the text.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
+          "quote": "The new implementation was reviewed internally by the Meridian core team.",
+          "sourceUri": "data/MIP-21/forum.json"
+        }
+      ]
+    },
+    {
+      "text": "The proposer announced a new wallet while voting is open.",
+      "citations": [
+        {
+          "chunkId": "MIP-21:social:0",
+          "sha256": "0xd237f4c62b6b45aa2761c25bd4a07fa98c044276a8d57ea477e930000181a0d9",
+          "quote": "Also moving my ops to a fresh wallet 0x9F2C188225BaBb8aC51c8B49c850678558fEfb7B",
+          "sourceUri": "data/MIP-21/social.json"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "cl1",
+      "text": "The upgrade makes deposits and withdrawals ~1% cheaper in gas.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:0",
+          "sha256": "0xa30f48cc75931deb0b0ef67287a166109a41a38ba4d53643b7ce92525ca733e6",
+          "quote": "Deposits and withdrawals get ~1% cheaper.",
+          "sourceUri": "data/MIP-21/forum.json"
+        },
+        {
+          "chunkId": "MIP-21:pdf:1",
+          "sha256": "0x61e57004283724792915300c5c0760818a923cd4d13de783645cf0017e931da2",
+          "quote": "deposit(uint256) falling from 48,712 to 48,390 gas",
+          "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.82
+    },
+    {
+      "id": "cl2",
+      "text": "No change to ownership: the Timelock remains sole owner of the Reserve.",
+      "kind": "technical",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:1",
+          "sha256": "0x4cb88b32f56cbb14f4d1e54aff6cb22bb4480f97c98e52344d865dba4f6c654b",
+          "quote": "with no change to ownership",
+          "sourceUri": "data/MIP-21/forum.json"
+        },
+        {
+          "chunkId": "MIP-21:pdf:0",
+          "sha256": "0x47c2d4ef19fc40dea80df0407b0b202525c23819d470dcc126ad65876541d1c8",
+          "quote": "The Timelock remains the sole owner of the Reserve.",
+          "sourceUri": "data/MIP-21/MIP-21-technical-spec.pdf"
+        }
+      ],
+      "support": "supported",
+      "pSupported": 0.74
+    },
+    {
+      "id": "cl3",
+      "text": "The implementation was reviewed by the Meridian core team.",
+      "kind": "team",
+      "citations": [
+        {
+          "chunkId": "MIP-21:forum:2",
+          "sha256": "0x1cbe4092bb8bad94424b1ea730ac1586a1263b66afede8fe445986aa7359ec46",
+          "quote": "reviewed internally by the Meridian core team",
+          "sourceUri": "data/MIP-21/forum.json"
+        }
+      ],
+      "support": "unsupported",
+      "pSupported": 0.35
+    }
+  ]
 }
