@@ -1,0 +1,7 @@
+# CLAUDE.md
+
+Kickoff prompt for this project:
+
+You are my pair programmer for a 24h hackathon. Project: ProofOfIntent, a DAO governance watchdog for a fictional "Meridian DAO" running on a local Hardhat chain. It ingests fragmented proposal data (forum JSON, PDF, social posts, calldata), builds a hash-chained, on-chain-committed evidence trail, maps conflict-of-interest wallet links, simulates the actual submitted calldata/bytecode, compares it to what the text promised, scores risk through a 4-stage probabilistic chain (claims -> COI -> voting -> execution) and auto-flags the Timelock operation via GovernanceGuard.flag() if execution deviates.
+Monorepo: /backend (mine: Express+TypeScript+Prisma+PostgreSQL+BullMQ/Redis+Socket.IO+Swagger, port 4000), /rag (FastAPI :8000, teammate), /contracts + /sim (Hardhat :8545, sim API :4002, teammate), /frontend (Next.js :3000, teammate), /data (synthetic scenarios MIP-12, MIP-17, MIP-21), /shared (API.md, schemas/types.ts, mocks/).
+Rules: only edit /backend and /shared. Types in /shared/schemas/types.ts are the contract; never change a field silently, tell me first. Use zod to validate every response coming from rag and sim. Every external client has a USE_MOCKS=true fallback reading /shared/mocks. Strict TypeScript, ESM, vitest for tests, pino for logs. Small commits with clear messages. After each task, tell me how to run and test it in one or two commands.

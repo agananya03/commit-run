@@ -1,0 +1,24 @@
+# Cursor rules for the RAG service (ProofOfIntent / Meridian DAO)
+
+## Scope
+- Only edit files under /rag. Do not touch /backend, /shared, /contracts, /sim, /frontend or /data.
+- If a change to the shared contract seems needed, stop and tell the human. The backend owner changes /shared, not you.
+
+## Stack
+- Python 3.11.
+- FastAPI, served on port 8000 (`uvicorn app.main:app --port 8000`).
+- Pydantic v2 for every request and response model (`model_config = ConfigDict(extra="forbid")`).
+
+## Contract
+- Request/response shapes come from /shared/schemas/json/*.schema.json (generated from /shared/schemas/types.ts).
+  Generate the models, don't hand-write them:
+  `datamodel-codegen --input ../shared/schemas/json --input-file-type jsonschema --output-model-type pydantic_v2.BaseModel --output app/contracts`
+- Field names stay camelCase on the wire, exactly as in the schemas. Use `alias` / `populate_by_name` if you want snake_case in Python.
+- Endpoints, methods and examples are in /shared/API.md. Your responses must validate against the matching schema, because the backend rejects anything that doesn't (zod).
+- /shared/mocks/*.MIP-21.json shows exactly what the backend expects back. Use it as the golden example in tests.
+
+## Conventions
+- Every endpoint returns a typed Pydantic model. No bare dicts.
+- Errors: return `{"error": {"code": "...", "message": "..."}}` with a 4xx/5xx status (the ApiError schema).
+- Read config from env (RAG_URL port, LLM_API_KEY, DATABASE_URL for pgvector). Never hard-code keys.
+- Tests with pytest; at least one test per endpoint that validates the response against its JSON schema.
