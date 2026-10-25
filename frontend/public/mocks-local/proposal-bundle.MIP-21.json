@@ -1,0 +1,506 @@
+{
+  "proposal": {
+    "id": "clx21",
+    "slug": "MIP-21",
+    "title": "VaultV2: storage packing and gas optimisation",
+    "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+    "status": "ACTIVE",
+    "governorProposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+    "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
+    "createdAt": "2026-10-22T09:00:00Z",
+    "updatedAt": "2026-10-22T09:14:02Z"
+  },
+  "versions": [
+    {
+      "proposalId": "clx21",
+      "version": 1,
+      "canonicalJson": {},
+      "versionHash": "0x4c1d763fe2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7",
+      "prevHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "evidenceRoot": "0x91b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c",
+      "commitTxHash": "0x2f6a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d1",
+      "files": [
+        {
+          "type": "pdf",
+          "uri": "pdf://MIP-21/proposal.pdf",
+          "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
+          "bytes": 48213,
+          "proof": ["0x01", "0x02"]
+        },
+        {
+          "type": "forum",
+          "uri": "forum://MIP-21/forum_thread.json",
+          "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
+          "bytes": 14205,
+          "proof": ["0x03", "0x04"]
+        },
+        {
+          "type": "social",
+          "uri": "social://MIP-21/social.json",
+          "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+          "bytes": 3892,
+          "proof": ["0x05", "0x06"]
+        },
+        {
+          "type": "onchain",
+          "uri": "onchain://MIP-21/onchain_actions.json",
+          "sha256": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
+          "bytes": 8192,
+          "proof": ["0x07", "0x08"]
+        },
+        {
+          "type": "disclosure",
+          "uri": "disclosure://MIP-21/disclosure.json",
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "bytes": 2048,
+          "proof": ["0x09", "0x10"]
+        }
+      ],
+      "createdAt": "2026-10-22T09:12:05Z"
+    },
+    {
+      "proposalId": "clx21",
+      "version": 2,
+      "canonicalJson": {},
+      "versionHash": "0x88e2c4a179d300f0d0381f2d41592c6725115a0ebea36488be4755e2b1b98649",
+      "prevHash": "0x4c1d763fe2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7",
+      "evidenceRoot": "0x91b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c",
+      "commitTxHash": "0x7b3d11a94e825a09b348ce5a182f55cab59ee15fdeefde5cf0f49af9496dead1",
+      "files": [
+        {
+          "type": "pdf",
+          "uri": "pdf://MIP-21/proposal.pdf",
+          "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
+          "bytes": 48213,
+          "proof": ["0x01", "0x02"]
+        },
+        {
+          "type": "forum",
+          "uri": "forum://MIP-21/forum_thread.json",
+          "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
+          "bytes": 14205,
+          "proof": ["0x03", "0x04"]
+        },
+        {
+          "type": "social",
+          "uri": "social://MIP-21/social.json",
+          "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+          "bytes": 3892,
+          "proof": ["0x05", "0x06"]
+        },
+        {
+          "type": "onchain",
+          "uri": "onchain://MIP-21/onchain_actions.json",
+          "sha256": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
+          "bytes": 8192,
+          "proof": ["0x07", "0x08"]
+        },
+        {
+          "type": "disclosure",
+          "uri": "disclosure://MIP-21/disclosure.json",
+          "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+          "bytes": 2048,
+          "proof": ["0x09", "0x10"]
+        }
+      ],
+      "createdAt": "2026-10-23T14:30:00Z"
+    }
+  ],
+  "summary": {
+    "proposalId": "MIP-21",
+    "tldr": "Upgrades the Vault to VaultV2, which the author says packs storage to make deposits and withdrawals ~1% cheaper, with no change to ownership.",
+    "treasuryImpact": {
+      "amountUsd": null,
+      "pctOfTreasury": null,
+      "recipients": [],
+      "citations": []
+    },
+    "dependencies": [
+      {
+        "text": "Relies on an internal core-team review; no external audit or published diff.",
+        "citations": [
+          {
+            "chunkId": "MIP-21:forum:2",
+            "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+            "quote": "the implementation was reviewed internally by the core team",
+            "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+          }
+        ]
+      }
+    ],
+    "risks": [
+      {
+        "text": "A delegate asked for the VaultV2 diff before voting and was pointed to the PDF instead.",
+        "citations": [
+          {
+            "chunkId": "MIP-21:forum:2",
+            "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+            "quote": "Can we see the actual VaultV2 diff before voting?",
+            "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+          }
+        ]
+      },
+      {
+        "text": "The proposer publicly thanks an unexplained wallet for running the benchmarks.",
+        "citations": [
+          {
+            "chunkId": "MIP-21:social:0",
+            "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
+            "quote": "Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks.",
+            "sourceUri": "social://MIP-21/social.json#msg=4"
+          }
+        ]
+      }
+    ],
+    "claims": [
+      {
+        "id": "cl1",
+        "text": "VaultV2 makes deposits and withdrawals ~1% cheaper in gas.",
+        "kind": "technical",
+        "citations": [
+          {
+            "chunkId": "MIP-21:pdf:1",
+            "sha256": "0xd4290f802231197fc815df8a9ffa20358c572411b115094efc276216d4e1a4d0",
+            "quote": "deposit(uint256) falls from 48,712 to 48,390 gas",
+            "sourceUri": "pdf://MIP-21/proposal.pdf#page=4"
+          }
+        ],
+        "support": "supported",
+        "pSupported": 0.9
+      },
+      {
+        "id": "cl2",
+        "text": "No change to ownership: the Timelock remains sole owner of the Vault.",
+        "kind": "technical",
+        "citations": [
+          {
+            "chunkId": "MIP-21:pdf:0",
+            "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
+            "quote": "The Timelock remains the sole owner of the Vault.",
+            "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+          }
+        ],
+        "support": "supported",
+        "pSupported": 0.7
+      },
+      {
+        "id": "cl3",
+        "text": "The implementation was reviewed by the core team.",
+        "kind": "team",
+        "citations": [
+          {
+            "chunkId": "MIP-21:forum:2",
+            "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
+            "quote": "reviewed internally by the core team",
+            "sourceUri": "forum://MIP-21/forum_thread.json#post=6"
+          }
+        ],
+        "support": "unsupported",
+        "pSupported": 0.3
+      }
+    ]
+  },
+  "intent": {
+    "proposalId": "MIP-21",
+    "summary": "Gas optimisation of the Vault via a VaultV2 implementation upgrade; no change to ownership.",
+    "actions": [
+      {
+        "kind": "upgrade",
+        "target": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "description": "Upgrade the Vault behind the UUPS proxy to VaultV2 to achieve slot packing and gas savings.",
+        "citations": [
+          {
+            "chunkId": "MIP-21:pdf:0",
+            "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
+            "quote": "The upgrade replaces the Vault implementation behind the existing UUPS proxy at 0x0165878A594ca255338adfa4d48449f69242Eb8F.",
+            "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+          }
+        ]
+      }
+    ],
+    "explicitlyExcluded": [
+      "change to ownership",
+      "no change to ownership, roles or reserves",
+      "storage layout preserved"
+    ],
+    "confidence": 1.0
+  },
+  "simulation": {
+    "proposalId": "MIP-21",
+    "success": true,
+    "decodedCalls": [
+      {
+        "target": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "contractName": "VaultProxy",
+        "selector": "0x4f1ef286",
+        "signature": "upgradeToAndCall(address,bytes)",
+        "args": [
+          "0x17F24d3B8bc1150553b54Da30B4d993ACb889212",
+          "0xbe6b99e3000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c7097"
+        ]
+      },
+      {
+        "target": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "contractName": "Treasury",
+        "selector": "0xe1f21c67",
+        "signature": "approve(address,address,uint256)",
+        "args": [
+          "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+          "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        ]
+      }
+    ],
+    "tokenTransfers": [],
+    "approvals": [
+      {
+        "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "owner": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "spender": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+        "amount": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      }
+    ],
+    "ownershipChanges": [
+      {
+        "contract": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "role": "owner",
+        "before": "0x0000000000000000000000000000000000000000",
+        "after": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097"
+      }
+    ],
+    "implementationChanges": [
+      {
+        "proxy": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "before": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "after": "0x17F24d3B8bc1150553b54Da30B4d993ACb889212",
+        "addedSelectors": [
+          { "selector": "0xbe6b99e3", "signature": "reinitializeV2(address)" },
+          { "selector": "0x853828b6", "signature": "migrateReserves(address,uint256)" }
+        ],
+        "removedSelectors": []
+      }
+    ],
+    "storageDiffs": [
+      {
+        "contract": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "slot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "before": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "after": "0x000000000000000000000000df3e18d64bc6a983f673ab319ccae4f1a57c7097"
+      }
+    ],
+    "events": [
+      {
+        "contract": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "name": "OwnershipTransferred",
+        "args": {
+          "previousOwner": "0x0000000000000000000000000000000000000000",
+          "newOwner": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097"
+        }
+      }
+    ],
+    "bytecodeHash": "0xd4e29bf424072387140f00f8da790516b23a5bb7097a4a9058b8ef7c7a364be1",
+    "simHash": "0x892a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590"
+  },
+  "coi": {
+    "proposalId": "MIP-21",
+    "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+    "disclosed": [],
+    "signatureValid": false,
+    "undisclosedLinks": [
+      {
+        "from": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "to": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+        "path": [
+          "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097"
+        ],
+        "hops": 1,
+        "pLink": 0.95,
+        "reasons": ["Multiple direct funding transactions before proposal creation"]
+      }
+    ],
+    "pCoi": 0.95
+  },
+  "findings": [
+    {
+      "id": "fnd-1",
+      "severity": "critical",
+      "category": "ownership_change",
+      "said": "This is purely a gas optimisation, with no change to ownership. Storage layout is preserved and the Timelock stays in control of the Vault.",
+      "does": "reinitializeV2 transfers Vault ownership to wallet 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 (wallet index 14)",
+      "evidence": [
+        {
+          "chunkId": "MIP-21:pdf:0",
+          "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
+          "quote": "The Timelock remains the sole owner of the Vault.",
+          "sourceUri": "pdf://MIP-21/proposal.pdf#page=3"
+        }
+      ]
+    },
+    {
+      "id": "fnd-2",
+      "severity": "critical",
+      "category": "unlimited_approval",
+      "said": "Changes are limited to slot packing and EIP-2929 warm-access savings.",
+      "does": "Calls Treasury.approve(USDC, 0xdF3e..., MaxUint256) granting unlimited allowance on the DAO liquid reserve",
+      "evidence": []
+    },
+    {
+      "id": "fnd-3",
+      "severity": "critical",
+      "category": "new_privileged_function",
+      "said": "Changes are limited to slot packing and EIP-2929 warm-access savings.",
+      "does": "Adds migrateReserves and reinitializeV2 backdoor functions allowing instant reserve draining",
+      "evidence": []
+    }
+  ],
+  "explanation": {
+    "headline": "MIP-21 Calldata Exploitation Detected",
+    "paragraph": "Although MIP-21 purports to be an innocuous gas optimization refactor, simulation reveals that it quietly reassigns Vault ownership and grants unlimited Treasury USDC approval to wallet 14.",
+    "perFinding": [
+      {
+        "findingId": "fnd-1",
+        "sentence": "Simulated calldata transfers vault ownership to wallet index 14."
+      }
+    ]
+  },
+  "risk": {
+    "proposalId": "MIP-21",
+    "prior": 0.05,
+    "stages": [
+      {
+        "stage": "claims",
+        "probability": 0.85,
+        "likelihoodRatio": 4.5,
+        "explanation": "Proposer claims strictly gas optimization but diff review was deflected.",
+        "findingIds": ["fnd-1"]
+      },
+      {
+        "stage": "execution",
+        "probability": 0.99,
+        "likelihoodRatio": 99.0,
+        "explanation": "Calldata executes unauthorized ownership transfer and unlimited approval.",
+        "findingIds": ["fnd-1", "fnd-2", "fnd-3"]
+      }
+    ],
+    "posterior": 0.99,
+    "level": "CRITICAL",
+    "action": "halt"
+  },
+  "chainEvents": [
+    {
+      "proposalId": "clx21",
+      "contract": "Governor",
+      "name": "ProposalCreated",
+      "blockNumber": 1042,
+      "txHash": "0x1a8f932e4d01b89ef726a88d188d188d188d188d188d188d188d188d188d188d",
+      "logIndex": 2,
+      "args": {
+        "proposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+        "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "startBlock": 1050,
+        "endBlock": 1250,
+        "description": "MIP-21: VaultV2 storage packing and gas optimisation"
+      }
+    },
+    {
+      "proposalId": "clx21",
+      "contract": "Governor",
+      "name": "VoteCast",
+      "blockNumber": 1060,
+      "txHash": "0x3b1a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d1",
+      "logIndex": 1,
+      "args": {
+        "voter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "support": 1,
+        "weight": "15200000",
+        "reason": "Gas savings look reasonable."
+      }
+    },
+    {
+      "proposalId": "clx21",
+      "contract": "Governor",
+      "name": "VoteCast",
+      "blockNumber": 1072,
+      "txHash": "0x3b2a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d2",
+      "logIndex": 3,
+      "args": {
+        "voter": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "support": 1,
+        "weight": "12800000",
+        "reason": "Support core team."
+      }
+    },
+    {
+      "proposalId": "clx21",
+      "contract": "Governor",
+      "name": "VoteCast",
+      "blockNumber": 1085,
+      "txHash": "0x3b3a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d3",
+      "logIndex": 1,
+      "args": {
+        "voter": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "support": 0,
+        "weight": "6500000",
+        "reason": "Diff review requested and not provided."
+      }
+    },
+    {
+      "proposalId": "clx21",
+      "contract": "Governor",
+      "name": "VoteCast",
+      "blockNumber": 1098,
+      "txHash": "0x3b4a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d4",
+      "logIndex": 2,
+      "args": {
+        "voter": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "support": 1,
+        "weight": "24000000",
+        "reason": "Whale quorum cast."
+      }
+    },
+    {
+      "proposalId": "clx21",
+      "contract": "GuardedTimelock",
+      "name": "ProposalQueued",
+      "blockNumber": 1260,
+      "txHash": "0x8d2f10b7a4e825a09b348ce5a182f55cab59ee15fdeefde5cf0f49af9496b99e",
+      "logIndex": 0,
+      "args": {
+        "proposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+        "eta": 1793021400
+      }
+    },
+    {
+      "proposalId": "MIP-21",
+      "contract": "GovernanceGuard",
+      "name": "Flagged",
+      "blockNumber": 1262,
+      "txHash": "0x9f5a77b8c2d188d188d188d188d188d188d188d188d188d188d188d188d188d4",
+      "logIndex": 1,
+      "args": {
+        "proposalId": "clx21",
+        "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
+        "findingsHash": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
+        "riskLevel": "CRITICAL"
+      }
+    }
+  ],
+  "flag": {
+    "proposalId": "MIP-21",
+    "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
+    "findingsHash": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
+    "findings": [],
+    "risk": {
+      "proposalId": "MIP-21",
+      "prior": 0.05,
+      "stages": [],
+      "posterior": 0.99,
+      "level": "CRITICAL",
+      "action": "halt"
+    },
+    "txHash": "0x2f6a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d1",
+    "blockNumber": 42,
+    "flaggedAt": "2026-10-25T09:14:02Z"
+  }
+}

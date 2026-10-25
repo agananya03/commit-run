@@ -1,0 +1,44 @@
+[
+  {
+    "id": "clx21",
+    "slug": "MIP-21",
+    "title": "VaultV2: storage packing and gas optimisation",
+    "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+    "status": "ACTIVE",
+    "riskLevel": "CRITICAL",
+    "amountUsd": null,
+    "pctOfTreasury": null,
+    "governorProposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+    "operationId": "0xf3319604e909c2fa4553509a60825ba9098e0cc16d8197e79193cd5e40d06620",
+    "createdAt": "2026-10-22T09:00:00Z",
+    "updatedAt": "2026-10-22T09:14:02Z"
+  },
+  {
+    "id": "clx17",
+    "slug": "MIP-17",
+    "title": "Nexus Labs Ecosystem Acceleration & Cross-Chain Liquidity Infrastructure",
+    "proposer": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "status": "ACTIVE",
+    "riskLevel": "HIGH",
+    "amountUsd": 5000000,
+    "pctOfTreasury": 25.0,
+    "governorProposalId": "10170000000000000000000000000000000000000000000000000000000000000000000000000",
+    "operationId": "0x1700000000000000000000000000000000000000000000000000000000000000",
+    "createdAt": "2026-10-18T09:00:00Z",
+    "updatedAt": "2026-10-18T09:14:02Z"
+  },
+  {
+    "id": "clx12",
+    "slug": "MIP-12",
+    "title": "Developer SDK and Subgraph Indexer Infrastructure Grant",
+    "proposer": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+    "status": "EXECUTED",
+    "riskLevel": "LOW",
+    "amountUsd": 400000,
+    "pctOfTreasury": 2.0,
+    "governorProposalId": "10120000000000000000000000000000000000000000000000000000000000000000000000000",
+    "operationId": "0x1200000000000000000000000000000000000000000000000000000000000000",
+    "createdAt": "2026-09-15T09:00:00Z",
+    "updatedAt": "2026-09-15T09:14:02Z"
+  }
+]

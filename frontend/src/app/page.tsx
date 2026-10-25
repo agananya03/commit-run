@@ -2,101 +2,85 @@
 
 import React from "react";
 import Link from "next/link";
+import { useProposals } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { ShieldAlert, AlertTriangle, CheckCircle2, ArrowRight, FileCode2, Landmark, Users } from "lucide-react";
-
-interface ProposalSummary {
-  slug: string;
-  title: string;
-  category: string;
-  status: string;
-  risk: "CRITICAL" | "HIGH" | "LOW";
-  proposer: string;
-  beneficiary: string;
-  scope: string;
-  findingsCount: number;
-  criticalNotice: string | null;
-}
-
-const PROPOSAL_LIST: ProposalSummary[] = [
-  {
-    slug: "MIP-21",
-    title: "VaultV2: storage packing and gas optimisation",
-    category: "Core Vault Upgrade",
-    status: "Voting Active",
-    risk: "CRITICAL",
-    proposer: "kestrel.eth (walletIndex 13)",
-    beneficiary: "Alt Wallet 14 (Hidden Ownership Transfer)",
-    scope: "Slot packing, SLOAD reduction, EIP-2929 benchmarks",
-    findingsCount: 3,
-    criticalNotice: "CRITICAL: Simulated bytecode transfer of Vault ownership & unlimited USDC Treasury approval to wallet 14.",
-  },
-  {
-    slug: "MIP-17",
-    title: "Nexus Labs Ecosystem Acceleration & Cross-Chain Liquidity",
-    category: "Ecosystem Grant",
-    status: "Voting Active",
-    risk: "HIGH",
-    proposer: "Orion Strategic (walletIndex 10)",
-    beneficiary: "Nexus Labs Collective (walletIndex 12)",
-    scope: "Cross-chain messaging rails and MEV protection",
-    findingsCount: 2,
-    criticalNotice: "HIGH: $1.5M budget mismatch (Summary states $5.0M; itemized table totals $3.5M). Undisclosed seed funding trail.",
-  },
-  {
-    slug: "MIP-12",
-    title: "Developer SDK and Subgraph Indexer Infrastructure Grant",
-    category: "Tooling & Infra",
-    status: "Executed",
-    risk: "LOW",
-    proposer: "Ecosystem Lead (walletIndex 8)",
-    beneficiary: "Meridian Studio Collective (walletIndex 9)",
-    scope: "Official TypeScript SDK & open-source subgraph indexer",
-    findingsCount: 0,
-    criticalNotice: null,
-  },
-];
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { formatUSD } from "@/lib/utils";
+import {
+  ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  Coins,
+  Landmark,
+  Layers,
+} from "lucide-react";
 
 export default function ProposalsIndexPage() {
-  const getRiskBadge = (risk: string) => {
-    switch (risk) {
+  const { data: proposals, isLoading, error } = useProposals();
+
+  const getRiskBadge = (risk?: string) => {
+    switch (risk?.toUpperCase()) {
       case "CRITICAL":
         return (
-          <Badge className="bg-red-950/80 text-red-400 border border-red-500/60 font-mono text-xs gap-1 px-2.5 py-0.5">
+          <Badge className="bg-red-950/80 text-red-400 border border-red-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
             <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
-            CRITICAL RISK
+            CRITICAL
           </Badge>
         );
       case "HIGH":
         return (
-          <Badge className="bg-amber-950/80 text-amber-400 border border-amber-500/60 font-mono text-xs gap-1 px-2.5 py-0.5">
+          <Badge className="bg-amber-950/80 text-amber-400 border border-amber-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-            HIGH RISK
+            HIGH
           </Badge>
         );
+      case "MEDIUM":
+        return (
+          <Badge className="bg-yellow-950/80 text-yellow-400 border border-yellow-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
+            <AlertCircle className="w-3.5 h-3.5 text-yellow-400" />
+            MEDIUM
+          </Badge>
+        );
+      case "LOW":
       default:
         return (
-          <Badge className="bg-slate-800 text-slate-300 border border-slate-700 font-mono text-xs gap-1 px-2.5 py-0.5">
+          <Badge className="bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 font-mono text-xs gap-1 px-2.5 py-0.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            LOW RISK
+            LOW
           </Badge>
         );
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    if (status.includes("Active")) {
+  const getStatusBadge = (status?: string) => {
+    const s = (status || "ACTIVE").toUpperCase();
+    if (s.includes("ACTIVE") || s === "VOTING ACTIVE") {
       return (
-        <Badge className="bg-indigo-950/70 text-indigo-300 border border-indigo-700/60 font-mono text-[11px]">
-          {status}
+        <Badge className="bg-indigo-950/80 text-indigo-300 border border-indigo-700/60 font-mono text-[11px]">
+          ACTIVE
+        </Badge>
+      );
+    }
+    if (s.includes("HALTED")) {
+      return (
+        <Badge className="bg-red-950/80 text-red-300 border border-red-700/60 font-mono text-[11px]">
+          HALTED
+        </Badge>
+      );
+    }
+    if (s.includes("EXECUTED")) {
+      return (
+        <Badge className="bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[11px]">
+          EXECUTED
         </Badge>
       );
     }
     return (
       <Badge className="bg-slate-800 text-slate-400 border border-slate-700 font-mono text-[11px]">
-        {status}
+        {s}
       </Badge>
     );
   };
@@ -108,111 +92,137 @@ export default function ProposalsIndexPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-2.5">
             <span>Governance Proposals</span>
-            <span className="text-xs font-mono font-normal bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 px-2 py-0.5 rounded">
+            <span className="text-xs font-mono font-normal bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 px-2.5 py-0.5 rounded">
               Meridian DAO
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Automated intent verification, EVM calldata simulation, and conflict-of-interest graph analysis.
+            Automated intent verification, EVM calldata simulation, and conflict-of-interest watchdog.
           </p>
         </div>
       </div>
 
-      {/* Proposals Grid */}
-      <div className="grid grid-cols-1 gap-5">
-        {PROPOSAL_LIST.map((p) => {
-          const isCritical = p.risk === "CRITICAL";
-          const isHigh = p.risk === "HIGH";
-
-          return (
-            <Card
-              key={p.slug}
-              className={`border transition-all shadow-lg ${
-                isCritical
-                  ? "border-red-900/60 bg-slate-950/90 hover:border-red-500/80"
-                  : isHigh
-                  ? "border-amber-900/50 bg-slate-950/90 hover:border-amber-500/70"
-                  : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-base font-bold text-indigo-400">
-                      {p.slug}
-                    </span>
-                    <span className="text-slate-600">|</span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {p.category}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(p.status)}
-                    {getRiskBadge(p.risk)}
-                  </div>
+      {/* Loading Skeletons */}
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-5">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border-slate-800 bg-slate-900/40 p-6 space-y-4 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="h-5 w-24 bg-slate-800 rounded" />
+                <div className="flex gap-2">
+                  <div className="h-5 w-16 bg-slate-800 rounded" />
+                  <div className="h-5 w-20 bg-slate-800 rounded" />
                 </div>
-
-                <CardTitle className="text-lg text-slate-100 font-semibold leading-snug">
-                  {p.title}
-                </CardTitle>
-                <CardDescription className="text-xs text-slate-400 line-clamp-1">
-                  Scope: {p.scope}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-3 pb-3 text-xs">
-                {/* Critical Alert Notice if applicable */}
-                {p.criticalNotice && (
-                  <div
-                    className={`p-2.5 rounded-md border text-xs font-mono leading-relaxed ${
-                      isCritical
-                        ? "bg-red-950/40 border-red-500/40 text-red-300"
-                        : "bg-amber-950/30 border-amber-500/30 text-amber-300"
-                    }`}
-                  >
-                    {p.criticalNotice}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-300 font-mono text-[11px] bg-slate-900/50 p-3 rounded-lg border border-slate-800/80">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-3.5 h-3.5 text-slate-500" />
-                    <span className="text-slate-500">Proposer:</span>
-                    <span className="truncate text-slate-200">{p.proposer}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Landmark className="w-3.5 h-3.5 text-slate-500" />
-                    <span className="text-slate-500">Beneficiary:</span>
-                    <span className="truncate text-slate-200">{p.beneficiary}</span>
-                  </div>
-                </div>
-              </CardContent>
-
-              <CardFooter className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                <div className="text-[11px] font-mono text-slate-500">
-                  {p.findingsCount > 0 ? (
-                    <span className={isCritical ? "text-red-400 font-medium" : "text-amber-400 font-medium"}>
-                      {p.findingsCount} anomaly finding(s) detected
-                    </span>
-                  ) : (
-                    <span className="text-emerald-400">0 anomalies detected</span>
-                  )}
-                </div>
-
-                <Link href={`/proposals/${p.slug}`}>
-                  <Button
-                    size="sm"
-                    className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium gap-1.5"
-                  >
-                    <span>Inspect Proposal</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
-                </Link>
-              </CardFooter>
+              </div>
+              <div className="h-6 w-3/4 bg-slate-800 rounded" />
+              <div className="h-14 w-full bg-slate-950/60 rounded border border-slate-800/80" />
+              <div className="flex justify-between items-center pt-2 border-t border-slate-800/80">
+                <div className="h-4 w-32 bg-slate-800 rounded" />
+                <div className="h-8 w-28 bg-slate-800 rounded" />
+              </div>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <Card className="border-red-900/50 bg-red-950/20 p-6 text-center">
+          <p className="text-red-400 font-mono text-sm">Failed to load proposals list: {(error as Error).message}</p>
+        </Card>
+      )}
+
+      {/* Proposals Grid */}
+      {!isLoading && proposals && (
+        <div className="grid grid-cols-1 gap-5">
+          {proposals.map((p) => {
+            const risk = p.riskLevel?.toUpperCase() || "LOW";
+            const isCritical = risk === "CRITICAL";
+            const isHigh = risk === "HIGH";
+
+            const hasFunds = p.amountUsd !== null && p.amountUsd !== undefined && p.amountUsd > 0;
+
+            return (
+              <Card
+                key={p.slug}
+                className={`border transition-all shadow-lg ${
+                  isCritical
+                    ? "border-red-900/60 bg-slate-950/90 hover:border-red-500/80"
+                    : isHigh
+                    ? "border-amber-900/50 bg-slate-950/90 hover:border-amber-500/70"
+                    : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
+                }`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-base font-bold text-indigo-400">
+                        {p.slug}
+                      </span>
+                      <span className="text-slate-600">|</span>
+                      <span className="font-mono text-xs text-slate-400">
+                        Proposer: {p.proposer.slice(0, 10)}...{p.proposer.slice(-4)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(p.status)}
+                      {getRiskBadge(p.riskLevel)}
+                    </div>
+                  </div>
+
+                  <CardTitle className="text-lg text-slate-100 font-semibold leading-snug">
+                    {p.title}
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-3 pb-3 text-xs">
+                  {/* Treasury Impact Block */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border border-slate-800/80 bg-slate-900/50 font-mono">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div>
+                        <span className="text-slate-500 text-[11px] block">Requested Amount</span>
+                        <span className="text-sm font-bold text-slate-100">
+                          {hasFunds ? formatUSD(p.amountUsd as number) : "No funds requested (0 USDC)"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Landmark className="w-4 h-4 text-indigo-400 shrink-0" />
+                      <div>
+                        <span className="text-slate-500 text-[11px] block">% of Treasury (20M USDC)</span>
+                        <span className="text-sm font-bold text-indigo-300">
+                          {p.pctOfTreasury !== null && p.pctOfTreasury !== undefined
+                            ? `${p.pctOfTreasury}%`
+                            : "0.0%"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                  <div className="text-[11px] font-mono text-slate-500 flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Governor ID: {p.governorProposalId ? `${p.governorProposalId.slice(0, 8)}...` : "Pending"}</span>
+                  </div>
+
+                  <Link href={`/proposals/${p.slug}`}>
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium gap-1.5"
+                    >
+                      <span>Inspect Proposal</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
