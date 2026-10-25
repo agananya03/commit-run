@@ -1,6 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { ApiError, CommitResult, CreateProposalRequest, Health, Proposal, ProposalBundle, ProposalVersion, RunResult } from "./contracts/schemas.js";
+import { ApiError, CoiReport, CommitResult, CreateProposalRequest, DisclosureRequest, Health, Proposal, ProposalBundle, ProposalVersion, RunResult } from "./contracts/schemas.js";
 
 const errors = (...codes: (400 | 404 | 409 | 502)[]) =>
   Object.fromEntries(
@@ -90,6 +90,18 @@ export function buildOpenApiDocument() {
       "Multipart: each uploaded file replaces the file of the same type; the rest carry over. No body: re-reads `data/scenarios/<slug>/`. 409 if nothing changed.",
     request: { params: idParam, body: { required: false, content: { "multipart/form-data": { schema: z.object(evidenceFields) } } } },
     responses: { 201: { description: "New version", content: { "application/json": { schema: ProposalVersion } } }, ...errors(400, 404, 409) },
+  });
+
+  r.registerPath({
+    method: "post",
+    path: "/proposals/{id}/disclosure",
+    summary: "Submit a signed wallet disclosure (seals a new version)",
+    description:
+      "signature = EIP-191 personal_sign by the proposer over the RFC 8785 canonical JSON of { proposalSlug, wallets, statement } with wallets lowercased, de-duplicated and sorted. " +
+      "Verified with ethers.verifyMessage; stored as the `disclosure` evidence file (enters the evidence Merkle root) of a new version. Returns the COI report scored with it: " +
+      "linked wallets missing from the signed list count as undisclosed. 400 if the signer is not the proposer; 409 if the same disclosure is already in the latest version.",
+    request: { params: idParam, body: { required: true, content: { "application/json": { schema: DisclosureRequest } } } },
+    responses: { 201: { description: "COI report for the new version", content: { "application/json": { schema: CoiReport } } }, ...errors(400, 404, 409) },
   });
 
   return new OpenApiGeneratorV31(r.definitions).generateDocument({

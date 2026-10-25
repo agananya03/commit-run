@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getAddress, isAddress } from "ethers";
 import type { z } from "zod";
-import { DecisionSummary, CoiReport, IntentSpec, ProposalBundle, RiskChain, SimulationResult } from "../contracts/schemas.js";
+import { DecisionSummary, CoiReport, Explanation, IntentSpec, ProposalBundle, RiskChain, SimulationResult } from "../contracts/schemas.js";
 import type { Db } from "../db.js";
 import { badRequest, conflict, notFound } from "../errors.js";
 import type { Prisma } from "../generated/prisma/client.js";
@@ -13,6 +13,8 @@ import { planScenario, sha256Hex, type EvidenceType } from "../seed/scenarios.js
 import { toChainEvent, toFinding, toProposal, toVersion } from "./mapping.js";
 import { HttpError } from "../errors.js";
 import { proposalNumericId, type RegistryClient } from "../chain/registry.js";
+import { DisclosureBody, recoverDisclosureSigner, type SignedDisclosureFile } from "../coi/disclosure.js";
+import { saveCoiReport } from "../coi/service.js";
 
 export const EVIDENCE_TYPES: readonly EvidenceType[] = ["forum", "pdf", "social", "onchain", "disclosure"];
 const SLUG = /^[A-Z]+-\d+$/;
@@ -43,6 +45,8 @@ export interface ProposalServiceDeps {
   repoRoot: string;
   /** On-chain commits; absent in tests that don't need a chain. */
   registry?: RegistryClient;
+  /** COI engine for a version (coi/service.ts); absent in tests that don't score COI. */
+  coi?: (versionId: string) => Promise<z.infer<typeof CoiReport>>;
 }
 
 export interface CommitResultT {
@@ -88,7 +92,7 @@ export class ProposalService {
       simulation: json(SimulationResult, run?.data),
       coi: json(CoiReport, latest?.coiReport?.data),
       findings: (run?.findings ?? []).map(toFinding),
-      explanation: null, // stored once /explain is wired into the verdict step
+      explanation: json(Explanation, run?.explanation),
       risk: json(RiskChain, p.riskChains[0]?.data),
       chainEvents: p.chainEvents.map((e) => toChainEvent(e, p.slug)),
       flag: null, // set by the watchdog once GovernanceGuard.flag() is mined
@@ -150,6 +154,33 @@ export class ProposalService {
     const id = await this.deps.db.$transaction((tx) => this.sealVersion(tx, proposal, files));
     const row = await this.deps.db.proposalVersion.findUniqueOrThrow({ where: { id }, include: { evidenceFiles: { orderBy: { type: "asc" } } } });
     return toVersion(row);
+  }
+
+  /**
+   * Verifies a signed wallet disclosure, stores it as the version's `disclosure` evidence file (so it enters
+   * the evidence Merkle root) and seals a new version. Returns the COI report scored with it.
+   */
+  async addDisclosure(idOrSlug: string, body: unknown): Promise<z.infer<typeof CoiReport>> {
+    const proposal = await this.deps.db.proposal.findFirst({ where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] } });
+    if (!proposal) throw notFound(`Proposal ${idOrSlug} not found`);
+    const d = DisclosureBody.parse(body);
+    const proposer = getAddress(d.proposer).toLowerCase();
+    if (proposer !== proposal.proposer) throw badRequest(`proposer ${proposer} is not ${proposal.slug}'s proposer ${proposal.proposer}`);
+    const signer = recoverDisclosureSigner(proposal.slug, d);
+    if (signer !== proposer) {
+      throw badRequest(`Signature does not recover to the proposer (recovered ${signer ?? "nothing"}). Sign the canonical JSON of { proposalSlug, wallets (lowercase, sorted), statement } with personal_sign.`, {
+        recovered: signer,
+        proposer,
+      });
+    }
+
+    const file: SignedDisclosureFile = { proposalSlug: proposal.slug, proposer, wallets: [...new Set(d.wallets.map((w) => getAddress(w).toLowerCase()))].sort(), statement: d.statement, signature: d.signature };
+    const version = await this.addVersion(proposal.id, [{ type: "disclosure", originalName: "disclosure.signed.json", bytes: Buffer.from(canonicalize(file)) }]);
+    const row = await this.deps.db.proposalVersion.findUniqueOrThrow({ where: { proposalId_version: { proposalId: proposal.id, version: version.version } } });
+    if (!this.deps.coi) throw new HttpError(502, "UPSTREAM_UNAVAILABLE", "COI engine is not configured for this backend");
+    const report = await this.deps.coi(row.id);
+    await saveCoiReport(this.deps.db, row.id, report);
+    return report;
   }
 
   /**

@@ -243,6 +243,13 @@ export const CreateProposalRequest = named("CreateProposalRequest", z.strictObje
 
 export const RunResult = named("RunResult", z.strictObject({ proposalId: z.string(), flowId: z.string() }));
 
+export const DisclosureRequest = named("DisclosureRequest", z.strictObject({
+  proposer: z.string(),
+  wallets: z.array(z.string()),
+  statement: z.string(),
+  signature: Hex,
+}));
+
 export const CommitResult = named("CommitResult", z.strictObject({
   proposalId: z.string(),
   version: z.number(),
@@ -278,5 +285,5 @@ export const Health = named("Health", z.strictObject({
 export const SHARED_SCHEMAS = {
   Chunk, Citation, Claim, DecisionSummary, IntentAction, IntentSpec, Explanation, SimulationResult, Deployments,
   WalletLink, CoiReport, Finding, RiskStage, RiskChain, ProposalStatus, Proposal, EvidenceFile, ProposalVersion,
-  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, CommitResult, RunResult, PipelineProgress, ApiError, Health,
+  ChainEvent, WatchdogFlag, ProposalBundle, CreateProposalRequest, CommitResult, RunResult, DisclosureRequest, PipelineProgress, ApiError, Health,
 } as const;

@@ -54,6 +54,10 @@ export function proposalRoutes(service: ProposalService, pipeline?: Pipeline): R
     res.json(await service.commit(idParam(req)));
   });
 
+  router.post("/proposals/:id/disclosure", async (req, res) => {
+    res.status(201).json(await service.addDisclosure(idParam(req), req.body));
+  });
+
   router.post("/proposals/:id/versions", upload, async (req, res) => {
     res.status(201).json(await service.addVersion(idParam(req), isMultipart(req) ? uploadsOf(req) : []));
   });

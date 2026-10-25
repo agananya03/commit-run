@@ -5,6 +5,7 @@ import { createApp } from "./app.js";
 import { createChain } from "./chain/index.js";
 import { ChainListener } from "./chain/listener.js";
 import { RagClient } from "./clients/ragClient.js";
+import { coiReportFor } from "./coi/service.js";
 import { SimClient } from "./clients/simClient.js";
 import { createDb, dbReachable } from "./db.js";
 import { loadEnv } from "./env.js";
@@ -22,12 +23,13 @@ const upstream = { timeoutMs: env.UPSTREAM_TIMEOUT_MS, useMocks: env.USE_MOCKS, 
 const rag = new RagClient({ ...upstream, baseURL: env.RAG_URL });
 const sim = new SimClient({ ...upstream, baseURL: env.SIM_URL });
 const chain = createChain(env, logger);
-const proposals = new ProposalService({ db, dataDir: env.DATA_DIR, uploadDir: env.UPLOAD_DIR, repoRoot, registry: chain.registry });
+const coiOptions = { db, deployments: chain.deployments, repoRoot };
+const proposals = new ProposalService({ db, dataDir: env.DATA_DIR, uploadDir: env.UPLOAD_DIR, repoRoot, registry: chain.registry, coi: (versionId) => coiReportFor(coiOptions, versionId) });
 
 // The HTTP server exists first so Socket.IO (the pipeline's event bus) can attach before the app is built.
 const httpServer = createServer();
 const { io, bus } = attachSocket(httpServer, env.CORS_ORIGIN, logger);
-const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, proposals, deployments: chain.deployments }, bus, logger });
+const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, proposals, deployments: chain.deployments, repoRoot }, bus, logger });
 
 const redisProbe = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 });
 const app = createApp({

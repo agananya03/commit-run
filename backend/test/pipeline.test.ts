@@ -67,7 +67,7 @@ describe.skipIf(!online)("BullMQ pipeline (redis + postgres)", () => {
       redisUrl: REDIS_URL,
       prefix: `test-${process.pid}-${Date.now()}`,
       db: db!,
-      deps: { db: db!, rag: new RagClient(up), sim: new SimClient(up), proposals, deployments },
+      deps: { db: db!, rag: new RagClient(up), sim: new SimClient(up), proposals, deployments, repoRoot },
       bus,
       logger,
       concurrency: 4,
@@ -107,7 +107,13 @@ describe.skipIf(!online)("BullMQ pipeline (redis + postgres)", () => {
     const simJob = await pipeline.queue.getJob(jobId(vid, "simulate"));
     expect(simJob?.returnvalue).toMatchObject({ success: true, calls: 2 }); // upgradeToAndCall + treasury.approve
     const coiJob = await pipeline.queue.getJob(jobId(vid, "coi"));
-    expect(coiJob?.returnvalue).toMatchObject({ placeholder: true });
+    expect(coiJob?.returnvalue).toMatchObject({ signatureValid: false });
+    expect(await db!.coiReportRecord.findUnique({ where: { proposalVersionId: vid } })).not.toBeNull();
+    const verdictJob = await pipeline.queue.getJob(jobId(vid, "verdict"));
+    expect(verdictJob?.returnvalue).toMatchObject({ explanation: "template" }); // rag is "down" and has no explain mock
+    const simRun = await db!.simulationRun.findFirstOrThrow({ where: { proposalVersionId: vid } });
+    expect(simRun.explanation).toMatchObject({ headline: expect.any(String) });
+    expect(await db!.finding.count({ where: { simulationRunId: simRun.id } })).toBe(verdictJob?.returnvalue.findings);
   });
 
   it("emits started and completed for every step, in dependency order", () => {
@@ -118,7 +124,7 @@ describe.skipIf(!online)("BullMQ pipeline (redis + postgres)", () => {
     expect(at("ingest")).toBeLessThan(at("summarize"));
     expect(at("ingest")).toBeLessThan(at("extractIntent"));
     expect(Math.max(at("summarize"), at("extractIntent"))).toBeLessThan(at("commit"));
-    for (const [a, b] of [["commit", "coi"], ["coi", "simulate"], ["simulate", "verdict"], ["verdict", "risk"]] as const) expect(at(a)).toBeLessThan(at(b));
+    for (const [a, b] of [["commit", "simulate"], ["simulate", "coi"], ["coi", "verdict"], ["verdict", "risk"]] as const) expect(at(a)).toBeLessThan(at(b));
     for (const e of mine.filter((x) => x.status === "completed")) expect(e.ms).toBeGreaterThanOrEqual(0);
     expect(mine.filter((e) => e.status === "started")).toHaveLength(8);
   });

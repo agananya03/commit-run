@@ -1,0 +1,9 @@
+{
+  "proposer": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+  "wallets": [
+    "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f",
+    "0xa0ee7a142d267c1f36714e4a8f75612f20a79720"
+  ],
+  "statement": "MIP-12 complete disclosure: Primary proposer index 8 and dev studio execution recipient index 9.",
+  "signature": "0x370e795a77b00a9339ff8b39a4a8443f24696d66ee7ae0fc7d7834ac22793b707ba567b32d49bcce4758619f090d968525ce1e4078b3a597308db061990e404d1b"
+}

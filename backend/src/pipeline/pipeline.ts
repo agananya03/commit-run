@@ -35,7 +35,10 @@ export const jobId = (versionId: string, step: PipelineStep): string => `${versi
 /**
  * ingest runs alone; once it completes, the rest is added as one BullMQ flow (children run before parents):
  *
- *   risk <- verdict <- simulate <- coi <- commit <- { summarize, extractIntent }
+ *   risk <- verdict <- coi <- simulate <- commit <- { summarize, extractIntent }
+ *
+ * coi runs after simulate because the simulation reveals recipients the text never names (MIP-21's
+ * approval spender), and the COI engine scores links to them.
  *
  * A flow is a tree, so "summarize and extractIntent both after ingest" is expressed by enqueueing the
  * tree from ingest. Job ids are <proposalVersionId>-<step>, so enqueueing twice never duplicates a job.
@@ -49,7 +52,7 @@ function restOfPipeline(data: StepJobData, prefix: string): FlowJob {
     opts: { ...JOB_OPTS, jobId: jobId(data.versionId, step) },
     ...(children ? { children } : {}),
   });
-  return node("risk", [node("verdict", [node("simulate", [node("coi", [node("commit", [node("summarize"), node("extractIntent")])])])])]);
+  return node("risk", [node("verdict", [node("coi", [node("simulate", [node("commit", [node("summarize"), node("extractIntent")])])])])]);
 }
 
 export class Pipeline {

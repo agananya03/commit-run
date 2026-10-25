@@ -175,6 +175,8 @@ model SimulationRun {
   success           Boolean
   simHash           String           @db.VarChar(66)
   bytecodeHash      String           @db.VarChar(66)
+  /// Explanation of this run's findings (rag /explain, or the backend's fallback); null until the verdict step runs.
+  explanation       Json?
   createdAt         DateTime         @default(now())
 
   proposal        Proposal          @relation(fields: [proposalId], references: [id], onDelete: Cascade)
