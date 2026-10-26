@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, ChevronDown, FileText, Loader2, MessageSquare, Radio, Upload, X } from "lucide-react";
-import { api, getWatchdogSocket } from "@/lib/api";
+import { getWatchdogSocket } from "@/lib/api";
+import type { ProposalBundle } from "@/types/shared";
 import { cn } from "@/lib/utils";
 
 interface IngestProposalDialogProps {
@@ -50,6 +51,9 @@ const FILES = [
 type FileKey = (typeof FILES)[number]["key"];
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+const DEMO_SLUGS = ["MIP-12", "MIP-17", "MIP-21"];
 const stamp = () => new Date().toLocaleTimeString();
 
 /** One evidence file: click or drop. */
@@ -98,6 +102,8 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
   const [slug, setSlug] = useState("MIP-22");
   const [title, setTitle] = useState("Treasury Diversification & Protocol Safety Reserve");
   const [files, setFiles] = useState<Record<FileKey, File | null>>({ pdf: null, forum: null, social: null });
+  const [proposer, setProposer] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [current, setCurrent] = useState(-1);
@@ -116,6 +122,7 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
     setLogs([]);
     setShowLog(false);
     setCompletedSlug(null);
+    setError(null);
   }, []);
 
   const close = useCallback(() => {
@@ -165,45 +172,91 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
     if (completedSlug) setTimeout(() => body.current?.scrollTo({ top: body.current.scrollHeight, behavior: "smooth" }), 150);
   }, [completedSlug]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-    setCurrent(0);
-    setLogs([`[${stamp()}] Starting the watchdog for ${slug}…`, `[${stamp()}] Uploading the forum thread, proposal PDF and social posts to POST /proposals…`]);
+  const log = (line: string) => setLogs((prev) => [...prev, `[${stamp()}] ${line}`]);
+  const fail = (message: string) => {
+    setError(message);
+    log(`Stopped: ${message}`);
+    setIsProcessing(false);
+  };
+  const showUpTo = (done: number) => setStatuses(STEPS.map((_, i): StepStatus => (i < done ? "completed" : i === done ? "running" : "pending")));
 
-    try {
-      const formData = new FormData();
-      formData.append("slug", slug);
-      formData.append("title", title);
-      if (files.forum) formData.append("forum", files.forum);
-      if (files.pdf) formData.append("pdf", files.pdf);
-      if (files.social) formData.append("social", files.social);
-      await api.createProposal(formData);
-    } catch (err) {
-      console.warn("Backend ingest fallback active:", err);
-    }
+  /** Live: upload to the backend, start its pipeline, and follow what it has actually produced. */
+  const runLive = async () => {
+    const formData = new FormData();
+    formData.append("slug", slug);
+    formData.append("title", title);
+    formData.append("proposer", proposer.trim());
+    if (files.forum) formData.append("forum", files.forum);
+    if (files.pdf) formData.append("pdf", files.pdf);
+    if (files.social) formData.append("social", files.social);
+    log(`Uploading ${Object.values(files).filter(Boolean).length} document(s) to POST /proposals…`);
+    const created = await fetch(`${API_URL}/proposals`, { method: "POST", body: formData }).catch(() => null);
+    if (!created) return fail(`the backend at ${API_URL} isn't reachable`);
+    if (!created.ok) return fail(((await created.json().catch(() => ({}))) as { error?: { message?: string } }).error?.message ?? `upload failed (HTTP ${created.status})`);
+    log(`${slug} saved and fingerprinted. Starting the checks (POST /proposals/${slug}/run)…`);
+    const run = await fetch(`${API_URL}/proposals/${slug}/run`, { method: "POST" }).catch(() => null);
+    if (!run || (!run.ok && run.status !== 409)) return fail(`the checks didn't start${run ? ` (HTTP ${run.status})` : ""}; is Redis running?`);
 
-    const next = STEPS.map((): StepStatus => "pending");
-    for (let i = 0; i < STEPS.length; i++) {
-      next[i] = "running";
-      setCurrent(i);
-      setStatuses([...next]);
-      setLogs((prev) => [...prev, `[${stamp()}] [${i + 1}/${STEPS.length} ${STEPS[i]!.id}] ${STEPS[i]!.detail}`]);
-      await new Promise((resolve) => setTimeout(resolve, 650));
-      next[i] = "completed";
-      setStatuses([...next]);
+    // each step leaves a trace in the bundle; no new trace for 40 s means the pipeline stopped
+    let done = 0;
+    let lastChange = Date.now();
+    while (done < STEPS.length) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const b = (await fetch(`${API_URL}/proposals/${slug}`).then((r) => (r.ok ? r.json() : null), () => null)) as ProposalBundle | null;
+      if (!b) continue;
+      const traces = [b.summary || b.intent, b.summary, b.intent, b.versions.at(-1)?.commitTxHash, b.coi, b.simulation, b.risk || b.explanation, b.risk];
+      const now = traces.findIndex((t) => !t);
+      const reached = now === -1 ? STEPS.length : now;
+      if (reached > done) {
+        for (let i = done; i < reached; i++) log(`[${i + 1}/${STEPS.length} ${STEPS[i]!.id}] done`);
+        done = reached;
+        lastChange = Date.now();
+        setCurrent(Math.min(done, STEPS.length - 1));
+        showUpTo(done);
+      } else if (Date.now() - lastChange > 40_000) {
+        return fail(`the checks stopped at "${STEPS[done]!.label}". The backend log or ${API_URL}/queues says why (in mock mode it needs a mock file for ${slug}).`);
+      }
     }
-    setLogs((prev) => [...prev, `[${stamp()}] Done. Evidence fingerprints and findings recorded.`]);
+    log("Done. Evidence fingerprinted, code simulated, risk scored.");
     setCompletedSlug(slug);
     setIsProcessing(false);
   };
 
+  /** Demo: there's no backend to save to, so the checks are shown on the chosen demo scenario. */
+  const runDemo = async () => {
+    for (let i = 0; i < STEPS.length; i++) {
+      setCurrent(i);
+      showUpTo(i);
+      log(`[${i + 1}/${STEPS.length} ${STEPS[i]!.id}] ${STEPS[i]!.detail}`);
+      await new Promise((resolve) => setTimeout(resolve, 650));
+    }
+    showUpTo(STEPS.length);
+    log(DEMO_SLUGS.includes(slug) ? "Done (demo replay)." : "Demo mode: nothing was saved. Start the backend to add real proposals.");
+    setCompletedSlug(slug);
+    setIsProcessing(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!USE_MOCKS && !/^0x[0-9a-fA-F]{40}$/.test(proposer.trim())) {
+      setError("Enter the proposer's wallet address (0x… 40 hex characters).");
+      return;
+    }
+    setIsProcessing(true);
+    setCurrent(0);
+    showUpTo(0);
+    setLogs([`[${stamp()}] Starting the watchdog for ${slug}…`]);
+    await (USE_MOCKS ? runDemo() : runLive());
+  };
+
   const openProposal = () => {
-    const target = completedSlug || slug || "MIP-21";
+    const target = completedSlug || slug;
     onOpenChange(false);
     setTimeout(reset, 300);
-    // the demo knows MIP-12, 17 and 21; anything else opens the live MIP-21 case
-    router.push(`/proposals/${["MIP-12", "MIP-17", "MIP-21"].includes(target) ? target : "MIP-21"}`);
+    // live: the proposal just saved; demo: only the three scenarios exist
+    if (!USE_MOCKS) return router.push(`/proposals/${target}`);
+    router.push(DEMO_SLUGS.includes(target) ? `/proposals/${target}` : "/dashboard");
   };
 
   const progress = Math.round((statuses.filter((s) => s === "completed").length / STEPS.length) * 100);
@@ -294,11 +347,24 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
                     </label>
                   </div>
 
+                  {!USE_MOCKS && (
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-medium text-faint">Proposer&apos;s wallet (the money trail starts here)</span>
+                      <input
+                        required
+                        value={proposer}
+                        onChange={(e) => setProposer(e.target.value)}
+                        placeholder="0x…"
+                        className="w-full rounded-xl border border-white/10 bg-canvas/60 px-3.5 py-2.5 font-code text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-evidence/60"
+                      />
+                    </label>
+                  )}
+
                   {/* evidence */}
                   <div>
                     <div className="mb-2.5 flex items-baseline justify-between gap-2">
                       <span className="text-xs font-medium text-faint">The documents</span>
-                      <span className="text-[11px] text-faint">optional for the demo scenarios</span>
+                      <span className="text-[11px] text-faint">{USE_MOCKS ? "optional for the demo scenarios" : "at least one"}</span>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-3">
                       {FILES.map((spec, i) => (
@@ -306,6 +372,13 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
                       ))}
                     </div>
                   </div>
+
+                  {USE_MOCKS && (
+                    <p className="rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-muted">
+                      Demo mode: there&apos;s no backend to save to, so this replays the checks and opens the demo scenario you picked. New proposals are saved when the site runs against the backend (NEXT_PUBLIC_USE_MOCKS=false).
+                    </p>
+                  )}
+                  {error && <p className="text-sm text-[#FF9DAA]">{error}</p>}
 
                   <div className="flex flex-wrap items-center justify-end gap-3 border-t border-white/[0.06] pt-5">
                     <button type="button" onClick={close} className="pill-cta pill-ice !rounded-full !px-5 !py-2.5 !text-sm">
@@ -383,9 +456,11 @@ export function IngestProposalDialog({ open, onOpenChange }: IngestProposalDialo
 
                   {completedSlug && (
                     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5">
-                      <span className="text-sm text-muted">Evidence fingerprinted and every check run.</span>
+                      <span className="text-sm text-muted">
+                        {!USE_MOCKS ? "Saved, fingerprinted and every check run." : DEMO_SLUGS.includes(completedSlug) ? "Demo replay of the checks." : "Demo mode: nothing was saved."}
+                      </span>
                       <button onClick={openProposal} className="pill-cta pill-danger !rounded-full !px-5 !py-2.5 !text-sm">
-                        Open the proposal <ArrowRight className="h-4 w-4" />
+                        {USE_MOCKS && !DEMO_SLUGS.includes(completedSlug) ? "Back to all proposals" : `Open ${completedSlug}`} <ArrowRight className="h-4 w-4" />
                       </button>
                     </motion.div>
                   )}
