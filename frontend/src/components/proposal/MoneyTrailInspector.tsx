@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, CheckCircle2, Copy, Search, X, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatAmount, roleSentence, type Trail, type TrailLink, type TrailNode } from "@/lib/moneyTrail";
+import { formatAmount, ROLE_COLOR, roleSentence, type Trail, type TrailLink, type TrailNode } from "@/lib/moneyTrail";
 import { shortAddr } from "@/lib/radar";
 import type { Selection } from "@/components/proposal/MoneyTrail";
 
@@ -118,7 +118,10 @@ export function MoneyTrailInspector({ trail, revealed, selection, onReveal, onCl
 
         {selection?.kind === "node" && (
           <Shell k={selection.node.id}>
-            <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium">{ROLE_CHIP[selection.node.role]}</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
+              <span className="h-2 w-2 rounded-full" style={{ background: ROLE_COLOR[selection.node.role] }} />
+              {ROLE_CHIP[selection.node.role]}
+            </span>
             <h3 className="text-2xl font-semibold tracking-tight">{selection.node.name}</h3>
             <p className="text-sm leading-relaxed text-ice-light/80">{roleSentence(selection.node, trail)}</p>
             {selection.node.address && <CopyAddr address={selection.node.address} />}

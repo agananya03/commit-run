@@ -25,8 +25,8 @@ const VERDICT = {
   none: { word: "Let it run", line: "Nothing here suggests it does anything other than what it says.", color: "#7E7A9E", text: "text-verified" },
 } as const;
 
-const toneColor = (p: number) => (p >= 0.8 ? "#B392FF" : p >= 0.1 ? "#8E7FC4" : "#7E7A9E");
-const toneText = (p: number) => (p >= 0.8 ? "text-danger" : p >= 0.1 ? "text-caution" : "text-verified");
+const toneColor = (p: number) => (p >= 0.9 ? "#B392FF" : p >= 0.1 ? "#8E7FC4" : "#7E7A9E");
+const toneText = (p: number) => (p >= 0.9 ? "text-danger" : p >= 0.1 ? "text-caution" : "text-verified");
 const fmtX = (v: number) => (v >= 10 ? Math.round(v).toString() : v.toFixed(1).replace(/\.0$/, ""));
 
 function effectPhrase(lr: number | null): string {

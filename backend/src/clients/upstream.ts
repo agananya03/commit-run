@@ -7,7 +7,7 @@ import { ApiError } from "../contracts/schemas.js";
 import { HttpError } from "../errors.js";
 
 export interface UpstreamOptions {
-  service: "rag" | "sim";
+  service: "rag" | "sim" | "factcheck";
   baseURL: string;
   timeoutMs: number;
   useMocks: boolean;

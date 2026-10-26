@@ -16,6 +16,11 @@ export const RISK_CONFIG = {
     perContradictedShare: 4,
     min: 0.5,
     max: 10,
+    /**
+     * When the NLI fact-check ran: each document claim the simulated code contradicts is strong evidence of
+     * deception, each claim it confirms is weak evidence of honesty (most true claims are routine).
+     */
+    nli: { base: 0.5, perContradiction: 1.5, perConfirmed: 0.1, min: 0.4, max: 10 },
   },
   /** Piecewise-linear pCoi -> LR. */
   coi: [
@@ -37,8 +42,12 @@ export const RISK_CONFIG = {
     healthyFactor: 0.8,
   },
   execution: { critical: 20, high: 5, clean: 0.3, otherwise: 1 },
-  /** posterior < LOW -> LOW, < MEDIUM -> MEDIUM, < HIGH -> HIGH, else CRITICAL */
-  levels: { LOW: 0.1, MEDIUM: 0.4, HIGH: 0.8 },
+  /**
+   * posterior < LOW -> LOW, < MEDIUM -> MEDIUM, < HIGH -> HIGH, else CRITICAL. CRITICAL starts at 90% so a
+   * bad-but-honestly-executed grant (MIP-17, ~85%) is HIGH ("review"), as data/scenarios' answer key expects;
+   * a critical execution finding still forces "halt" at any level.
+   */
+  levels: { LOW: 0.1, MEDIUM: 0.4, HIGH: 0.9 },
 } as const;
 
 export type RiskConfig = typeof RISK_CONFIG;
@@ -59,9 +68,25 @@ export interface Vote {
   weight: number;
 }
 
+/**
+ * The NLI fact-check of the proposal's documents against its simulated code (frontend /api/factcheck, local
+ * DeBERTa-v3). Only claims the rules let the code rule on are counted; see clients/factCheckClient.ts.
+ */
+export interface FactCheckSummary {
+  model: string;
+  /** document claims cross-examined */
+  statements: number;
+  contradicted: number;
+  confirmed: number;
+  /** the strongest catches, for the explanation */
+  caught: { claim: string; witness: string; evidence: string }[];
+}
+
 export interface RiskInput {
   proposalId: string;
   summary: z.infer<typeof DecisionSummary> | null;
+  /** When present, the claims stage uses it instead of the RAG claim labels. */
+  factCheck?: FactCheckSummary | null;
   coi: z.infer<typeof CoiReport> | null;
   votes: Vote[];
   /** Same unit as Vote.weight; turnout = Σ weight / totalVotingPower. */
@@ -100,11 +125,28 @@ export function nakamoto(votes: Vote[], majority: number): number {
   return sorted.length;
 }
 
-type StageCore = Omit<StageT, "probability">;
+export type StageCore = Omit<StageT, "probability">;
 
-function claimsStage(input: RiskInput, c: RiskConfig["claims"]): StageCore {
+const quote = (s: string, n = 90) => `"${s.length > n ? `${s.slice(0, n - 1)}…` : s}"`;
+
+export function claimsStage(input: RiskInput, c: RiskConfig["claims"]): StageCore {
   const claims = input.summary?.claims ?? [];
   const ids = input.findings.filter((f) => f.category === "unsupported_claim" || f.category === "contradiction").map((f) => f.id);
+  const fc = input.factCheck;
+  if (fc && fc.statements > 0) {
+    const n = c.nli;
+    const lr = clamp(n.base + n.perContradiction * fc.contradicted - n.perConfirmed * fc.confirmed, n.min, n.max);
+    const top = fc.caught[0];
+    return {
+      stage: "claims",
+      likelihoodRatio: r3(lr),
+      explanation:
+        `NLI fact-check (${fc.model}) of ${fc.statements} claims from the proposal, forum, posts and disclosure: ${fc.contradicted} contradicted by the simulated code, ${fc.confirmed} confirmed. ` +
+        (top ? `Strongest catch: ${quote(top.claim)} (${top.witness}) vs the code: ${quote(top.evidence)}. ` : "") +
+        `LR = ${n.base} + ${n.perContradiction}×${fc.contradicted} − ${n.perConfirmed}×${fc.confirmed} = ${r3(lr)}.`,
+      findingIds: ids,
+    };
+  }
   if (claims.length === 0) return { stage: "claims", likelihoodRatio: 1, explanation: "No claims extracted; the claims stage is neutral.", findingIds: ids };
   const unsupported = claims.filter((x) => x.support === "unsupported").length / claims.length;
   const contradicted = claims.filter((x) => x.support === "contradicted").length / claims.length;
@@ -173,6 +215,11 @@ function executionStage(input: RiskInput, e: RiskConfig["execution"]): StageCore
 /** Runs the four stages in order; each stage's probability is the running posterior after it. */
 export function computeRisk(input: RiskInput, config: RiskConfig = RISK_CONFIG): RiskChainT {
   const cores = [claimsStage(input, config.claims), coiStage(input, config.coi), votingStage(input, config.voting), executionStage(input, config.execution)];
+  return combineStages(input.proposalId, cores, input.findings, config);
+}
+
+/** Chains stage likelihood ratios in log-odds from the prior; level and action follow from the posterior. */
+export function combineStages(proposalId: string, cores: StageCore[], findings: FindingT[], config: RiskConfig = RISK_CONFIG): RiskChainT {
   let logOdds = logit(config.prior);
   const stages = cores.map((s) => {
     logOdds += Math.log(s.likelihoodRatio);
@@ -181,7 +228,7 @@ export function computeRisk(input: RiskInput, config: RiskConfig = RISK_CONFIG):
   const posterior = sigmoid(logOdds);
   const { levels } = config;
   const level = posterior < levels.LOW ? "LOW" : posterior < levels.MEDIUM ? "MEDIUM" : posterior < levels.HIGH ? "HIGH" : "CRITICAL";
-  const criticalExecution = input.findings.some((f) => EXECUTION_CATEGORIES.has(f.category) && f.severity === "critical");
+  const criticalExecution = findings.some((f) => EXECUTION_CATEGORIES.has(f.category) && f.severity === "critical");
   const action = level === "CRITICAL" || criticalExecution ? "halt" : level === "HIGH" ? "review" : "none";
-  return { proposalId: input.proposalId, prior: config.prior, stages, posterior: r3(posterior), level, action };
+  return { proposalId, prior: config.prior, stages, posterior: r3(posterior), level, action };
 }

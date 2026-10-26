@@ -14,7 +14,9 @@
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
     "disclosures:sign": "tsx scripts/sign-disclosures.ts",
-    "demo:halt": "tsx demo/halt-mip21.ts"
+    "demo:halt": "tsx demo/halt-mip21.ts",
+    "mocks:factcheck": "tsx scripts/refresh-factcheck-mocks.ts",
+    "mocks:evidence": "tsx scripts/refresh-evidence-mocks.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^9.1.0",

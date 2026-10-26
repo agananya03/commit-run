@@ -13,6 +13,10 @@ const Env = z.object({
   DATA_DIR: z.string().default(join(repoRoot, "data")),
   RAG_URL: z.url().default("http://localhost:8000"),
   SIM_URL: z.url().default("http://localhost:4002"),
+  /** The NLI fact-check (frontend POST /api/factcheck); feeds the risk chain's claims stage. */
+  FACTCHECK_URL: z.url().default("http://localhost:3000"),
+  /** The first fact-check of a proposal loads the NLI model, so it gets longer than other upstreams. */
+  FACTCHECK_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
   /** Timeout for rag/sim calls; rag /summarize targets < 20 s. */
   UPSTREAM_TIMEOUT_MS: z.coerce.number().int().positive().default(25_000),
   /** Canned rag/sim responses used when USE_MOCKS=true or a service is down. */

@@ -11,6 +11,17 @@ import type { CoiReport, DecisionSummary, Finding } from "@/types/shared";
 
 export type TrailRole = "treasury" | "proposer" | "beneficiary" | "middleman" | "voter" | "hub" | "linked";
 
+/** One distinct, high-contrast colour per role, so the trail reads at a glance on the dark canvas. */
+export const ROLE_COLOR: Record<TrailRole, string> = {
+  treasury: "#EDE9FE",
+  proposer: "#FB923C",
+  beneficiary: "#22D3EE",
+  middleman: "#F0566A",
+  linked: "#F0566A",
+  voter: "#A78BFA",
+  hub: "#8B88A8",
+};
+
 export interface TrailNode {
   id: string;
   index: number | null;

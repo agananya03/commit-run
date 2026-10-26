@@ -9,10 +9,10 @@ import { importTransfers } from "./transfers.js";
 
 /** Contracts and events the listener stores (anything else they emit is ignored). */
 const WATCHED: Record<string, readonly string[]> = {
-  MeridianGovernor: ["ProposalCreated", "VoteCast", "ProposalQueued", "ProposalExecuted", "ProposalCanceled"],
+  MeridianGovernor: ["ProposalCreated", "EvidenceBound", "VoteCast", "ProposalQueued", "ProposalExecuted", "ProposalCanceled"],
   GuardedTimelock: ["CallScheduled", "CallExecuted"],
   GovernanceGuard: ["Flagged", "Cleared"],
-  ProposalRegistry: ["ProposalCommitted"],
+  ProposalRegistry: ["ProposalCommitted", "AssessmentAttested"],
 };
 const LOG_RANGE = 2000;
 
@@ -176,6 +176,7 @@ export class ChainListener {
       case "MeridianGovernor.ProposalCreated":
         return this.linkProposal(d, log);
       case "MeridianGovernor.VoteCast":
+      case "MeridianGovernor.EvidenceBound": // emitted right after ProposalCreated, which linked the proposal
         return byGovernorId(d.args.proposalId as bigint);
       case "MeridianGovernor.ProposalQueued": {
         const p = await byGovernorId(d.args.proposalId as bigint);
@@ -207,6 +208,8 @@ export class ChainListener {
       }
       case "ProposalRegistry.ProposalCommitted":
         return this.linkCommit(d, log);
+      case "ProposalRegistry.AssessmentAttested":
+        return this.byRegistryId(d.args.proposalId as bigint);
       default:
         return null;
     }
@@ -261,11 +264,16 @@ export class ChainListener {
   }
 
   /** ProposalCommitted(registryId = slug number) -> our Proposal; also records a commit tx the DB missed. */
+  /** ProposalRegistry key 21 -> the proposal whose slug ends in -21. */
+  private async byRegistryId(id: bigint): Promise<{ id: string; slug: string; status: ProposalStatus } | null> {
+    const registryId = id.toString();
+    const candidates = await this.opts.db.proposal.findMany({ where: { slug: { endsWith: `-${registryId}` } }, select: { id: true, slug: true, status: true } });
+    return candidates.find((c) => c.slug.split("-").pop() === registryId) ?? null;
+  }
+
   private async linkCommit(d: LogDescription, log: Log): Promise<{ id: string; slug: string } | null> {
     const db = this.opts.db;
-    const registryId = (d.args.proposalId as bigint).toString();
-    const candidates = await db.proposal.findMany({ where: { slug: { endsWith: `-${registryId}` } }, select: { id: true, slug: true, status: true } });
-    const p = candidates.find((c) => c.slug.split("-").pop() === registryId) ?? null;
+    const p = await this.byRegistryId(d.args.proposalId as bigint);
     if (!p) return null;
     await db.proposalVersion.updateMany({ where: { proposalId: p.id, versionHash: lower(d.args.versionHash as string), commitTxHash: null }, data: { commitTxHash: log.transactionHash } });
     if (p.status === "DRAFT" || p.status === "INGESTED") await db.proposal.update({ where: { id: p.id }, data: { status: "COMMITTED" } });

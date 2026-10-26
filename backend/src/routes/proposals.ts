@@ -51,6 +51,13 @@ export function proposalRoutes(service: ProposalService, pipeline?: Pipeline, re
     res.json(await service.getBundle(idParam(req)));
   });
 
+  // The technical assessment whose sha256 is attested in ProposalRegistry; anyone can re-hash it.
+  router.get("/proposals/:id/assessment", async (req, res) => {
+    const simHash = typeof req.query.simHash === "string" ? req.query.simHash : undefined;
+    const { markdown, reportHash } = await service.assessment(idParam(req), simHash);
+    res.type("text/markdown; charset=utf-8").set("X-Report-Hash", reportHash).send(markdown);
+  });
+
   router.post("/proposals/:id/commit", async (req, res) => {
     res.json(await service.commit(idParam(req)));
   });

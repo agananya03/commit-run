@@ -4,6 +4,7 @@ import { pino } from "pino";
 import { createApp } from "./app.js";
 import { createChain } from "./chain/index.js";
 import { ChainListener } from "./chain/listener.js";
+import { FactCheckClient } from "./clients/factCheckClient.js";
 import { RagClient } from "./clients/ragClient.js";
 import { coiReportFor } from "./coi/service.js";
 import { SimClient } from "./clients/simClient.js";
@@ -24,6 +25,7 @@ const db = createDb(env.DATABASE_URL);
 const upstream = { timeoutMs: env.UPSTREAM_TIMEOUT_MS, useMocks: env.USE_MOCKS, mocksDir: env.MOCKS_DIR, logger };
 const rag = new RagClient({ ...upstream, baseURL: env.RAG_URL });
 const sim = new SimClient({ ...upstream, baseURL: env.SIM_URL });
+const factCheck = new FactCheckClient({ ...upstream, baseURL: env.FACTCHECK_URL, timeoutMs: env.FACTCHECK_TIMEOUT_MS });
 const chain = createChain(env, logger);
 const coiOptions = { db, deployments: chain.deployments, repoRoot };
 const proposals = new ProposalService({ db, dataDir: env.DATA_DIR, uploadDir: env.UPLOAD_DIR, repoRoot, registry: chain.registry, coi: (versionId) => coiReportFor(coiOptions, versionId) });
@@ -31,7 +33,7 @@ const proposals = new ProposalService({ db, dataDir: env.DATA_DIR, uploadDir: en
 // The HTTP server exists first so Socket.IO (the pipeline's event bus) can attach before the app is built.
 const httpServer = createServer();
 const { io, bus } = attachSocket(httpServer, env.CORS_ORIGIN, logger);
-const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, proposals, deployments: chain.deployments, repoRoot, chainHead: async () => Number(await chain.provider.send("eth_blockNumber", [])) }, bus, logger });
+const pipeline = new Pipeline({ redisUrl: env.REDIS_URL, db, deps: { db, rag, sim, factCheck, registry: chain.registry, proposals, deployments: chain.deployments, repoRoot, chainHead: async () => Number(await chain.provider.send("eth_blockNumber", [])) }, bus, logger });
 
 const redisProbe = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 });
 const app = createApp({
@@ -50,14 +52,14 @@ const app = createApp({
 httpServer.on("request", app);
 
 // Re-simulates every queued operation and flags it on GovernanceGuard if the verdict is "halt".
-const watchdog = new Watchdog({ db, sim, rag, provider: chain.provider, signer: chain.signers.watchdog, deployments: chain.deployments, bus, logger });
+const watchdog = new Watchdog({ db, sim, rag, factCheck, registry: chain.registry, provider: chain.provider, signer: chain.signers.watchdog, deployments: chain.deployments, bus, logger });
 
 // Backfills ChainEvent + Transfer from block 0, then polls; keeps retrying quietly while the node is down.
 const listener = new ChainListener({ db, provider: chain.provider, deployments: chain.deployments, bus, logger, onCallScheduled: (op) => watchdog.onCallScheduled(op) });
 
 httpServer.listen(env.PORT, () => {
   logger.info(
-    { port: env.PORT, mocks: env.USE_MOCKS, rag: env.RAG_URL, sim: env.SIM_URL, rpc: env.RPC_URL, deployments: chain.deploymentsSource },
+    { port: env.PORT, mocks: env.USE_MOCKS, rag: env.RAG_URL, sim: env.SIM_URL, factcheck: env.FACTCHECK_URL, rpc: env.RPC_URL, deployments: chain.deploymentsSource },
     "backend listening (HTTP + Socket.IO, pipeline worker running)",
   );
   listener.start();

@@ -4,12 +4,15 @@ import { Contract, getAddress, id as topicOf, Interface, type JsonRpcProvider, t
 import type { Logger } from "pino";
 import type { WatchdogFlag } from "../../../shared/schemas/types.js";
 import type { DeploymentsT } from "../chain/contracts.js";
+import type { RegistryClient } from "../chain/registry.js";
+import type { FactCheckClient } from "../clients/factCheckClient.js";
 import type { RagClient } from "../clients/ragClient.js";
 import type { SimClient } from "../clients/simClient.js";
 import type { Db } from "../db.js";
 import type { EventBus } from "../events.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { riskForRun, saveRisk } from "../risk/service.js";
+import { attestRun } from "../verdict/assessment.js";
 import { explainFindings } from "../verdict/explain.js";
 import { compactFindings, findingsForRun, findingsHash, storeFindings } from "../verdict/service.js";
 
@@ -20,6 +23,10 @@ export interface WatchdogOptions {
   db: Db;
   sim: SimClient;
   rag: RagClient;
+  /** NLI fact-check for the claims stage (usually cached from the pipeline run). */
+  factCheck?: FactCheckClient;
+  /** Attests the technical assessment of the exact queued payload (after the flag decision). */
+  registry?: RegistryClient;
   provider: JsonRpcProvider;
   /** Holds WATCHDOG_ROLE on GovernanceGuard (WATCHDOG_PRIVATE_KEY). */
   signer: Signer;
@@ -125,7 +132,9 @@ export class Watchdog {
     await storeFindings(db, run, findings);
     lap("findings", t);
     t = Date.now();
-    const risk = await riskForRun(db, run.id);
+    // the timelock delay is running: the fact-check gets at most 3 s, then the claims stage uses the RAG labels
+    const factCheck = this.o.factCheck ? await Promise.race([this.o.factCheck.summary(proposal.slug), new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))]) : null;
+    const risk = await riskForRun(db, run.id, { factCheck });
     await saveRisk(db, run, risk);
     lap("risk", t);
 
@@ -155,6 +164,11 @@ export class Watchdog {
     void explainFindings(this.o.rag, proposal.slug, findings)
       .then(({ explanation }) => db.simulationRun.update({ where: { id: run.id }, data: { explanation: json(explanation) } }))
       .catch((err: Error) => logger.warn({ err: err.message, proposal: proposal.slug }, "watchdog: explanation failed (flag unaffected)"));
+    // Likewise the technical assessment of the exact queued payload: on the record, after the decision.
+    if (this.o.registry)
+      void attestRun(db, this.o.registry, run.id, findings)
+        .then(({ reportHash }) => logger.info({ proposal: proposal.slug, reportHash }, "watchdog: queued-payload assessment attested in ProposalRegistry"))
+        .catch((err: Error) => logger.warn({ err: err.message, proposal: proposal.slug }, "watchdog: assessment attestation failed (flag unaffected)"));
 
     return { operationId, outcome: risk.action === "halt" ? "flagged" : "cleared", proposalId: proposal.slug, level: risk.level, action: risk.action, ms, ...(txHash ? { txHash } : {}) };
   }

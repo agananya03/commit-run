@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, EyeOff, LocateFixed, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buildTrail, type Trail, type TrailLink, type TrailNode } from "@/lib/moneyTrail";
+import { buildTrail, ROLE_COLOR, type Trail, type TrailLink, type TrailNode } from "@/lib/moneyTrail";
 import { MoneyTrailInspector } from "@/components/proposal/MoneyTrailInspector";
 import { makeNode, type NodeLook } from "@/components/proposal/graphObjects";
 import type { CoiReport, DecisionSummary, Finding } from "@/types/shared";
@@ -23,16 +23,36 @@ interface GraphApi {
   controls: () => { autoRotate?: boolean; autoRotateSpeed?: number; enableZoom?: boolean };
   camera: () => { position: { x: number; y: number; z: number } };
   d3ReheatSimulation: () => void;
-  d3Force: (name: string) => { strength?: (v: number) => unknown; distance?: (v: number) => unknown } | undefined;
+  d3Force: (name: string, force?: unknown) => { strength?: (v: number) => unknown; distance?: (v: number) => unknown } | undefined;
 }
 
-// Hairline colours (nodes are drawn by makeNode)
 const C = {
-  hiddenLink: "#E4DBFF",
-  grantLink: "#A78BFA",
-  transferLink: "#3A3757",
-  dimLink: "#1C1A30",
+  hiddenLink: "#F0566A",
+  grantLink: "#22D3EE",
+  transferLink: "#6E6A92",
+  dimLink: "#22203A",
 };
+
+type Body = TrailNode & { vx?: number; vy?: number; vz?: number };
+
+/**
+ * Pulls every wallet toward the centre, so unconnected groups don't drift off and shrink the view, and presses
+ * the layout nearly flat (strong pull on z) so it faces the camera and fills the frame.
+ */
+function gravity(strength: number, depth: number) {
+  let bodies: Body[] = [];
+  const force = (alpha: number) => {
+    for (const n of bodies) {
+      n.vx = (n.vx ?? 0) - (n.x ?? 0) * strength * alpha;
+      n.vy = (n.vy ?? 0) - (n.y ?? 0) * strength * alpha;
+      n.vz = (n.vz ?? 0) - (n.z ?? 0) * depth * alpha;
+    }
+  };
+  force.initialize = (nodes: Body[]) => {
+    bodies = nodes;
+  };
+  return force;
+}
 
 export type Selection = { kind: "node"; node: TrailNode } | { kind: "link"; link: TrailLink } | null;
 
@@ -101,31 +121,48 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
     return () => cancelAnimationFrame(raf);
   }, [labelled, size]);
 
-  // Once the graph exists: spread the layout out (few links means d3's defaults pack it tight), then frame it
-  // and start a slow orbit. Polled because the graph loads asynchronously (next/dynamic).
+  // Once the graph exists: spread connected wallets apart but keep every group near the centre, then frame the
+  // whole trail in the box. Polled because the graph loads asynchronously (next/dynamic).
+  const framed = useRef(false);
+  /** set once the viewer drags, zooms or reveals: the camera is theirs and no longer re-frames itself */
+  const userMoved = useRef(false);
+  const frame = useCallback((ms = 900) => {
+    const g = graphRef.current;
+    if (!g) return;
+    g.zoomToFit(ms, 36);
+    framed.current = true;
+  }, []);
   useEffect(() => {
     let fitTimer: ReturnType<typeof setTimeout> | undefined;
     const poll = setInterval(() => {
       const g = graphRef.current;
       if (!g) return;
       clearInterval(poll);
-      g.d3Force("charge")?.strength?.(-220);
-      g.d3Force("link")?.distance?.(70);
+      g.d3Force("charge")?.strength?.(-90);
+      // the treasury's grant gets a longer line so its two labels never collide
+      g.d3Force("link")?.distance?.(((l: TrailLink) => (l.kind === "grant" ? 80 : 46)) as never);
+      g.d3Force("gravity", gravity(0.09, 0.6));
       g.d3ReheatSimulation();
       // The page scrolls under the graph: the plain wheel must not be swallowed by camera zoom.
       Object.assign(g.controls(), { enableZoom: false });
+      // fallback if the engine-stop event comes late
       fitTimer = setTimeout(() => {
-        g.zoomToFit(1000, 80);
-        Object.assign(g.controls(), { autoRotate: true, autoRotateSpeed: 0.55 });
-      }, 1600);
+        if (!framed.current) frame(1000);
+      }, 2200);
     }, 150);
     return () => {
       clearInterval(poll);
       clearTimeout(fitTimer);
     };
-  }, []);
+  }, [frame]);
+
+  // the box changed size (window resize, panel layout): frame the trail again
+  useEffect(() => {
+    if (framed.current && !userMoved.current) frame(500);
+  }, [size, frame]);
 
   const stopSpin = useCallback(() => {
+    userMoved.current = true;
     const c = graphRef.current?.controls();
     if (c) c.autoRotate = false;
   }, []);
@@ -143,7 +180,7 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
     if (revealed) {
       setRevealed(false);
       setSelection(null);
-      setTimeout(() => graphRef.current?.zoomToFit(900, 60), 300);
+      setTimeout(() => frame(900), 300);
       return;
     }
     // new wallets emerge from the proposer, then the camera flies to the trail
@@ -154,7 +191,7 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
     setSelection(null);
     setToast(true);
     setTimeout(() => setToast(false), 4200);
-    setTimeout(() => focusOn(trail.nodes.filter((n) => involved.has(n.id) && n.id !== "treasury"), 360), 1100);
+    setTimeout(() => focusOn(trail.nodes.filter((n) => involved.has(n.id) && n.id !== "treasury"), 190), 1100);
   };
 
   /** Dolly the camera toward (factor < 1) or away from (> 1) the origin it orbits. */
@@ -168,28 +205,28 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
 
   const dimmed = (id: string) => (neighbours ? !neighbours.has(id) : revealed && trail.hiddenLinkCount > 0 && !involved.has(id));
 
-  /** Monochrome: a wallet's role is told by size, halo and orbit ring; what matters glows brightest. */
+  /** Each role has its own colour (ROLE_COLOR); size and an orbit ring mark the wallets that matter. */
   const nodeLook = (n: TrailNode): NodeLook => {
-    const brightness = dimmed(n.id) ? 0.18 : 1;
-    const base = { brightness, color: "#FFFFFF", haloColor: "#A78BFA" };
+    const color = ROLE_COLOR[n.role];
+    const base = { brightness: dimmed(n.id) ? 0.16 : 1, color, haloColor: color };
     switch (n.role) {
       case "treasury":
-        return { ...base, core: 3.2, halo: 26, color: "#EDE9FE", ring: true };
+        return { ...base, core: 5.2, halo: 20, ring: true };
       case "proposer":
-        return { ...base, core: 3, halo: 24, ring: true };
+        return { ...base, core: 4.6, halo: 18, ring: true };
       case "beneficiary": {
         const exposed = revealed && n.onPath;
-        return { ...base, core: exposed ? 3.4 : 3, halo: exposed ? 40 : 22, haloColor: exposed ? "#B392FF" : "#A78BFA", ring: true };
+        return { ...base, core: exposed ? 5.2 : 4.6, halo: exposed ? 30 : 18, ring: true };
       }
       case "middleman":
       case "linked":
-        return { ...base, core: 2.4, halo: 22, color: "#DDD6FE", haloColor: "#B392FF" };
+        return { ...base, core: 4, halo: 20 };
       case "voter": {
         const compromised = revealed && involved.has(n.id);
-        return { ...base, core: 1.3 + n.mrd / 2e7, halo: compromised ? 16 : 9, color: compromised ? "#FFFFFF" : "#A78BFA", brightness: brightness * (compromised ? 1 : 0.8) };
+        return { ...base, core: 2.2 + n.mrd / 1.5e7, halo: compromised ? 16 : 9, color: compromised ? ROLE_COLOR.middleman : color, haloColor: compromised ? ROLE_COLOR.middleman : color };
       }
       default:
-        return { ...base, core: 1, halo: 6, color: "#6F6C8C", haloColor: "#4A4766" };
+        return { ...base, core: 2.4, halo: 8 };
     }
   };
   const linkColor = (l: TrailLink) => {
@@ -229,15 +266,22 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
             const node = n as TrailNode;
             return `<div style="font:12px ui-sans-serif;padding:6px 10px;border-radius:10px;background:#100F22;color:#EEECFB;border:1px solid rgba(255,255,255,.1)">${node.name}</div>`;
           }}
-          // hairlines everywhere (width 0 = 1px lines); only the hidden money trail glows and carries particles
+          // ordinary transfers stay thin; the grant and the hidden money trail are thicker and carry moving particles
           linkColor={(l: object) => linkColor(l as TrailLink)}
-          linkWidth={0}
-          linkOpacity={0.75}
+          linkWidth={(l: object) => ((l as TrailLink).kind === "hidden" ? 1.4 : (l as TrailLink).kind === "grant" ? 1 : 0.35)}
+          linkOpacity={0.85}
           linkCurvature={(l: object) => ((l as TrailLink).kind === "hidden" ? 0.18 : 0)}
+          linkDirectionalArrowLength={(l: object) => ((l as TrailLink).kind === "transfer" ? 0 : 4)}
+          linkDirectionalArrowRelPos={0.92}
+          linkDirectionalArrowColor={(l: object) => linkColor(l as TrailLink)}
           linkDirectionalParticles={(l: object) => ((l as TrailLink).kind === "hidden" ? 4 : (l as TrailLink).kind === "grant" ? 2 : 0)}
-          linkDirectionalParticleWidth={(l: object) => ((l as TrailLink).kind === "hidden" ? 1.8 : 1.2)}
+          linkDirectionalParticleWidth={(l: object) => ((l as TrailLink).kind === "hidden" ? 2.4 : 1.8)}
           linkDirectionalParticleSpeed={0.005}
-          linkDirectionalParticleColor={(l: object) => ((l as TrailLink).kind === "hidden" ? "#FFFFFF" : "#C4B5FD")}
+          linkDirectionalParticleColor={(l: object) => ((l as TrailLink).kind === "hidden" ? "#FFD1D7" : "#A5F3FC")}
+          // the layout has settled: frame the whole trail in the box (until the viewer takes the camera)
+          onEngineStop={() => {
+            if (!userMoved.current) frame(framed.current ? 700 : 900);
+          }}
           onNodeClick={(n: object) => {
             stopSpin();
             const node = n as TrailNode;
@@ -261,41 +305,39 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
                 labelRefs.current[n.id] = el;
               }}
               className={cn(
-                "absolute left-0 top-0 flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium opacity-0 transition-[opacity,color] duration-300 [text-shadow:0_1px_10px_rgba(0,0,0,0.9)]",
-                dimmed(n.id) ? "text-ice-light/25" : "text-ice-light/90",
+                "absolute left-0 top-0 flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-night/80 px-2.5 py-1 text-[12px] font-medium opacity-0 backdrop-blur-sm transition-[opacity,color] duration-300",
+                dimmed(n.id) ? "text-ice-light/30" : "text-ice-light",
               )}
             >
-              {n.hidden && <span className="rounded-md border border-[#A78BFA]/40 bg-[#2a1b5c]/80 px-1.5 py-px text-[10px] text-[#EDE9FE] [text-shadow:none]">new</span>}
+              <span className="h-2 w-2 rounded-full" style={{ background: ROLE_COLOR[n.role], boxShadow: `0 0 8px ${ROLE_COLOR[n.role]}` }} />
               {n.name}
+              {n.hidden && <span className="rounded-full bg-[#F0566A]/20 px-1.5 text-[10px] text-[#FFB4BE]">new</span>}
             </div>
           ))}
         </div>
 
         {/* controls */}
         <div className="absolute left-4 right-4 top-4 flex flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-wrap gap-1.5 rounded-xl border border-white/[0.07] bg-night/60 p-2 text-[11px] text-ice-light/75 backdrop-blur">
+          <div className="flex flex-wrap gap-1.5 rounded-xl border border-white/[0.07] bg-night/70 p-2 text-[11px] text-ice-light/85 backdrop-blur">
             {(
               [
-                ["Proposer", "ring"],
-                ["Gets paid / control", "glow"],
-                ["Voter", "dot"],
-                ["Treasury", "ring"],
-                ...(revealed && trail.hiddenNodeCount ? [["New wallet", "soft"]] : []),
-              ] as [string, "ring" | "glow" | "dot" | "soft"][]
-            ).map(([label, mark]) => (
+                ["Treasury", ROLE_COLOR.treasury],
+                ["Proposer", ROLE_COLOR.proposer],
+                ["Gets paid / control", ROLE_COLOR.beneficiary],
+                ["Voter", ROLE_COLOR.voter],
+                ...(revealed && trail.hiddenNodeCount ? [["Hidden wallet", ROLE_COLOR.middleman]] : []),
+              ] as [string, string][]
+            ).map(([label, color]) => (
               <span key={label} className="flex items-center gap-1.5 px-1.5">
-                <span
-                  className={cn(
-                    "rounded-full",
-                    mark === "ring" && "h-2.5 w-2.5 border border-white/90",
-                    mark === "glow" && "h-2 w-2 bg-white shadow-[0_0_8px_2px_rgba(179,146,255,0.8)]",
-                    mark === "dot" && "h-1.5 w-1.5 bg-[#A78BFA]",
-                    mark === "soft" && "h-2 w-2 bg-[#DDD6FE] shadow-[0_0_6px_rgba(179,146,255,0.7)]",
-                  )}
-                />
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
                 {label}
               </span>
             ))}
+            {revealed && trail.hiddenLinkCount > 0 && (
+              <span className="flex items-center gap-1.5 px-1.5">
+                <span className="h-0.5 w-4 rounded" style={{ background: C.hiddenLink }} /> undisclosed payment
+              </span>
+            )}
           </div>
           <div className="flex gap-2">
             {[
@@ -315,7 +357,7 @@ export function MoneyTrail({ proposalId, coi, summary, findings }: { proposalId:
               onClick={() => {
                 stopSpin();
                 setSelection(null);
-                graphRef.current?.zoomToFit(900, 70);
+                frame(900);
               }}
               className="flex h-10 w-10 items-center justify-center rounded-full border border-ice/25 bg-night/60 text-ice-light/80 backdrop-blur transition-colors hover:border-ice/60 hover:text-white"
               title="Reset view"

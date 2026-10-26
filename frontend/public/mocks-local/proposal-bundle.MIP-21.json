@@ -25,35 +25,50 @@
           "uri": "pdf://MIP-21/proposal.pdf",
           "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
           "bytes": 48213,
-          "proof": ["0x01", "0x02"]
+          "proof": [
+            "0x01",
+            "0x02"
+          ]
         },
         {
           "type": "forum",
           "uri": "forum://MIP-21/forum_thread.json",
           "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
           "bytes": 14205,
-          "proof": ["0x03", "0x04"]
+          "proof": [
+            "0x03",
+            "0x04"
+          ]
         },
         {
           "type": "social",
           "uri": "social://MIP-21/social.json",
           "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
           "bytes": 3892,
-          "proof": ["0x05", "0x06"]
+          "proof": [
+            "0x05",
+            "0x06"
+          ]
         },
         {
           "type": "onchain",
           "uri": "onchain://MIP-21/onchain_actions.json",
           "sha256": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
           "bytes": 8192,
-          "proof": ["0x07", "0x08"]
+          "proof": [
+            "0x07",
+            "0x08"
+          ]
         },
         {
           "type": "disclosure",
           "uri": "disclosure://MIP-21/disclosure.json",
           "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
           "bytes": 2048,
-          "proof": ["0x09", "0x10"]
+          "proof": [
+            "0x09",
+            "0x10"
+          ]
         }
       ],
       "createdAt": "2026-10-22T09:12:05Z"
@@ -72,35 +87,50 @@
           "uri": "pdf://MIP-21/proposal.pdf",
           "sha256": "0xa72aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
           "bytes": 48213,
-          "proof": ["0x01", "0x02"]
+          "proof": [
+            "0x01",
+            "0x02"
+          ]
         },
         {
           "type": "forum",
           "uri": "forum://MIP-21/forum_thread.json",
           "sha256": "0x3ace16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
           "bytes": 14205,
-          "proof": ["0x03", "0x04"]
+          "proof": [
+            "0x03",
+            "0x04"
+          ]
         },
         {
           "type": "social",
           "uri": "social://MIP-21/social.json",
           "sha256": "0xcd6ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
           "bytes": 3892,
-          "proof": ["0x05", "0x06"]
+          "proof": [
+            "0x05",
+            "0x06"
+          ]
         },
         {
           "type": "onchain",
           "uri": "onchain://MIP-21/onchain_actions.json",
           "sha256": "0x5536ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
           "bytes": 8192,
-          "proof": ["0x07", "0x08"]
+          "proof": [
+            "0x07",
+            "0x08"
+          ]
         },
         {
           "type": "disclosure",
           "uri": "disclosure://MIP-21/disclosure.json",
           "sha256": "0x9540c2ed6f0aaf2b58897f8946000bd43ab13d12cdb2f72ce0433b80efba69c2",
           "bytes": 2048,
-          "proof": ["0x09", "0x10"]
+          "proof": [
+            "0x09",
+            "0x10"
+          ]
         }
       ],
       "createdAt": "2026-10-23T14:30:00Z"
@@ -223,7 +253,7 @@
       "no change to ownership, roles or reserves",
       "storage layout preserved"
     ],
-    "confidence": 1.0
+    "confidence": 1
   },
   "simulation": {
     "proposalId": "MIP-21",
@@ -274,8 +304,14 @@
         "before": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         "after": "0x17F24d3B8bc1150553b54Da30B4d993ACb889212",
         "addedSelectors": [
-          { "selector": "0xbe6b99e3", "signature": "reinitializeV2(address)" },
-          { "selector": "0x853828b6", "signature": "migrateReserves(address,uint256)" }
+          {
+            "selector": "0xbe6b99e3",
+            "signature": "reinitializeV2(address)"
+          },
+          {
+            "selector": "0x853828b6",
+            "signature": "migrateReserves(address,uint256)"
+          }
         ],
         "removedSelectors": []
       }
@@ -377,17 +413,35 @@
     "stages": [
       {
         "stage": "claims",
-        "probability": 0.85,
-        "likelihoodRatio": 4.5,
-        "explanation": "Proposer claims strictly gas optimization but diff review was deflected.",
-        "findingIds": ["fnd-1"]
+        "likelihoodRatio": 6.3,
+        "explanation": "NLI fact-check (Xenova/nli-deberta-v3-small) of 20 claims from the proposal, forum, posts and disclosure: 4 contradicted by the simulated code, 2 confirmed. Strongest catch: \"Changes are limited to slot packing and EIP-2929 warm-access savings.\" (Proposal) vs the code: \"The upgrade adds new admin powers.\". LR = 0.5 + 1.5×4 − 0.1×2 = 6.3.",
+        "findingIds": [],
+        "probability": 0.249
+      },
+      {
+        "stage": "coi",
+        "likelihoodRatio": 10,
+        "explanation": "pCoi 0.95 from 1 undisclosed wallet link (a validly signed disclosure) maps to LR 10.",
+        "findingIds": [],
+        "probability": 0.768
+      },
+      {
+        "stage": "voting",
+        "likelihoodRatio": 1.5,
+        "explanation": "Nakamoto coefficient 2 (voters needed for 51% of 4 votes); turnout 0%; COI-linked voting power 0%; concentrated (≤ 4) ×1.5. LR 1.5.",
+        "findingIds": [],
+        "probability": 0.833
       },
       {
         "stage": "execution",
-        "probability": 0.99,
-        "likelihoodRatio": 99.0,
-        "explanation": "Calldata executes unauthorized ownership transfer and unlimited approval.",
-        "findingIds": ["fnd-1", "fnd-2", "fnd-3"]
+        "likelihoodRatio": 20,
+        "explanation": "3 critical execution finding(s): ownership_change, unlimited_approval, new_privileged_function. LR 20.",
+        "findingIds": [
+          "fnd-1",
+          "fnd-2",
+          "fnd-3"
+        ],
+        "probability": 0.99
       }
     ],
     "posterior": 0.99,
@@ -409,6 +463,39 @@
         "endBlock": 1250,
         "description": "MIP-21: VaultV2 storage packing and gas optimisation"
       }
+    },
+    {
+      "proposalId": "MIP-21",
+      "contract": "MeridianGovernor",
+      "name": "EvidenceBound",
+      "args": {
+        "proposalId": "95770418730186424211874856728532228392459849764019463351709297748745394921355",
+        "proposer": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "evidenceRoot": "0x91b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c",
+        "disclosedWallets": [
+          "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec"
+        ],
+        "disclosureUri": "data/scenarios/MIP-21/disclosure.json"
+      },
+      "blockNumber": 1042,
+      "txHash": "0x1a8f932e4d01b89ef726a88d188d188d188d188d188d188d188d188d188d188d",
+      "logIndex": 3
+    },
+    {
+      "proposalId": "MIP-21",
+      "contract": "ProposalRegistry",
+      "name": "AssessmentAttested",
+      "args": {
+        "proposalId": "21",
+        "index": 0,
+        "reportHash": "0x25026b1cc14643bed92165674d442d7c89c15018cbffbe0f86908ed1d2059e20",
+        "simHash": "0x892a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "uri": "poi://MIP-21/assessment/0x892a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "attester": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      },
+      "blockNumber": 1043,
+      "txHash": "0xb5e5775da6461dcab2c3227094668e0382b8eda25d1b392def8b57f91b8589ad",
+      "logIndex": 0
     },
     {
       "proposalId": "clx21",

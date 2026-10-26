@@ -1,7 +1,8 @@
 /**
  * Drives a scenario through Meridian governance on the local node.
  *
- *   npm run gov -- propose MIP-21    propose from the scenario's proposer; prints the proposalId and calldata JSON
+ *   npm run gov -- propose MIP-21    propose from the scenario's proposer with its evidence root and wallet disclosure
+ *                                    (MeridianGovernor.proposeWithEvidence); prints the proposalId and calldata JSON
  *   npm run gov -- vote MIP-21       cast every vote in data/scenarios/<id>/votes.json
  *   npm run gov -- open MIP-17       propose, wait out the voting delay and vote; leaves the proposal Active
  *   npm run gov -- advance [blocks] [seconds]   mine blocks and/or move time forward (default: voting period + 1 block)
@@ -21,6 +22,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ethers } from "ethers";
 import { encodeActions, hardhatAddress, hardhatKey, type Action, type Deployments, type EncodedProposal } from "./lib/actions";
+import { boundDescription, descriptionEvidence, scenarioEvidence, type BoundEvidence } from "./lib/evidence";
 import { governorSalt, overrideProposal } from "./lib/override";
 
 const REPO = join(__dirname, "..", "..");
@@ -57,8 +59,12 @@ interface Scenario {
   slug: string;
   proposer: number;
   votes: Vote[];
+  /** as written; the Governor stores it with the evidence root appended (boundDescription) */
   description: string;
+  /** keccak256 of the bound description: what hashProposal/queue/execute take */
   descriptionHash: string;
+  /** evidence root + the proposer's wallet disclosure, bound by proposeWithEvidence */
+  evidence: BoundEvidence;
   encoded: EncodedProposal;
   proposalId: bigint;
 }
@@ -80,10 +86,11 @@ async function loadScenario(slug: string): Promise<Scenario> {
   const encoded = encodeActions(Array.isArray(actions) ? actions : actions.actions, deployments);
   // The backend links chain proposals to its records by the slug in this description.
   const description = `# ${slug}: ${(forum.title ?? slug).replace(/^\[[^\]]+\]\s*/, "")}`;
-  const descriptionHash = ethers.id(description);
+  const evidence = scenarioEvidence(REPO, slug);
+  const descriptionHash = ethers.id(boundDescription(description, evidence.evidenceRoot));
   const proposalId = (await contract("MeridianGovernor").getFunction("hashProposal")(encoded.targets, encoded.values, encoded.calldatas, descriptionHash)) as bigint;
   const votes = readJson<{ votes: Vote[] }>(join(dir, "votes.json")).votes;
-  return { slug, proposer, votes, description, descriptionHash, encoded, proposalId };
+  return { slug, proposer, votes, description, descriptionHash, evidence, encoded, proposalId };
 }
 
 async function stateOf(s: Scenario): Promise<(typeof STATES)[number] | null> {
@@ -96,15 +103,21 @@ async function stateOf(s: Scenario): Promise<(typeof STATES)[number] | null> {
 
 async function propose(s: Scenario): Promise<void> {
   const governor = contract("MeridianGovernor", signer(s.proposer));
-  const receipt = await (await governor.getFunction("propose")(s.encoded.targets, s.encoded.values, s.encoded.calldatas, s.description)).wait();
+  const e = s.evidence;
+  const receipt = await (
+    await governor.getFunction("proposeWithEvidence")(s.encoded.targets, s.encoded.values, s.encoded.calldatas, s.description, e.evidenceRoot, e.disclosedWallets, e.disclosureUri)
+  ).wait();
   console.log(`proposed ${s.slug} from #${s.proposer} (${hardhatAddress(s.proposer)}) in block ${receipt?.blockNumber}`);
+  console.log(`  bound evidence root ${e.evidenceRoot}; disclosed wallets: ${e.disclosedWallets.join(", ") || "none"}`);
   console.log(
     JSON.stringify(
       {
         proposalId: s.slug,
         governorProposalId: s.proposalId.toString(),
-        description: s.description,
+        description: boundDescription(s.description, e.evidenceRoot),
         descriptionHash: s.descriptionHash,
+        evidenceRoot: e.evidenceRoot,
+        disclosedWallets: e.disclosedWallets,
         targets: s.encoded.targets,
         values: s.encoded.values.map(String),
         calldatas: s.encoded.calldatas,
@@ -197,7 +210,9 @@ async function override(s: Scenario): Promise<void> {
     throw new Error(`${s.slug} (operation ${operationId}) is not flagged; nothing to override`);
   }
   const o = overrideProposal(await guard.getAddress(), operationId, s.slug);
-  const descriptionHash = ethers.id(o.description);
+  // an override has no documents of its own: its description is its evidence, and the proposer discloses nothing
+  const evidence = descriptionEvidence(o.description);
+  const descriptionHash = ethers.id(boundDescription(o.description, evidence.evidenceRoot));
   const encoded: EncodedProposal = { targets: o.targets, values: o.values, calldatas: o.calldatas };
   const proposalId = (await contract("MeridianGovernor").getFunction("hashProposal")(o.targets, o.values, o.calldatas, descriptionHash)) as bigint;
   const overrideScenario: Scenario = {
@@ -206,6 +221,7 @@ async function override(s: Scenario): Promise<void> {
     votes: s.votes.map((v) => ({ index: v.index, choice: "for" })),
     description: o.description,
     descriptionHash,
+    evidence,
     encoded,
     proposalId,
   };

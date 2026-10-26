@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
 /**
- * Reflect-style graph nodes: a small luminous core, a soft additive violet halo, and (for the wallets that
- * matter) a hairline orbit ring. Textures are drawn once on a canvas and shared. Uses the same three.js
+ * Reflect-style graph nodes: a luminous core in the wallet's role colour, a soft additive halo of the same
+ * colour, and (for the wallets that matter) a hairline orbit ring. Textures are drawn once on a canvas and shared. Uses the same three.js
  * instance as 3d-force-graph (npm dedupes both to the intro's three 0.170), so objects mix safely.
  */
 
@@ -65,14 +65,15 @@ export function makeNode(look: NodeLook): THREE.Object3D {
   if (!spheres.has(r)) spheres.set(r, new THREE.SphereGeometry(r, 18, 18));
   group.add(new THREE.Mesh(spheres.get(r)!, new THREE.MeshBasicMaterial({ color: look.color, transparent: true, opacity: Math.max(0.15, look.brightness) })));
 
+  // a soft halo: strong enough to glow, weak enough that the core keeps its colour instead of blooming to white
   const halo = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture(), color: look.haloColor, transparent: true, opacity: 0.85 * look.brightness, depthWrite: false, blending: THREE.AdditiveBlending }),
+    new THREE.SpriteMaterial({ map: glowTexture(), color: look.haloColor, transparent: true, opacity: 0.42 * look.brightness, depthWrite: false, blending: THREE.AdditiveBlending }),
   );
   halo.scale.set(look.halo, look.halo, 1);
   group.add(halo);
 
   if (look.ring) {
-    const orbit = new THREE.Sprite(new THREE.SpriteMaterial({ map: ringTexture(), transparent: true, opacity: 0.55 * look.brightness, depthWrite: false }));
+    const orbit = new THREE.Sprite(new THREE.SpriteMaterial({ map: ringTexture(), color: look.color, transparent: true, opacity: 0.7 * look.brightness, depthWrite: false }));
     orbit.scale.set(look.core * 6, look.core * 6, 1);
     group.add(orbit);
   }

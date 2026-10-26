@@ -8,11 +8,12 @@
  * straight from the evidence. The API key is read from the repo's root .env and never leaves the server.
  */
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { ADDRESS_TO_INDEX } from "@/lib/coiGraph";
 import { displayName } from "@/lib/moneyTrail";
 import type { Chunk, ProposalBundle } from "@/types/shared";
+import type { SentenceCheck } from "@/lib/verify/answer";
 
 const REPO = path.resolve(process.cwd(), "..");
 const FRONTEND = process.cwd();
@@ -43,6 +44,10 @@ export interface FindingRef {
 export type ChatEvent =
   | { type: "sources"; proposals: string[]; passages: Passage[]; findings: FindingRef[]; facts: string[]; mode: "gemini" | "offline" }
   | { type: "delta"; text: string }
+  /** the answer is complete; each sentence is now being fact-checked */
+  | { type: "checking" }
+  /** one batch of sentence checks; several arrive per answer */
+  | { type: "verify"; sentences: SentenceCheck[]; model: string; ms: number }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -69,17 +74,20 @@ export async function loadSlugs(): Promise<string[]> {
   return res.ok ? ((await res.json()) as { slug: string }[]).map((p) => p.slug) : [];
 }
 
-const bundleCache = new Map<string, ProposalBundle | null>();
+// mock bundles are re-read when their file changes (keyed by mtime)
+const bundleCache = new Map<string, { mtime: number; bundle: ProposalBundle | null }>();
 export async function loadBundle(slug: string): Promise<ProposalBundle | null> {
-  if (USE_MOCKS && bundleCache.has(slug)) return bundleCache.get(slug)!;
-  let b: ProposalBundle | null = null;
-  if (USE_MOCKS) b = readJson<ProposalBundle>(path.join(FRONTEND, "public", "mocks-local", `proposal-bundle.${slug}.json`));
-  else {
-    const res = await fetch(`${API_URL}/proposals/${slug}`);
-    b = res.ok ? ((await res.json()) as ProposalBundle) : null;
+  if (USE_MOCKS) {
+    const file = path.join(FRONTEND, "public", "mocks-local", `proposal-bundle.${slug}.json`);
+    const mtime = existsSync(file) ? statSync(file).mtimeMs : 0;
+    const hit = bundleCache.get(slug);
+    if (hit && hit.mtime === mtime) return hit.bundle;
+    const bundle = readJson<ProposalBundle>(file);
+    bundleCache.set(slug, { mtime, bundle });
+    return bundle;
   }
-  bundleCache.set(slug, b);
-  return b;
+  const res = await fetch(`${API_URL}/proposals/${slug}`);
+  return res.ok ? ((await res.json()) as ProposalBundle) : null;
 }
 
 /* ------------------------------------------------------------------ documents */
@@ -136,7 +144,7 @@ export function documents(slug: string): Passage[] {
 const tokens = (s: string) => s.toLowerCase().match(/[a-z0-9$.,]+/g)?.map((t) => t.replace(/[.,]+$/, "")).filter((t) => t.length > 2) ?? [];
 
 /** BM25-style ranking over the local passages of the given proposals. */
-function localSearch(query: string, slugs: string[], k: number): Passage[] {
+export function localSearch(query: string, slugs: string[], k: number): Passage[] {
   const pool = slugs.flatMap(documents);
   const q = Array.from(new Set(tokens(query)));
   if (q.length === 0 || pool.length === 0) return pool.slice(0, k);
@@ -233,6 +241,17 @@ function factsFor(b: ProposalBundle): string {
   return L.join("\n");
 }
 
+/**
+ * The watchdog's record for a proposal as plain sentences, for the sentence checker. The AI-written summary and
+ * claim lines are left out so the assistant's answers are never checked against AI text.
+ */
+export function recordLines(b: ProposalBundle): string[] {
+  return factsFor(b)
+    .split("\n")
+    .filter((l) => !l.startsWith("## ") && !/^(Summary \(AI\)|- claim \()/.test(l) && !/^(Findings|Simulation)\b.*:$/.test(l))
+    .map((l) => l.replace(/^-\s+/, "").replace(/0x[0-9a-f]{40,}/gi, "0x…"));
+}
+
 function digestLine(b: ProposalBundle): string {
   const verdict = b.flag
     ? "FROZE on-chain by the watchdog"
@@ -300,7 +319,8 @@ async function* geminiStream(key: string, model: string, system: string, context
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents,
-      generationConfig: { temperature: 0.2, maxOutputTokens: 900, thinkingConfig: { thinkingBudget: 0 } },
+      // thinkingBudget 0 keeps 2.5 models fast; other models reject that field
+      generationConfig: { temperature: 0.2, maxOutputTokens: 900, ...(/2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}) },
     }),
     signal: AbortSignal.timeout(45_000),
   });
@@ -353,15 +373,20 @@ export async function* answer(history: ChatMessage[], page: string | null): Asyn
 
   let streamed = false;
   if (key) {
-    try {
-      const context = buildPrompt(all.map(digestLine).join("\n"), targetBundles.map(factsFor).join("\n\n"), passages, page);
-      for await (const text of geminiStream(key, model, SYSTEM, context, history)) {
-        if (!streamed) yield { type: "sources", proposals: targets, passages, findings, facts, mode: "gemini" };
-        streamed = true;
-        yield { type: "delta", text };
+    const context = buildPrompt(all.map(digestLine).join("\n"), targetBundles.map(factsFor).join("\n\n"), passages, page);
+    // when the main model's quota runs out (HTTP 429) the lighter model usually still has some
+    for (const m of Array.from(new Set([model, rootEnv("CHAT_FALLBACK_MODEL") ?? "gemini-flash-lite-latest"]))) {
+      try {
+        for await (const text of geminiStream(key, m, SYSTEM, context, history)) {
+          if (!streamed) yield { type: "sources", proposals: targets, passages, findings, facts, mode: "gemini" };
+          streamed = true;
+          yield { type: "delta", text };
+        }
+        break;
+      } catch (e) {
+        // try the next model only for a quota error before anything streamed; otherwise use the grounded fallback
+        if (streamed || !/HTTP 429/.test((e as Error).message)) break;
       }
-    } catch {
-      // fall through to the grounded fallback (never surface provider errors or keys)
     }
   }
   if (!streamed) {

@@ -8,7 +8,9 @@ import { ArrowUp, ChevronDown, FileText, Sparkles, Square, X } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { Citation } from "@/components/Citation";
 import { useEvidencePanel } from "@/components/EvidencePanel";
+import { SentenceBadge, VerifySummary } from "@/components/chat/SentenceBadge";
 import type { ChatEvent, FindingRef, Passage } from "@/lib/chat/server";
+import type { SentenceCheck } from "@/lib/verify/answer";
 
 type Sources = Extract<ChatEvent, { type: "sources" }>;
 
@@ -18,6 +20,10 @@ interface Msg {
   text: string;
   sources?: Sources;
   streaming?: boolean;
+  /** the answer is complete and its sentences are being fact-checked */
+  checking?: boolean;
+  checks?: SentenceCheck[];
+  checkModel?: string;
   error?: string;
 }
 
@@ -56,26 +62,56 @@ function Inline({ text, sources }: { text: string; sources?: Sources }) {
   );
 }
 
-function Answer({ text, sources }: { text: string; sources?: Sources }) {
-  const blocks: { bullet: boolean; text: string }[] = text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => (/^[-*•]\s+/.test(l) ? { bullet: true, text: l.replace(/^[-*•]\s+/, "") } : { bullet: false, text: l }));
+/** One line of the answer, cut after each fact-checked sentence so its badge sits right where the sentence ends. */
+function Line({ text, from, to, rawEnd, sources, checks }: { text: string; from: number; to: number; rawEnd: number; sources?: Sources; checks?: SentenceCheck[] }) {
+  const ends = (checks ?? []).filter((c) => c.end > from && c.end <= rawEnd).sort((a, b) => a.end - b.end);
+  const out: React.ReactNode[] = [];
+  let cur = from;
+  for (const c of ends) {
+    const end = Math.min(c.end, to);
+    const seg = <Inline text={text.slice(cur, end)} sources={sources} />;
+    out.push(
+      c.verdict === "contradicted" ? (
+        <span key={`s${c.end}`} className="underline decoration-[#F0566A]/80 decoration-wavy decoration-1 underline-offset-4">
+          {seg}
+        </span>
+      ) : (
+        <span key={`s${c.end}`}>{seg}</span>
+      ),
+      <SentenceBadge key={`b${c.end}`} check={c} passages={sources?.passages ?? []} />,
+    );
+    cur = end;
+  }
+  if (cur < to) out.push(<Inline key="rest" text={text.slice(cur, to)} sources={sources} />);
+  return <>{out}</>;
+}
+
+function Answer({ text, sources, checks }: { text: string; sources?: Sources; checks?: SentenceCheck[] }) {
+  // keep character offsets: the sentence checks point into the full answer text
+  const lines: { bullet: boolean; from: number; to: number; rawEnd: number }[] = [];
+  let offset = 0;
+  for (const raw of text.split("\n")) {
+    const start = offset;
+    offset += raw.length + 1;
+    const lead = /^\s*(?:[-*•]\s+)?/.exec(raw)![0];
+    const to = start + raw.trimEnd().length;
+    if (to > start + lead.length) lines.push({ bullet: /[-*•]/.test(lead), from: start + lead.length, to, rawEnd: start + raw.length });
+  }
   return (
     <div className="space-y-2">
-      {blocks.map((b, i) =>
-        b.bullet ? (
+      {lines.map((l, i) =>
+        l.bullet ? (
           <div key={i} className="flex gap-2">
             <span className="mt-2 h-1 w-1 flex-shrink-0 rounded-full bg-[#A78BFA]" />
-            <p>
-              <Inline text={b.text} sources={sources} />
-            </p>
+            {/* div, not p: citation chips open block-level hover cards */}
+            <div>
+              <Line text={text} {...l} sources={sources} checks={checks} />
+            </div>
           </div>
         ) : (
-          <p key={i}>
-            <Inline text={b.text} sources={sources} />
-          </p>
+          <div key={i}>
+            <Line text={text} {...l} sources={sources} checks={checks} />
+          </div>
         ),
       )}
     </div>
@@ -196,13 +232,15 @@ export function ChatAssistant() {
             const ev = JSON.parse(line) as ChatEvent;
             if (ev.type === "sources") patch((m) => ({ ...m, sources: ev }));
             else if (ev.type === "delta") patch((m) => ({ ...m, text: m.text + ev.text }));
+            else if (ev.type === "checking") patch((m) => ({ ...m, streaming: false, checking: true }));
+            else if (ev.type === "verify") patch((m) => ({ ...m, checks: [...(m.checks ?? []), ...ev.sentences], checkModel: ev.model }));
             else if (ev.type === "error") patch((m) => ({ ...m, error: ev.message }));
           }
         }
       } catch (e) {
         if ((e as Error).name !== "AbortError") patch((m) => ({ ...m, error: "Couldn't reach the assistant. Is the frontend server running?" }));
       } finally {
-        patch((m) => ({ ...m, streaming: false }));
+        patch((m) => ({ ...m, streaming: false, checking: false }));
         setBusy(false);
         abort.current = null;
       }
@@ -290,7 +328,7 @@ export function ChatAssistant() {
                     {m.error ? (
                       <p className="text-faint">{m.error}</p>
                     ) : m.text ? (
-                      <Answer text={m.text} sources={m.sources} />
+                      <Answer text={m.text} sources={m.sources} checks={m.checks} />
                     ) : (
                       <div className="flex items-center gap-2 text-faint">
                         <span className="flex gap-1">
@@ -302,6 +340,7 @@ export function ChatAssistant() {
                       </div>
                     )}
                     {m.streaming && m.text && <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse rounded-sm bg-[#A78BFA] align-middle" />}
+                    {!m.streaming && !m.error && <VerifySummary checks={m.checks ?? []} checking={!!m.checking} model={m.checkModel} />}
                     {!m.streaming && m.sources && !m.error && <SourcesLine sources={m.sources} />}
                   </motion.div>
                 ),

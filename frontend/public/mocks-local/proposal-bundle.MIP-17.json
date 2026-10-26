@@ -3,7 +3,7 @@
     "id": "clx17",
     "slug": "MIP-17",
     "title": "Nexus Labs Ecosystem Acceleration & Cross-Chain Liquidity Infrastructure",
-    "proposer": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "proposer": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
     "status": "ACTIVE",
     "governorProposalId": "10170000000000000000000000000000000000000000000000000000000000000000000000000",
     "operationId": "0x1700000000000000000000000000000000000000000000000000000000000000",
@@ -25,28 +25,40 @@
           "uri": "pdf://MIP-17/proposal.pdf",
           "sha256": "0x172aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
           "bytes": 52190,
-          "proof": ["0x1701", "0x1702"]
+          "proof": [
+            "0x1701",
+            "0x1702"
+          ]
         },
         {
           "type": "forum",
           "uri": "forum://MIP-17/forum_thread.json",
           "sha256": "0x17ce16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
           "bytes": 18230,
-          "proof": ["0x1703", "0x1704"]
+          "proof": [
+            "0x1703",
+            "0x1704"
+          ]
         },
         {
           "type": "social",
           "uri": "social://MIP-17/social.json",
           "sha256": "0x176ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
           "bytes": 4120,
-          "proof": ["0x1705", "0x1706"]
+          "proof": [
+            "0x1705",
+            "0x1706"
+          ]
         },
         {
           "type": "onchain",
           "uri": "onchain://MIP-17/onchain_actions.json",
           "sha256": "0x1736ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
           "bytes": 6240,
-          "proof": ["0x1707", "0x1708"]
+          "proof": [
+            "0x1707",
+            "0x1708"
+          ]
         }
       ],
       "createdAt": "2026-10-18T09:12:05Z"
@@ -57,8 +69,11 @@
     "tldr": "Requests 5,000,000 USDC for Nexus Labs to build cross-chain liquidity rails, despite the itemized budget only totaling 3,500,000 USDC.",
     "treasuryImpact": {
       "amountUsd": 5000000,
-      "pctOfTreasury": 25.0,
-      "recipients": ["Nexus Labs", "wallet index 12"],
+      "pctOfTreasury": 25,
+      "recipients": [
+        "Nexus Labs",
+        "wallet index 12"
+      ],
       "citations": [
         {
           "chunkId": "MIP-17:forum:0",
@@ -186,7 +201,7 @@
       "rigid contractual deadlines",
       "public identity disclosures"
     ],
-    "confidence": 1.0
+    "confidence": 1
   },
   "simulation": {
     "proposalId": "MIP-17",
@@ -197,14 +212,17 @@
         "contractName": "Treasury",
         "selector": "0xa9059cbb",
         "signature": "transfer(address,uint256)",
-        "args": ["0xbDA5747bFD65F08deb54cb465eB87D40e51B197E", "5000000000000"]
+        "args": [
+          "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "5000000000000"
+        ]
       }
     ],
     "tokenTransfers": [
       {
         "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
         "from": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-        "to": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+        "to": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
         "amount": "5000000000000"
       }
     ],
@@ -218,17 +236,23 @@
   },
   "coi": {
     "proposalId": "MIP-17",
-    "proposer": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "proposer": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
     "disclosed": [],
     "signatureValid": false,
     "undisclosedLinks": [
       {
-        "from": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        "to": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
-        "path": ["10", "11", "12"],
+        "from": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+        "to": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "path": [
+          "10",
+          "11",
+          "12"
+        ],
         "hops": 2,
         "pLink": 0.85,
-        "reasons": ["Funding trail through intermediary wallet 11"]
+        "reasons": [
+          "Funding trail through intermediary wallet 11"
+        ]
       }
     ],
     "pCoi": 0.85
@@ -236,7 +260,7 @@
   "findings": [
     {
       "id": "fnd-17-1",
-      "severity": "critical",
+      "severity": "high",
       "category": "amount_mismatch",
       "said": "Total Itemized Budget Allocation: $3,500,000 USDC",
       "does": "Treasury.transfer of 5,000,000 USDC to wallet index 12 ($1.5M undeclared surplus)",
@@ -262,23 +286,75 @@
     "stages": [
       {
         "stage": "claims",
-        "probability": 0.80,
-        "likelihoodRatio": 4.0,
-        "explanation": "$1.5M budget discrepancy between summary and itemized table.",
-        "findingIds": ["fnd-17-1"]
+        "likelihoodRatio": 3.1,
+        "explanation": "NLI fact-check (Xenova/nli-deberta-v3-small) of 20 claims from the proposal, forum, posts and disclosure: 2 contradicted by the simulated code, 4 confirmed. Strongest catch: \"Nexus Labs is an independent third-party with no financial ties.\" (Disclosure) vs the code: \"The proposer secretly funded Nexus Labs (wallet #12) before the proposal, and did not dis…\". LR = 0.5 + 1.5×2 − 0.1×4 = 3.1.",
+        "findingIds": [],
+        "probability": 0.14
       },
       {
         "stage": "coi",
-        "probability": 0.85,
-        "likelihoodRatio": 5.0,
-        "explanation": "Undisclosed funding link between proposer and recipient.",
-        "findingIds": ["fnd-17-2"]
+        "likelihoodRatio": 7.25,
+        "explanation": "pCoi 0.85 from 1 undisclosed wallet link (no validly signed disclosure) maps to LR 7.25.",
+        "findingIds": [
+          "fnd-17-2"
+        ],
+        "probability": 0.542
+      },
+      {
+        "stage": "voting",
+        "likelihoodRatio": 1,
+        "explanation": "No votes cast yet; the voting stage is neutral.",
+        "findingIds": [],
+        "probability": 0.542
+      },
+      {
+        "stage": "execution",
+        "likelihoodRatio": 5,
+        "explanation": "1 high execution finding(s): amount_mismatch. LR 5.",
+        "findingIds": [
+          "fnd-17-1"
+        ],
+        "probability": 0.855
       }
     ],
-    "posterior": 0.88,
+    "posterior": 0.855,
     "level": "HIGH",
-    "action": "halt"
+    "action": "review"
   },
-  "chainEvents": [],
+  "chainEvents": [
+    {
+      "proposalId": "MIP-17",
+      "contract": "MeridianGovernor",
+      "name": "EvidenceBound",
+      "args": {
+        "proposalId": "10170000000000000000000000000000000000000000000000000000000000000000000000000",
+        "proposer": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+        "evidenceRoot": "0x17b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c",
+        "disclosedWallets": [
+          "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+        ],
+        "disclosureUri": "data/scenarios/MIP-17/disclosure.json"
+      },
+      "blockNumber": 2000,
+      "txHash": "0x055303810db024d38138b826e1d722d907af53327aad34429b294e2f46414b39",
+      "logIndex": 1
+    },
+    {
+      "proposalId": "MIP-17",
+      "contract": "ProposalRegistry",
+      "name": "AssessmentAttested",
+      "args": {
+        "proposalId": "17",
+        "index": 0,
+        "reportHash": "0x8f9fb86df42995697d7e0121f462231b316e0b8d70d2f3be450471cd54c13f9c",
+        "simHash": "0x172a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "uri": "poi://MIP-17/assessment/0x172a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "attester": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      },
+      "blockNumber": 2001,
+      "txHash": "0x5ab8aef35bba3ce385f3d27043052467d58e83746f2f2088d893b198d6be712a",
+      "logIndex": 0
+    }
+  ],
   "flag": null
 }

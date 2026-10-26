@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { FactCheckBoard } from "../src/clients/factCheckClient.js";
 import { DecisionSummary, Deployments, IntentSpec, SHARED_SCHEMAS, SimulationResult, Chunk } from "../src/contracts/schemas.js";
 
 type Json = Record<string, unknown>;
@@ -88,6 +89,7 @@ describe("zod schemas accept the shared mocks", () => {
     summarize: DecisionSummary,
     "extract-intent": IntentSpec,
     simulate: SimulationResult,
+    factcheck: FactCheckBoard,
   };
   it.each(mocks)("%s", (file) => {
     const schema = schemaFor[file.split(".")[0] ?? ""];

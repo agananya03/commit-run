@@ -15,6 +15,7 @@ import { HttpError } from "../errors.js";
 import { proposalNumericId, type RegistryClient } from "../chain/registry.js";
 import { DisclosureBody, recoverDisclosureSigner, type SignedDisclosureFile } from "../coi/disclosure.js";
 import { saveCoiReport } from "../coi/service.js";
+import { reportForRun } from "../verdict/assessment.js";
 
 export const EVIDENCE_TYPES: readonly EvidenceType[] = ["forum", "pdf", "social", "onchain", "disclosure"];
 const SLUG = /^[A-Z]+-\d+$/;
@@ -69,6 +70,16 @@ export class ProposalService {
   }
 
   /** Full bundle. Analysis sections come from the latest version / latest run and are null until produced. */
+  /** The technical assessment report of a run (by simHash, else the latest), as attested in ProposalRegistry. */
+  async assessment(idOrSlug: string, simHash?: string): Promise<{ markdown: string; reportHash: string }> {
+    const p = await this.deps.db.proposal.findFirst({ where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] }, select: { id: true, slug: true } });
+    if (!p) throw notFound(`Proposal ${idOrSlug} not found`);
+    const run = await this.deps.db.simulationRun.findFirst({ where: { proposalId: p.id, ...(simHash ? { simHash: simHash.toLowerCase() } : {}) }, orderBy: { createdAt: "desc" }, select: { id: true } });
+    if (!run) throw notFound(`No simulation of ${p.slug}${simHash ? ` with simHash ${simHash}` : ""}`);
+    const { markdown, reportHash } = await reportForRun(this.deps.db, run.id);
+    return { markdown, reportHash };
+  }
+
   async getBundle(idOrSlug: string): Promise<Bundle> {
     const p = await this.deps.db.proposal.findFirst({
       where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },

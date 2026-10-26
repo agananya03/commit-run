@@ -1,0 +1,237 @@
+{
+  "proposalId": "MIP-21",
+  "model": "Xenova/nli-deberta-v3-small",
+  "ms": 7,
+  "witnesses": [
+    {
+      "id": "code",
+      "label": "The code",
+      "statements": [
+        {
+          "id": "fact-1",
+          "text": "The owner of the Vault changes from nobody to Benchmark Runner (wallet #14)."
+        },
+        {
+          "id": "fact-2",
+          "text": "Ownership of the Vault changes to a new wallet."
+        },
+        {
+          "id": "fact-3",
+          "text": "The DAO treasury allows Benchmark Runner (wallet #14) to spend an unlimited amount of its USDC."
+        },
+        {
+          "id": "fact-4",
+          "text": "No money leaves the treasury."
+        },
+        {
+          "id": "fact-5",
+          "text": "The Vault is upgraded to new code."
+        },
+        {
+          "id": "fact-6",
+          "text": "The new code adds functions that were not there before: reinitializeV2, migrateReserves."
+        },
+        {
+          "id": "fact-7",
+          "text": "The upgrade adds new admin powers."
+        },
+        {
+          "id": "fact-8",
+          "text": "The proposer secretly funded Benchmark Runner (wallet #14) before the proposal, and did not disclose it."
+        }
+      ]
+    },
+    {
+      "id": "pdf",
+      "label": "Proposal",
+      "statements": [
+        {
+          "id": "pdf-2",
+          "text": "Changes are limited to slot packing and EIP-2929 warm-access savings."
+        },
+        {
+          "id": "pdf-3",
+          "text": "The Timelock remains the sole owner of the Vault."
+        },
+        {
+          "id": "pdf-6",
+          "text": "Crucially, this upgrade entails no change to ownership, roles or reserves."
+        },
+        {
+          "id": "pdf-7",
+          "text": "The storage layout preserved guarantees that all user balances, collateral debts, and liquidation parameters remain completely unaffected."
+        },
+        {
+          "id": "pdf-1",
+          "text": "The upgrade replaces the Vault implementation behind the existing UUPS proxy at 0x0165878A594ca255338adfa4d48449f69242Eb8F."
+        },
+        {
+          "id": "pdf-4",
+          "text": "Benchmarks. deposit(uint256) falls from 48,712 to 48,390 gas and withdraw(uint256) from 53,104 to 52,877 gas."
+        }
+      ]
+    },
+    {
+      "id": "forum",
+      "label": "Forum",
+      "statements": [
+        {
+          "id": "forum-1",
+          "text": "VaultV2 packs reserveCap and lastRebalance into one slot and caches the reserve balance, removing two cold SLOADs from deposit and withdraw."
+        },
+        {
+          "id": "forum-2",
+          "text": "Net effect: ~1% cheaper user operations."
+        },
+        {
+          "id": "forum-3",
+          "text": "From a financial efficiency standpoint, ~1% gas savings on user deposits and withdrawals compounds dramatically across our 8M USDC Vault."
+        },
+        {
+          "id": "forum-5",
+          "text": "Mitigating redundant cold SLOAD reads under EIP-2929 is very welcome."
+        },
+        {
+          "id": "forum-6",
+          "text": "The 2,240 gas savings on rebalance() directly improves the profitability margins for automated vault liquidator bots."
+        },
+        {
+          "id": "forum-7",
+          "text": "The community always appreciates gas reduction initiatives, especially for smaller users where Ethereum L1 transaction fees bite hardest."
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "label": "Social",
+      "statements": [
+        {
+          "id": "social-1",
+          "text": "MIP-21 is up for vote, a small gas win for every Meridian depositor."
+        },
+        {
+          "id": "social-2",
+          "text": "Big thanks to 0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097 for running the benchmarks."
+        },
+        {
+          "id": "social-3",
+          "text": "VaultV2 introduces tight EVM storage packing to shave off redundant SLOAD reads and lower transaction costs for all Meridian users."
+        },
+        {
+          "id": "social-5",
+          "text": "Great work by the engineering team on the VaultV2 packing design."
+        },
+        {
+          "id": "social-6",
+          "text": "@kestrel_builds: MIP-21 is up for vote, a small gas win for every Meridian depositor."
+        },
+        {
+          "id": "social-4",
+          "text": "Every basis point of gas efficiency matters for DeFi liquidity providers."
+        }
+      ]
+    },
+    {
+      "id": "disclosure",
+      "label": "Disclosure",
+      "statements": [
+        {
+          "id": "disclosure-1",
+          "text": "I disclose only my personal author wallet 13."
+        },
+        {
+          "id": "disclosure-2",
+          "text": "The storage optimization upgrade involves no external beneficiaries."
+        }
+      ]
+    }
+  ],
+  "rulings": {
+    "forum-1": {
+      "verdict": "supported",
+      "score": 0.937,
+      "evidence": "fact-5"
+    },
+    "forum-2": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "forum-3": {
+      "verdict": "unclear",
+      "score": 0.008
+    },
+    "forum-5": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "forum-6": {
+      "verdict": "unclear",
+      "score": 0.002
+    },
+    "forum-7": {
+      "verdict": "unclear",
+      "score": 0.001
+    },
+    "pdf-2": {
+      "verdict": "contradicted",
+      "score": 1,
+      "evidence": "fact-7"
+    },
+    "pdf-3": {
+      "verdict": "contradicted",
+      "score": 1,
+      "evidence": "fact-6"
+    },
+    "pdf-6": {
+      "verdict": "contradicted",
+      "score": 1,
+      "evidence": "fact-2"
+    },
+    "pdf-7": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "pdf-1": {
+      "verdict": "supported",
+      "score": 0.987,
+      "evidence": "fact-5"
+    },
+    "pdf-4": {
+      "verdict": "unclear",
+      "score": 0.066
+    },
+    "social-1": {
+      "verdict": "unclear",
+      "score": 0.029
+    },
+    "social-2": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-3": {
+      "verdict": "unclear",
+      "score": 0.129
+    },
+    "social-5": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-6": {
+      "verdict": "unclear",
+      "score": 0.116
+    },
+    "social-4": {
+      "verdict": "unclear",
+      "score": 0.006
+    },
+    "disclosure-1": {
+      "verdict": "unclear",
+      "score": 0.003
+    },
+    "disclosure-2": {
+      "verdict": "contradicted",
+      "score": 0.999,
+      "evidence": "fact-8"
+    }
+  }
+}

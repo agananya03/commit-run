@@ -87,6 +87,29 @@ export class RegistryClient {
     return null;
   }
 
+  /** Every AssessmentAttested for a registry id, in log order. */
+  async assessments(id: bigint): Promise<{ index: number; reportHash: string; simHash: string; uri: string; attester: string; txHash: string; blockNumber: number }[]> {
+    const logs = await this.call(() => this.registry.queryFilter(this.registry.filters.AssessmentAttested!(id), 0, "latest"));
+    return logs.map((log) => {
+      const a = (log as unknown as { args: { index: bigint; reportHash: string; simHash: string; uri: string; attester: string } }).args;
+      return { index: Number(a.index), reportHash: a.reportHash.toLowerCase(), simHash: a.simHash.toLowerCase(), uri: a.uri, attester: a.attester, txHash: log.transactionHash, blockNumber: log.blockNumber };
+    });
+  }
+
+  /** ProposalRegistry.attest: puts a technical assessment's report hash on the record (dry-run first, like commit). */
+  async attest(id: bigint, reportHash: string, simHash: string, uri: string): Promise<CommitReceipt> {
+    const fn = this.registry.getFunction("attest");
+    await this.call(() => fn.staticCall(id, reportHash, simHash, uri));
+    try {
+      const receipt = await (await fn(id, reportHash, simHash, uri)).wait();
+      if (!receipt) throw new Error("no receipt");
+      return { txHash: receipt.hash, blockNumber: receipt.blockNumber, recovered: false };
+    } catch (err) {
+      this.signer.reset();
+      throw this.toHttpError(err);
+    }
+  }
+
   private async call<T>(fn: () => Promise<T>): Promise<T> {
     try {
       return await fn();

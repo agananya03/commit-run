@@ -2806,6 +2806,16 @@
         },
         {
           "inputs": [],
+          "name": "EmptyEvidenceRoot",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "EvidenceRequired",
+          "type": "error"
+        },
+        {
+          "inputs": [],
           "name": "FailedCall",
           "type": "error"
         },
@@ -3061,9 +3071,62 @@
           "type": "error"
         },
         {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "length",
+              "type": "uint256"
+            }
+          ],
+          "name": "StringsInsufficientHexLength",
+          "type": "error"
+        },
+        {
           "anonymous": false,
           "inputs": [],
           "name": "EIP712DomainChanged",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "proposer",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "bytes32",
+              "name": "evidenceRoot",
+              "type": "bytes32"
+            },
+            {
+              "indexed": false,
+              "internalType": "address[]",
+              "name": "disclosedWallets",
+              "type": "address[]"
+            },
+            {
+              "indexed": false,
+              "internalType": "string",
+              "name": "disclosureUri",
+              "type": "string"
+            }
+          ],
+          "name": "EvidenceBound",
           "type": "event"
         },
         {
@@ -3402,6 +3465,30 @@
         {
           "inputs": [
             {
+              "internalType": "string",
+              "name": "description",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "evidenceRoot",
+              "type": "bytes32"
+            }
+          ],
+          "name": "boundDescription",
+          "outputs": [
+            {
+              "internalType": "string",
+              "name": "",
+              "type": "string"
+            }
+          ],
+          "stateMutability": "pure",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
               "internalType": "address[]",
               "name": "targets",
               "type": "address[]"
@@ -3649,6 +3736,35 @@
               "internalType": "uint256[]",
               "name": "extensions",
               "type": "uint256[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
+            }
+          ],
+          "name": "evidenceOf",
+          "outputs": [
+            {
+              "internalType": "bytes32",
+              "name": "evidenceRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address[]",
+              "name": "disclosedWallets",
+              "type": "address[]"
+            },
+            {
+              "internalType": "string",
+              "name": "disclosureUri",
+              "type": "string"
             }
           ],
           "stateMutability": "view",
@@ -4118,6 +4234,40 @@
           "inputs": [
             {
               "internalType": "address[]",
+              "name": "",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "",
+              "type": "bytes[]"
+            },
+            {
+              "internalType": "string",
+              "name": "",
+              "type": "string"
+            }
+          ],
+          "name": "propose",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "pure",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address[]",
               "name": "targets",
               "type": "address[]"
             },
@@ -4135,13 +4285,28 @@
               "internalType": "string",
               "name": "description",
               "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "evidenceRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address[]",
+              "name": "disclosedWallets",
+              "type": "address[]"
+            },
+            {
+              "internalType": "string",
+              "name": "disclosureUri",
+              "type": "string"
             }
           ],
-          "name": "propose",
+          "name": "proposeWithEvidence",
           "outputs": [
             {
               "internalType": "uint256",
-              "name": "",
+              "name": "proposalId",
               "type": "uint256"
             }
           ],
@@ -5624,6 +5789,11 @@
       "abi": [
         {
           "inputs": [],
+          "name": "EmptyReportHash",
+          "type": "error"
+        },
+        {
+          "inputs": [],
           "name": "EmptyVersionHash",
           "type": "error"
         },
@@ -5665,6 +5835,17 @@
               "internalType": "uint256",
               "name": "proposalId",
               "type": "uint256"
+            }
+          ],
+          "name": "UnknownProposal",
+          "type": "error"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
             },
             {
               "internalType": "uint256",
@@ -5674,6 +5855,49 @@
           ],
           "name": "UnknownVersion",
           "type": "error"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "internalType": "bytes32",
+              "name": "reportHash",
+              "type": "bytes32"
+            },
+            {
+              "indexed": false,
+              "internalType": "bytes32",
+              "name": "simHash",
+              "type": "bytes32"
+            },
+            {
+              "indexed": false,
+              "internalType": "string",
+              "name": "uri",
+              "type": "string"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "attester",
+              "type": "address"
+            }
+          ],
+          "name": "AssessmentAttested",
+          "type": "event"
         },
         {
           "anonymous": false,
@@ -5730,6 +5954,59 @@
               "internalType": "uint256",
               "name": "proposalId",
               "type": "uint256"
+            }
+          ],
+          "name": "assessmentCount",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "reportHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "simHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "string",
+              "name": "uri",
+              "type": "string"
+            }
+          ],
+          "name": "attest",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
             },
             {
               "internalType": "bytes32",
@@ -5761,6 +6038,50 @@
             }
           ],
           "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "proposalId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            }
+          ],
+          "name": "getAssessment",
+          "outputs": [
+            {
+              "internalType": "bytes32",
+              "name": "reportHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "simHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "string",
+              "name": "uri",
+              "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "attester",
+              "type": "address"
+            },
+            {
+              "internalType": "uint64",
+              "name": "attestedAt",
+              "type": "uint64"
+            }
+          ],
+          "stateMutability": "view",
           "type": "function"
         },
         {

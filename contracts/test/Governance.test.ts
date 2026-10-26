@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture, mine, time } from "@nomicfoundation/hardhat-network-helpers";
+import { boundDescription, descriptionEvidence } from "../scripts/lib/evidence";
 
 // Governor ProposalState enum
 const State = { Pending: 0n, Active: 1n, Defeated: 3n, Succeeded: 4n, Queued: 5n, Executed: 7n } as const;
@@ -41,9 +42,10 @@ async function proposeGrant(f: Awaited<ReturnType<typeof deployDao>>, amount: bi
   const values = [0n];
   const calldatas = [f.treasury.interface.encodeFunctionData("transfer", [await f.usdc.getAddress(), f.grantee.address, amount])];
   const description = "MIP-12: grant 1000 USDC to the SDK studio";
-  const descriptionHash = ethers.id(description);
+  const e = descriptionEvidence(description);
+  const descriptionHash = ethers.id(boundDescription(description, e.evidenceRoot));
 
-  await f.governor.connect(f.voterA).propose(targets, values, calldatas, description);
+  await f.governor.connect(f.voterA).proposeWithEvidence(targets, values, calldatas, description, e.evidenceRoot, e.disclosedWallets, e.disclosureUri);
   const proposalId = await f.governor.hashProposal(targets, values, calldatas, descriptionHash);
   return { targets, values, calldatas, descriptionHash, proposalId };
 }

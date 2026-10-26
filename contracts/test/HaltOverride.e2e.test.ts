@@ -5,6 +5,7 @@ import { ethers, upgrades } from "hardhat";
 import { loadFixture, mine, time } from "@nomicfoundation/hardhat-network-helpers";
 import type { ContractTransactionResponse } from "ethers";
 import { encodeActions, hardhatAddress, type Action, type Deployments } from "../scripts/lib/actions";
+import { boundDescription, descriptionEvidence, scenarioEvidence, type BoundEvidence } from "../scripts/lib/evidence";
 import { governorSalt, overrideProposal } from "../scripts/lib/override";
 
 // End to end with the real MIP-21 payload from /data: pass -> queue -> watchdog flags -> execution blocked ->
@@ -58,9 +59,9 @@ async function deployMeridian() {
 
 type Dao = Awaited<ReturnType<typeof deployMeridian>>;
 
-async function passAndQueue(dao: Dao, p: { targets: string[]; values: bigint[]; calldatas: string[]; description: string }) {
-  const descriptionHash = ethers.id(p.description);
-  await dao.governor.connect(dao.proposer).propose(p.targets, p.values, p.calldatas, p.description);
+async function passAndQueue(dao: Dao, p: { targets: string[]; values: bigint[]; calldatas: string[]; description: string }, e: BoundEvidence = descriptionEvidence(p.description)) {
+  const descriptionHash = ethers.id(boundDescription(p.description, e.evidenceRoot));
+  await dao.governor.connect(dao.proposer).proposeWithEvidence(p.targets, p.values, p.calldatas, p.description, e.evidenceRoot, e.disclosedWallets, e.disclosureUri);
   const proposalId = await dao.governor.hashProposal(p.targets, p.values, p.calldatas, descriptionHash);
   await mine(2);
   await dao.governor.connect(dao.voterA).castVote(proposalId, VOTE_FOR);
@@ -77,7 +78,7 @@ const execute = (dao: Dao, p: { targets: string[]; values: bigint[]; calldatas: 
 async function mip21(dao: Dao) {
   const actions = JSON.parse(readFileSync(join(__dirname, "..", "..", "data", "scenarios", "MIP-21", "onchain_actions.json"), "utf8")) as Action[];
   const encoded = encodeActions(actions, dao.deployments);
-  return passAndQueue(dao, { ...encoded, description: "# MIP-21: VaultV2 storage packing and gas optimisation" });
+  return passAndQueue(dao, { ...encoded, description: "# MIP-21: VaultV2 storage packing and gas optimisation" }, scenarioEvidence(join(__dirname, "..", ".."), "MIP-21"));
 }
 
 describe("MIP-21 end to end: watchdog halt and governance override", () => {

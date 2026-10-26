@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture, mine, time } from "@nomicfoundation/hardhat-network-helpers";
 import type { ContractTransactionResponse } from "ethers";
+import { boundDescription, descriptionEvidence } from "../scripts/lib/evidence";
 
 const VOTE_FOR = 1;
 const MIN_DELAY = 60;
@@ -40,8 +41,9 @@ interface Proposal { targets: string[]; values: bigint[]; calldatas: string[]; d
 /** propose -> vote For -> queue. Returns the proposal and the timelock operation id from CallScheduled. */
 async function passAndQueue(dao: Dao, targets: string[], calldatas: string[], description: string): Promise<{ p: Proposal; operationId: string }> {
   const values = targets.map(() => 0n);
-  const descriptionHash = ethers.id(description);
-  await dao.governor.connect(dao.voterA).propose(targets, values, calldatas, description);
+  const e = descriptionEvidence(description);
+  const descriptionHash = ethers.id(boundDescription(description, e.evidenceRoot));
+  await dao.governor.connect(dao.voterA).proposeWithEvidence(targets, values, calldatas, description, e.evidenceRoot, e.disclosedWallets, e.disclosureUri);
   const proposalId = await dao.governor.hashProposal(targets, values, calldatas, descriptionHash);
   await mine(2);
   await dao.governor.connect(dao.voterA).castVote(proposalId, VOTE_FOR);

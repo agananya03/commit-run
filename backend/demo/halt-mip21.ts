@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { Contract, ethers, HDNodeWallet, JsonRpcProvider, NonceManager, type ContractTransactionResponse, type InterfaceAbi, type LogDescription } from "ethers";
 import { io } from "socket.io-client";
 import type { ProposalBundle, WatchdogFlag } from "../../shared/schemas/types.js";
+import { boundDescription, scenarioEvidence } from "../../contracts/scripts/lib/evidence.js";
 import { encodeActions } from "../src/chain/actions.js";
 import { loadRootEnv, repoRoot } from "../src/loadRootEnv.js";
 
@@ -94,7 +95,9 @@ async function main() {
   const { targets, values, calldatas } = encodeActions(actions, deployments as never, SLUG);
   const forum = JSON.parse(readFileSync(join(repoRoot, "data", "scenarios", SLUG, "forum_thread.json"), "utf8")) as { title?: string };
   const description = `# ${SLUG}: ${(forum.title ?? SLUG).replace(/^\[[^\]]+\]\s*/, "")}`;
-  const descriptionHash = ethers.id(description);
+  // MeridianGovernor only takes proposals with evidence and a disclosure; the vote hashes the bound description
+  const evidence = scenarioEvidence(repoRoot, SLUG);
+  const descriptionHash = ethers.id(boundDescription(description, evidence.evidenceRoot));
   const id = (await governor.getFunction("hashProposal")(targets, values, calldatas, descriptionHash)) as bigint;
   const proposerIndex = 13;
 
@@ -105,7 +108,9 @@ async function main() {
     return;
   }
   if (state === null) {
-    await (await contract("MeridianGovernor", signer(proposerIndex)).getFunction("propose")(targets, values, calldatas, description)).wait();
+    await (
+      await contract("MeridianGovernor", signer(proposerIndex)).getFunction("proposeWithEvidence")(targets, values, calldatas, description, evidence.evidenceRoot, evidence.disclosedWallets, evidence.disclosureUri)
+    ).wait();
     say(`proposed by #${proposerIndex} (${await signer(proposerIndex).getAddress()})`);
     await mine(Number(await governor.getFunction("votingDelay")()) + 1);
     state = await stateOf(id);

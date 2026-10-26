@@ -9,6 +9,7 @@ import { PipelineProgress } from "@/components/PipelineProgress";
 import { ProposalTimeline } from "@/components/ProposalTimeline";
 import { GlowBar, Rise } from "@/components/fx/Motion";
 import { NightPanel } from "@/components/proposal/TabNav";
+import { OnTheRecord } from "@/components/proposal/OnTheRecord";
 import type { ChainEvent, ProposalBundle, ProposalVersion } from "@/types/shared";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -226,6 +227,12 @@ function describe(e: ChainEvent): Row | null {
       return { ...base, title: `Version ${String(a.version ?? "")} recorded on-chain`, tone: "neutral", Icon: ShieldCheck };
     case "ProposalCreated":
       return { ...base, title: "Put up for a vote", detail: a.proposer ? `by ${nameOf(String(a.proposer))}` : undefined, tone: "neutral", Icon: Megaphone };
+    case "EvidenceBound": {
+      const n = Array.isArray(a.disclosedWallets) ? a.disclosedWallets.length : 0;
+      return { ...base, title: "Evidence and disclosure locked to the vote", detail: `evidence root ${short(String(a.evidenceRoot ?? ""))} · the proposer disclosed ${n} wallet${n === 1 ? "" : "s"} from their own wallet`, tone: "neutral", Icon: Link2 };
+    }
+    case "AssessmentAttested":
+      return { ...base, title: "Technical assessment recorded on-chain", detail: `report ${short(String(a.reportHash ?? ""))} · attested by ${nameOf(String(a.attester ?? "")) || short(String(a.attester ?? ""))}`, tone: "neutral", Icon: FileDiff };
     case "ProposalQueued":
       return { ...base, title: "Passed, and queued in the timelock", detail: "it can only run once the waiting period ends", tone: "neutral", Icon: Timer };
     case "CallScheduled":
@@ -362,6 +369,7 @@ export function HistoryTab({ proposalId, bundle }: { proposalId: string; bundle:
   return (
     <div className="space-y-6">
       <Lifecycle bundle={bundle} />
+      <OnTheRecord bundle={bundle} />
       <VersionChain versions={bundle.versions} />
       <div>
         <div className="mb-4 mt-8 text-xs font-medium text-faint">On-chain, step by step · every line has a receipt you can copy</div>

@@ -2,11 +2,14 @@
 // already stored it returns early, so a retry or a re-run never duplicates rows or re-sends a commit.
 import type { z } from "zod";
 import type { PipelineStep } from "../../../shared/schemas/types.js";
+import type { RegistryClient } from "../chain/registry.js";
+import type { FactCheckClient } from "../clients/factCheckClient.js";
 import type { RagClient } from "../clients/ragClient.js";
 import type { SimClient } from "../clients/simClient.js";
 import type { DecisionSummary, IntentSpec } from "../contracts/schemas.js";
 import { encodeActions } from "../chain/actions.js";
 import { coiReportFor, saveCoiReport } from "../coi/service.js";
+import { attestRun } from "../verdict/assessment.js";
 import { explainFindings } from "../verdict/explain.js";
 import { findingsForRun, storeFindings } from "../verdict/service.js";
 import { riskForRun, saveRisk } from "../risk/service.js";
@@ -26,6 +29,10 @@ export interface StepDeps {
   db: Db;
   rag: RagClient;
   sim: SimClient;
+  /** NLI fact-check for the claims stage; without it the stage uses the RAG claim labels. */
+  factCheck?: FactCheckClient;
+  /** Attests each run's technical assessment in ProposalRegistry; skipped without it. */
+  registry?: RegistryClient;
   proposals: ProposalService;
   deployments: DeploymentsT;
   /** Evidence file uris are relative to it. */
@@ -116,24 +123,27 @@ export const STEPS: Record<PipelineStep, Processor> = {
   },
 
   /** Said-vs-does rules (verdict/rules.ts) on the version's proposed simulation, then one explanation via rag /explain. */
-  async verdict({ slug, versionId }, { db, rag }) {
+  async verdict({ slug, versionId }, { db, rag, registry }) {
     const run = await db.simulationRun.findFirst({ where: { proposalVersionId: versionId, source: "PROPOSED" }, orderBy: { createdAt: "desc" } });
     if (!run) throw new Error(`no proposed simulation for ${slug}; the simulate step must run first`);
     if (run.explanation !== null) return { cached: true };
     const findings = await findingsForRun(db, run.id, versionId);
     const { explanation, source } = await explainFindings(rag, slug, findings);
     await storeFindings(db, run, findings, explanation);
-    return { findings: findings.length, critical: findings.filter((f) => f.severity === "critical").length, explanation: source };
+    // the technical assessment goes on the record; a chain hiccup must not fail the verdict
+    const assessment = registry ? await attestRun(db, registry, run.id, findings).then((a) => a.reportHash, (e: Error) => `not attested: ${e.message}`) : "no registry";
+    return { findings: findings.length, critical: findings.filter((f) => f.severity === "critical").length, explanation: source, assessment };
   },
 
   /** 4-stage risk chain (risk/chain.ts) over the version's proposed simulation run. */
-  async risk({ slug, versionId }, { db }) {
+  async risk({ slug, versionId }, { db, factCheck }) {
     const run = await db.simulationRun.findFirst({ where: { proposalVersionId: versionId, source: "PROPOSED" }, orderBy: { createdAt: "desc" } });
     if (!run) throw new Error(`no proposed simulation for ${slug}; the simulate step must run first`);
     const existing = await db.riskChainRecord.findFirst({ where: { simulationRunId: run.id } });
     if (existing) return { cached: true, level: existing.level, action: existing.action };
-    const risk = await riskForRun(db, run.id);
+    const fc = factCheck ? await factCheck.summary(slug) : null;
+    const risk = await riskForRun(db, run.id, { factCheck: fc });
     await saveRisk(db, run, risk);
-    return { posterior: risk.posterior, level: risk.level, action: risk.action };
+    return { posterior: risk.posterior, level: risk.level, action: risk.action, claims: fc ? `nli ${fc.contradicted}/${fc.statements} contradicted` : "rag labels" };
   },
 };

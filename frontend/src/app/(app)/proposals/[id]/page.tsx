@@ -15,6 +15,8 @@ import { HistoryTab } from "@/components/proposal/HistoryTab";
 import { ProposalHero } from "@/components/proposal/ProposalHero";
 import { OverviewTab } from "@/components/proposal/OverviewTab";
 import { SourcesTab } from "@/components/proposal/SourcesTab";
+import { FactCheckTab } from "@/components/proposal/FactCheckTab";
+import { useFactCheck } from "@/lib/verify/client";
 import { NightPanel, PROPOSAL_TABS, SectionHead, TabNav, type ProposalTab } from "@/components/proposal/TabNav";
 
 export default function ProposalDetailPage() {
@@ -23,6 +25,8 @@ export default function ProposalDetailPage() {
   const [tab, setTab] = useState<ProposalTab>("summary");
   const [liveFlag, setLiveFlag] = useState<WatchdogFlag | null>(null);
   const { data: bundle, isLoading, error } = useProposalBundle(proposalId);
+  // started on page load so the model is warm by the time the Fact-check tab opens
+  const { board } = useFactCheck(proposalId);
 
   // A flag that arrives over the socket while the page is open (WatchdogGlobalListener re-dispatches it).
   useEffect(() => {
@@ -40,12 +44,12 @@ export default function ProposalDetailPage() {
     if (t && PROPOSAL_TABS.some((x) => x.id === t)) setTab(t as ProposalTab);
   }, [proposalId]);
 
-  // Keys 1-6 jump between tabs, ←/→ step through them.
+  // Number keys jump between tabs, ←/→ step through them.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement | null)?.closest("input, textarea, [contenteditable], [role=dialog]")) return;
       const ids = PROPOSAL_TABS.map((t) => t.id);
-      if (e.key >= "1" && e.key <= "6") setTab(ids[Number(e.key) - 1]!);
+      if (e.key >= "1" && e.key <= String(ids.length)) setTab(ids[Number(e.key) - 1]!);
       else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
         setTab((cur) => ids[(ids.indexOf(cur) + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]!);
       }
@@ -93,7 +97,11 @@ export default function ProposalDetailPage() {
         <TabNav
           active={tab}
           onChange={setTab}
-          alerts={row ? { execution: row.criticalCount > 0, conflicts: checkTone(row, "coi") === "danger" } : {}}
+          alerts={
+            row
+              ? { execution: row.criticalCount > 0, factcheck: !!board && Object.values(board.rulings).some((r) => r.verdict === "contradicted"), conflicts: checkTone(row, "coi") === "danger" }
+              : {}
+          }
         />
 
         <AnimatePresence mode="wait">
@@ -104,6 +112,13 @@ export default function ProposalDetailPage() {
               <>
                 <SectionHead eyebrow="Promise vs code" title="What it says, next to what it does." line="Left: what the proposal promised, word for word. Right: what its code actually does when we run it on a copy of the chain." />
                 <PromiseVsCode proposalId={proposalId} intent={bundle?.intent} simulation={bundle?.simulation} findings={bundle?.findings} explanation={bundle?.explanation} onSelectTab={select} />
+              </>
+            )}
+
+            {tab === "factcheck" && (
+              <>
+                <SectionHead eyebrow="Fact-check" title="Every witness, cross-examined." line="We take each claim from the proposal, the forum, social posts and the signed disclosure, and check it against what the code really does. Red strings mark the claims the code disproves." />
+                <FactCheckTab proposalId={proposalId} />
               </>
             )}
 

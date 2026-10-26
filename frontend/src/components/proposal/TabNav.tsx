@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 export const PROPOSAL_TABS = [
   { id: "summary", label: "Overview" },
   { id: "execution", label: "Promise vs code" },
+  { id: "factcheck", label: "Fact-check" },
   { id: "conflicts", label: "Money trail" },
   { id: "risk", label: "Risk score" },
   { id: "evidence", label: "Sources" },
@@ -14,7 +15,7 @@ export const PROPOSAL_TABS = [
 
 export type ProposalTab = (typeof PROPOSAL_TABS)[number]["id"];
 
-/** Sticky pill bar under the status strip; the active pill slides between tabs. Keys 1-6 also switch. */
+/** Sticky pill bar under the status strip; the active pill slides between tabs. Number keys also switch. */
 export function TabNav({ active, onChange, alerts = {} }: { active: string; onChange: (t: ProposalTab) => void; alerts?: Partial<Record<ProposalTab, boolean>> }) {
   return (
     <div className="no-print sticky top-11 z-20 -mx-4 bg-canvas/80 px-4 py-3 backdrop-blur-xl sm:-mx-8 sm:px-8">

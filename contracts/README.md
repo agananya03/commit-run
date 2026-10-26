@@ -10,7 +10,7 @@ Hardhat 2 (TypeScript) + OpenZeppelin Contracts v5 project for Meridian DAO on *
 |---|---|
 | **MeridianToken** (MRD) | ERC20Votes governance token, 100M supply minted to the deployer. Voting power counts only once delegated (deploy:seed delegates every holder). |
 | **MockUSDC** | 6-decimal ERC-20 the deployer can mint. Treasury holds 20M, the vault 8M. |
-| **MeridianGovernor** | OpenZeppelin Governor with a 1-block voting delay, 20-block voting period, 4% quorum, no proposal threshold, and GovernorTimelockControl. A passed proposal is queued in the GuardedTimelock, and the timelock executes it. |
+| **MeridianGovernor** | OpenZeppelin Governor with a 1-block voting delay, 20-block voting period, 4% quorum, no proposal threshold, and GovernorTimelockControl. A passed proposal is queued in the GuardedTimelock, and the timelock executes it. **No proposal without evidence and a disclosure:** plain `propose` reverts `EvidenceRequired`; `proposeWithEvidence(..., evidenceRoot, disclosedWallets, disclosureUri)` records the proposer's own wallet disclosure (sent from their wallet, so the transaction is the signature) and appends `evidence: <root>` to the description, so the proposal id the DAO votes on is a hash of the evidence (`EvidenceBound` event, `evidenceOf(proposalId)`). |
 | **Treasury** | Owned by the timelock. `transfer(token, to, amount)` and `approve(token, spender, amount)` are owner-only, so only a passed vote moves funds. |
 | **VaultV1** (behind **VaultProxy**) | UUPS-upgradeable USDC vault with deposits, withdrawals and a deposit cap. Owner is the timelock, so only a vote can upgrade it. |
 
@@ -18,7 +18,7 @@ Hardhat 2 (TypeScript) + OpenZeppelin Contracts v5 project for Meridian DAO on *
 
 | Contract | What it is |
 |---|---|
-| **ProposalRegistry** | Append-only, hash-chained history of proposal versions. `commit(proposalId, versionHash, prevHash, evidenceRoot, uri)` must name the current latest hash as `prevHash` (`StalePrevHash` otherwise), so history can be extended but never rewritten or forked. Whoever commits version 1 owns that chain (`NotCommitter`). The backend commits every evidence version here from Hardhat #0. |
+| **ProposalRegistry** | Append-only, hash-chained history of proposal versions. `commit(proposalId, versionHash, prevHash, evidenceRoot, uri)` must name the current latest hash as `prevHash` (`StalePrevHash` otherwise), so history can be extended but never rewritten or forked. Whoever commits version 1 owns that chain (`NotCommitter`). The backend commits every evidence version here from Hardhat #0. Beside the versions sits an assessment log: `attest(proposalId, reportHash, simHash, uri)` records the sha256 of a technical assessment (the backend's Seatbelt-style simulation report) with its attester, once at the verdict step and once for the exact queued payload (`AssessmentAttested`, `getAssessment`). |
 | **GuardedTimelock** | OpenZeppelin TimelockController (60 s min delay in the demo, `TIMELOCK_DELAY`) whose `execute`/`executeBatch` revert `GuardFlagged(id)` while the guard has the operation flagged. It deploys its own GovernanceGuard in its constructor, so the guard is bound to it from block one. The governor is the only proposer and canceller, anyone can execute, and the deployer renounces admin. |
 | **GovernanceGuard** | The watchdog's brake, which can only **delay**, never execute or change anything. `flag(operationId, findingsHash)` is restricted to `WATCHDOG_ROLE` (Hardhat #1, the backend's watchdog key), once per operation, and expires after `FLAG_TTL` = 7 days, so a rogue watchdog cannot block forever. `clear(operationId)` accepts only the timelock itself, so lifting a flag takes a passed governance vote. A cleared operation can never be flagged again (`AlreadyCleared`), which makes the override final. Only governance (the timelock is admin) can add or remove watchdogs. `findingsHash` is the keccak of the backend's canonical findings, so anyone can check what the flag was based on. |
 
@@ -44,7 +44,8 @@ sequenceDiagram
     participant B as Backend listener + watchdog
     participant S as Sim (Anvil fork)
 
-    P->>G: propose(targets, values, calldatas, "# MIP-21: ...")
+    P->>G: proposeWithEvidence(targets, values, calldatas, "# MIP-21: ...", evidenceRoot, [#13], disclosureUri)
+    G-->>B: EvidenceBound (root = the committed evidenceRoot; disclosure omits alt wallet #14)
     G-->>B: ProposalCreated (linked by slug, operationId precomputed)
     H->>G: castVote (all in one block)
     H->>G: queue(...)
@@ -64,7 +65,7 @@ sequenceDiagram
         GG-->>T: true
         T-->>H: revert GuardFlagged(operationId)
         Note over H,GG: Override: token holders can overrule the watchdog
-        H->>G: propose([guard], [0], [clear(operationId)], "# Override: ... MIP 21 ...")
+        H->>G: proposeWithEvidence([guard], [0], [clear(operationId)], "# Override: ... MIP 21 ...", root of the description, [], "")
         H->>G: castVote, then queue, then 60 s delay
         H->>G: execute override
         G->>T: executeBatch
@@ -167,7 +168,7 @@ Drives a scenario from `/data/scenarios/<id>/` through propose → vote → queu
 
 | Command | What it does |
 |---|---|
-| `npm run gov -- propose MIP-21` | propose from the scenario's proposer; prints `governorProposalId` and the `targets/values/calldatas` JSON |
+| `npm run gov -- propose MIP-21` | propose from the scenario's proposer with `proposeWithEvidence`: the evidence root of `data/scenarios/MIP-21` and the wallets in its `disclosure.json` (`scripts/lib/evidence.ts`); prints `governorProposalId` and the `targets/values/calldatas` JSON |
 | `npm run gov -- vote MIP-21` | cast every vote in `votes.json`, all mined in **one block** (40+ voters would otherwise outlast the 20-block voting period) |
 | `npm run gov -- advance [blocks] [seconds]` | mine blocks / move time (default: voting period + 1 block) |
 | `npm run gov -- queue MIP-21` | queue in the GuardedTimelock; prints the operation id |

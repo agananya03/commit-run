@@ -14,22 +14,25 @@ export interface Fact {
   kind: "code" | "money" | "watchdog";
   /** claim topics this fact can rule on (NLI calls unrelated same-subject sentences "contradictions") */
   topics: string[];
+  /** "nothing happens" facts (no approvals, no upgrade…): they can confirm a claim, never overrule one */
+  negative?: boolean;
 }
 
 const TOPICS = {
   // first topic = what the fact is about; the rest it may rule on only for claims that rule things out
   ownership: ["ownership", "code"],
-  approvals: ["approvals", "money", "ownership", "code"],
+  approvals: ["approvals", "money"],
   money: ["money"],
   code: ["code", "ownership"],
-  people: ["people", "money"],
-  status: [] as string[],
+  people: ["people"],
+  status: ["status"],
+  risk: ["risk"],
 };
 
 const MAX = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
 function amount(raw: string, token: string): string {
-  if (raw === MAX) return "an unlimited amount of";
+  if (raw === MAX) return "an unlimited amount";
   const usdc = nameOf(token) === "USDC";
   const n = Number(BigInt(raw) / BigInt(`1${"0".repeat(usdc ? 4 : 16)}`)) / 100; // ES5 target: no bigint **
   return `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${usdc ? "USDC" : nameOf(token)}${usdc ? ` ($${n.toLocaleString("en-US", { maximumFractionDigits: 0 })})` : ""}`;
@@ -37,7 +40,7 @@ function amount(raw: string, token: string): string {
 
 export function codeFacts(b: ProposalBundle): Fact[] {
   const out: Fact[] = [];
-  const add = (kind: Fact["kind"], text: string, topics: string[]) => out.push({ id: `fact-${out.length + 1}`, text, kind, topics });
+  const add = (kind: Fact["kind"], text: string, topics: string[], negative = false) => out.push({ id: `fact-${out.length + 1}`, text, kind, topics, negative });
   const s = b.simulation;
 
   if (s) {
@@ -45,13 +48,13 @@ export function codeFacts(b: ProposalBundle): Fact[] {
       add("code", `The owner of the ${nameOf(o.contract)} changes from ${nameOf(o.before)} to ${nameOf(o.after)}.`, TOPICS.ownership);
       add("code", `Ownership of the ${nameOf(o.contract)} changes to a new wallet.`, TOPICS.ownership);
     }
-    if (s.ownershipChanges.length === 0) add("code", "Ownership does not change: no contract gets a new owner.", TOPICS.ownership);
+    if (s.ownershipChanges.length === 0) add("code", "Ownership does not change: no contract gets a new owner.", TOPICS.ownership, true);
 
     for (const a of s.approvals) add("code", `The ${nameOf(a.owner)} allows ${nameOf(a.spender)} to spend ${amount(a.amount, a.token)} of its ${nameOf(a.token)}.`, TOPICS.approvals);
-    if (s.approvals.length === 0) add("code", "No token approvals are granted to anyone.", TOPICS.approvals);
+    if (s.approvals.length === 0) add("code", "No token approvals are granted to anyone.", TOPICS.approvals, true);
 
     for (const t of s.tokenTransfers) add("code", `The ${nameOf(t.from)} sends ${amount(t.amount, t.token)} to ${nameOf(t.to)}.`, TOPICS.money);
-    if (s.tokenTransfers.length === 0) add("code", "No money leaves the treasury.", TOPICS.money);
+    if (s.tokenTransfers.length === 0) add("code", "No money leaves the treasury.", TOPICS.money, true);
 
     for (const i of s.implementationChanges) {
       add("code", `The ${nameOf(i.proxy)} is upgraded to new code.`, TOPICS.code);
@@ -60,17 +63,17 @@ export function codeFacts(b: ProposalBundle): Fact[] {
         add("code", "The upgrade adds new admin powers.", TOPICS.code);
       }
     }
-    if (s.implementationChanges.length === 0) add("code", "No contract code is changed or upgraded.", TOPICS.code);
+    if (s.implementationChanges.length === 0) add("code", "No contract code is changed or upgraded.", TOPICS.code, true);
   }
 
   const coi = b.coi;
   if (coi) {
     for (const l of coi.undisclosedLinks) add("money", `The proposer secretly funded ${nameOf(l.to)} before the proposal, and did not disclose it.`, TOPICS.people);
-    if (coi.undisclosedLinks.length === 0) add("money", "The proposer has no hidden financial links to whoever gets paid.", TOPICS.people);
+    if (coi.undisclosedLinks.length === 0) add("money", "The proposer has no hidden financial links to whoever gets paid.", TOPICS.people, true);
   }
 
   if (b.flag) add("watchdog", `The watchdog froze ${b.proposal.slug} on-chain before it could run.`, TOPICS.status);
   else add("watchdog", `${b.proposal.slug} has not been frozen by the watchdog.`, TOPICS.status);
-  if (b.risk) add("watchdog", `${b.proposal.slug} is rated ${b.risk.level} risk: ${Math.round(b.risk.posterior * 100)}% likely to be harmful.`, TOPICS.status);
+  if (b.risk) add("watchdog", `${b.proposal.slug} is rated ${b.risk.level} risk: ${Math.round(b.risk.posterior * 100)}% likely to be harmful.`, TOPICS.risk);
   return out;
 }

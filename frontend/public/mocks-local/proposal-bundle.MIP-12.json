@@ -3,7 +3,7 @@
     "id": "clx12",
     "slug": "MIP-12",
     "title": "Developer SDK and Subgraph Indexer Infrastructure Grant",
-    "proposer": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+    "proposer": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
     "status": "EXECUTED",
     "governorProposalId": "10120000000000000000000000000000000000000000000000000000000000000000000000000",
     "operationId": "0x1200000000000000000000000000000000000000000000000000000000000000",
@@ -25,28 +25,40 @@
           "uri": "pdf://MIP-12/proposal.pdf",
           "sha256": "0x122aa6f8dbdbc090d4ce0e95eda2a13b8460cb2242d3a3406198306e7cef8885",
           "bytes": 36400,
-          "proof": ["0x1201", "0x1202"]
+          "proof": [
+            "0x1201",
+            "0x1202"
+          ]
         },
         {
           "type": "forum",
           "uri": "forum://MIP-12/forum_thread.json",
           "sha256": "0x12ce16e3c9d03df25105c8ab715142e86300f0d0381f2d41592c6725115a0ebe",
           "bytes": 11500,
-          "proof": ["0x1203", "0x1204"]
+          "proof": [
+            "0x1203",
+            "0x1204"
+          ]
         },
         {
           "type": "social",
           "uri": "social://MIP-12/social.json",
           "sha256": "0x126ed3dd269c8d4ffe2451d0bb7f5ff4c3745e3b8034626cdd2ca420a4d62e21",
           "bytes": 2800,
-          "proof": ["0x1205", "0x1206"]
+          "proof": [
+            "0x1205",
+            "0x1206"
+          ]
         },
         {
           "type": "onchain",
           "uri": "onchain://MIP-12/onchain_actions.json",
           "sha256": "0x1236ee5210655a7ef820e5be205ea182f55cab59ee15fdeefde5cf0f49af9496",
           "bytes": 4500,
-          "proof": ["0x1207", "0x1208"]
+          "proof": [
+            "0x1207",
+            "0x1208"
+          ]
         }
       ],
       "createdAt": "2026-09-15T09:12:05Z"
@@ -57,8 +69,11 @@
     "tldr": "Provides a 400,000 USDC infrastructure grant to Meridian Studio Collective to build an official TypeScript SDK and subgraph indexer.",
     "treasuryImpact": {
       "amountUsd": 400000,
-      "pctOfTreasury": 2.0,
-      "recipients": ["Meridian Studio Collective", "wallet index 9"],
+      "pctOfTreasury": 2,
+      "recipients": [
+        "Meridian Studio Collective",
+        "wallet index 9"
+      ],
       "citations": [
         {
           "chunkId": "MIP-12:forum:0",
@@ -164,7 +179,7 @@
       "elevated admin privileges",
       "private keys or proxy upgrades"
     ],
-    "confidence": 1.0
+    "confidence": 1
   },
   "simulation": {
     "proposalId": "MIP-12",
@@ -175,14 +190,17 @@
         "contractName": "Treasury",
         "selector": "0xa9059cbb",
         "signature": "transfer(address,uint256)",
-        "args": ["0x2546BcD3c84621e976D8185a91A922aE77ECEc30", "400000000000"]
+        "args": [
+          "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "400000000000"
+        ]
       }
     ],
     "tokenTransfers": [
       {
         "token": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
         "from": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-        "to": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+        "to": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
         "amount": "400000000000"
       }
     ],
@@ -196,8 +214,10 @@
   },
   "coi": {
     "proposalId": "MIP-12",
-    "proposer": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-    "disclosed": ["wallet index 9"],
+    "proposer": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+    "disclosed": [
+      "wallet index 9"
+    ],
     "signatureValid": true,
     "undisclosedLinks": [],
     "pCoi": 0.02
@@ -211,8 +231,37 @@
   "risk": {
     "proposalId": "MIP-12",
     "prior": 0.05,
-    "stages": [],
-    "posterior": 0.02,
+    "stages": [
+      {
+        "stage": "claims",
+        "likelihoodRatio": 0.4,
+        "explanation": "NLI fact-check (Xenova/nli-deberta-v3-small) of 15 claims from the proposal, forum, posts and disclosure: 0 contradicted by the simulated code, 7 confirmed. LR = 0.5 + 1.5×0 − 0.1×7 = 0.4.",
+        "findingIds": [],
+        "probability": 0.021
+      },
+      {
+        "stage": "coi",
+        "likelihoodRatio": 0.56,
+        "explanation": "pCoi 0.02 from 0 undisclosed wallet links (a validly signed disclosure) maps to LR 0.56.",
+        "findingIds": [],
+        "probability": 0.012
+      },
+      {
+        "stage": "voting",
+        "likelihoodRatio": 1.5,
+        "explanation": "Nakamoto coefficient 1 (voters needed for 51% of 2 votes); turnout 0%; COI-linked voting power 0%; concentrated (≤ 4) ×1.5. LR 1.5.",
+        "findingIds": [],
+        "probability": 0.017
+      },
+      {
+        "stage": "execution",
+        "likelihoodRatio": 0.3,
+        "explanation": "The simulated execution matches the stated intent with zero findings. LR 0.3.",
+        "findingIds": [],
+        "probability": 0.005
+      }
+    ],
+    "posterior": 0.005,
     "level": "LOW",
     "action": "none"
   },
@@ -226,9 +275,43 @@
       "logIndex": 1,
       "args": {
         "proposalId": "120000000000000000000000000000000000000000000000000000000000000001",
-        "proposer": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "proposer": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
         "description": "MIP-12 Developer SDK grant"
       }
+    },
+    {
+      "proposalId": "MIP-12",
+      "contract": "MeridianGovernor",
+      "name": "EvidenceBound",
+      "args": {
+        "proposalId": "10120000000000000000000000000000000000000000000000000000000000000000000000000",
+        "proposer": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "evidenceRoot": "0x12b05f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c5f3c",
+        "disclosedWallets": [
+          "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"
+        ],
+        "disclosureUri": "data/scenarios/MIP-12/disclosure.json"
+      },
+      "blockNumber": 800,
+      "txHash": "0x12a88d188d188d188d188d188d188d188d188d188d188d188d188d188d188d0",
+      "logIndex": 2
+    },
+    {
+      "proposalId": "MIP-12",
+      "contract": "ProposalRegistry",
+      "name": "AssessmentAttested",
+      "args": {
+        "proposalId": "12",
+        "index": 0,
+        "reportHash": "0xa40a316cfbb56a8f5669fa4da43a9fabb4819bc8d80edaef40d86bc063400866",
+        "simHash": "0x122a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "uri": "poi://MIP-12/assessment/0x122a0e4450257ad6d226a27e02932f9152207b1d9bfcf9908cf24369a68b5590",
+        "attester": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      },
+      "blockNumber": 801,
+      "txHash": "0x6c8107b7bbf331efdf9ddf444ca74efc6bd8b5ff7b1f166f5204f9691cde70db",
+      "logIndex": 0
     },
     {
       "proposalId": "clx12",

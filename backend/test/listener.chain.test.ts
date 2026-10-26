@@ -11,6 +11,7 @@ import { Contract, HDNodeWallet, JsonRpcProvider, keccak256, Network, NonceManag
 import { pino } from "pino";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ChainEvent } from "../../shared/schemas/types.js";
+import { boundDescription } from "../../contracts/scripts/lib/evidence.js";
 import { encodeActions } from "../src/chain/actions.js";
 import type { DeploymentsT } from "../src/chain/contracts.js";
 import { ChainListener } from "../src/chain/listener.js";
@@ -93,12 +94,13 @@ describe.skipIf(!online)("ChainListener (hardhat node + deploy:seed)", () => {
     const values = targets.map(() => 0n);
     const description = `# ${SLUG}: listener test ${Date.now()}`;
     const governor = at("MeridianGovernor", 13);
-    await (await governor.getFunction("propose")(targets, values, calldatas, description)).wait();
-    const proposalId = (await governor.getFunction("hashProposal")(targets, values, calldatas, keccak256(toUtf8Bytes(description)))) as bigint;
+    await (await governor.getFunction("proposeWithEvidence")(targets, values, calldatas, description, version.evidenceRoot, [hardhatAddress(13)], "")).wait();
+    const bound = boundDescription(description, version.evidenceRoot);
+    const proposalId = (await governor.getFunction("hashProposal")(targets, values, calldatas, keccak256(toUtf8Bytes(bound)))) as bigint;
     await mine(2);
     for (const voter of [2, 3]) await (await at("MeridianGovernor", voter).getFunction("castVote")(proposalId, 1)).wait();
     await mine(21);
-    const queueTx = await (await governor.getFunction("queue")(targets, values, calldatas, keccak256(toUtf8Bytes(description)))).wait();
+    const queueTx = await (await governor.getFunction("queue")(targets, values, calldatas, keccak256(toUtf8Bytes(bound)))).wait();
 
     // 3. the watchdog (#1) flags the queued operation (id taken from CallScheduled, as the backend will)
     const timelock = new Contract(deployments!.contracts.GuardedTimelock!.address, deployments!.contracts.GuardedTimelock!.abi as never, provider);

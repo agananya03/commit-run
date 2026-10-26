@@ -5,7 +5,33 @@ pragma solidity ^0.8.24;
 /// @notice Tamper-evident, append-only history of proposal versions. Each commit must name the
 /// current latest versionHash as its prevHash (bytes32(0) for the first), so history can only be
 /// extended, never rewritten or forked. The address that commits version 1 owns that proposal's chain.
+///
+/// Technical assessments sit beside the versions: anyone may attest the hash of a simulation report for a
+/// recorded proposal, and the attester is stored with it, so readers decide whose assessments they trust
+/// (the ProofOfIntent watchdog attests one when the proposal is submitted and one for the exact queued payload).
 contract ProposalRegistry {
+    struct Assessment {
+        bytes32 reportHash;
+        bytes32 simHash;
+        string uri;
+        address attester;
+        uint64 attestedAt;
+    }
+
+    mapping(uint256 proposalId => Assessment[]) private _assessments;
+
+    event AssessmentAttested(
+        uint256 indexed proposalId,
+        uint256 index,
+        bytes32 reportHash,
+        bytes32 simHash,
+        string uri,
+        address indexed attester
+    );
+
+    error EmptyReportHash();
+    error UnknownProposal(uint256 proposalId);
+
     struct Version {
         bytes32 versionHash;
         bytes32 prevHash;
@@ -76,5 +102,37 @@ contract ProposalRegistry {
 
     function versionCount(uint256 proposalId) external view returns (uint256) {
         return _versions[proposalId].length;
+    }
+
+    /// @notice Records the hash of a technical assessment (simulation report) of a recorded proposal.
+    /// @param reportHash sha256 of the report bytes
+    /// @param simHash the simulation run the report describes
+    /// @return index 0-based position in the proposal's assessment log
+    function attest(uint256 proposalId, bytes32 reportHash, bytes32 simHash, string calldata uri)
+        external
+        returns (uint256 index)
+    {
+        if (reportHash == bytes32(0)) revert EmptyReportHash();
+        if (_versions[proposalId].length == 0) revert UnknownProposal(proposalId);
+        Assessment[] storage log = _assessments[proposalId];
+        index = log.length;
+        log.push(Assessment(reportHash, simHash, uri, msg.sender, uint64(block.timestamp)));
+        emit AssessmentAttested(proposalId, index, reportHash, simHash, uri, msg.sender);
+    }
+
+    function assessmentCount(uint256 proposalId) external view returns (uint256) {
+        return _assessments[proposalId].length;
+    }
+
+    /// @param index 0-based
+    function getAssessment(uint256 proposalId, uint256 index)
+        external
+        view
+        returns (bytes32 reportHash, bytes32 simHash, string memory uri, address attester, uint64 attestedAt)
+    {
+        Assessment[] storage log = _assessments[proposalId];
+        if (index >= log.length) revert UnknownVersion(proposalId, index);
+        Assessment storage a = log[index];
+        return (a.reportHash, a.simHash, a.uri, a.attester, a.attestedAt);
     }
 }

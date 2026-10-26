@@ -12,6 +12,8 @@ import { ParticleField } from "@/components/fx/ParticleField";
 import { BorderBeam } from "@/components/fx/BorderBeam";
 import { Magnetic, RevealLines, Rise, RiskRing, TiltCard } from "@/components/fx/Motion";
 
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
+
 /* ---------------------------------------------------------------- 1. hero window */
 
 function Hero({ rows }: { rows: RadarRow[] }) {
@@ -40,7 +42,10 @@ function Hero({ rows }: { rows: RadarRow[] }) {
         <h1 className="mt-7 text-[clamp(44px,6.4vw,92px)] font-medium leading-[1.04] tracking-[-0.035em]">
           <RevealLines
             lines={[
-              <span key="a" className="ice-text inline-block pr-[0.04em]">{rows.length || "—"} proposals.</span>,
+              // a live count of what the watchdog is tracking right now, not a claim about all proposals
+              <span key="a" className="ice-text inline-block pr-[0.04em]">
+                {rows.length || "—"} {rows.length === 1 ? "proposal" : "proposals"} watched.
+              </span>,
               stopped.length > 0 ? (
                 <span key="b" className="danger-text inline-block pr-[0.04em]">{stopped.length} stopped.</span>
               ) : (
@@ -73,7 +78,9 @@ function Hero({ rows }: { rows: RadarRow[] }) {
           </Magnetic>
         </Rise>
         <Rise delay={0.55}>
-          <p className="mt-4 text-sm text-faint">{stopped.length ? `${stopped.length} frozen at the timelock` : "No proposal frozen right now"} · demo data</p>
+          <p className="mt-4 text-sm text-faint">
+            {stopped.length ? `${stopped.length} frozen at the timelock` : "No proposal frozen right now"} · {USE_MOCKS ? "demo data: added proposals aren't saved" : "live from the chain"}
+          </p>
         </Rise>
       </motion.div>
 

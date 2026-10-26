@@ -1,0 +1,190 @@
+{
+  "proposalId": "MIP-12",
+  "model": "Xenova/nli-deberta-v3-small",
+  "ms": 26,
+  "witnesses": [
+    {
+      "id": "code",
+      "label": "The code",
+      "statements": [
+        {
+          "id": "fact-1",
+          "text": "Ownership does not change: no contract gets a new owner."
+        },
+        {
+          "id": "fact-2",
+          "text": "No token approvals are granted to anyone."
+        },
+        {
+          "id": "fact-3",
+          "text": "The DAO treasury sends 400,000 USDC ($400,000) to Dev Studio (wallet #9)."
+        },
+        {
+          "id": "fact-4",
+          "text": "No contract code is changed or upgraded."
+        },
+        {
+          "id": "fact-5",
+          "text": "The proposer has no hidden financial links to whoever gets paid."
+        }
+      ]
+    },
+    {
+      "id": "pdf",
+      "label": "Proposal",
+      "statements": [
+        {
+          "id": "pdf-4",
+          "text": "The proposal's itemized budget table totals $400,000."
+        },
+        {
+          "id": "pdf-1",
+          "text": "Executive Summary We request a grant of 400,000 USDC from the Meridian Treasury to fund the core SDK and open-source subgraph indexer."
+        },
+        {
+          "id": "pdf-2",
+          "text": "The recipient address is wallet index 9, owned and operated by Meridian Studio Collective."
+        },
+        {
+          "id": "pdf-3",
+          "text": "This proposal establishes a robust developer tooling suite to streamline integrations across Meridian DAO's lending pools and liquidity reserves."
+        }
+      ]
+    },
+    {
+      "id": "forum",
+      "label": "Forum",
+      "statements": [
+        {
+          "id": "forum-8",
+          "text": "Crucially, this proposal involves no contract changes or upgradeToAndCall bytecode deployments to our 8M USDC Vault."
+        },
+        {
+          "id": "forum-9",
+          "text": "Since funds are sent directly to the disclosed dev studio wallet 9, the vault remains untouched."
+        },
+        {
+          "id": "forum-6",
+          "text": "Zero private keys, zero admin roles, and zero proxy upgrades."
+        },
+        {
+          "id": "forum-1",
+          "text": "We are excited to submit MIP-12 requesting a 400,000 USDC grant to build an official TypeScript SDK and subgraph indexer for Meridian DAO."
+        },
+        {
+          "id": "forum-2",
+          "text": "Recipient is wallet index 9 (Meridian Studio Collective)."
+        },
+        {
+          "id": "forum-3",
+          "text": "From a financial perspective, 400K USDC represents exactly 2.0% of our 20M treasury."
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "label": "Social",
+      "statements": [
+        {
+          "id": "social-4",
+          "text": "Reviewed the MIP-12 client-side architecture: zero privileged execution, zero timelock admin keys."
+        },
+        {
+          "id": "social-1",
+          "text": "Excited to publish MIP-12 for community review!"
+        },
+        {
+          "id": "social-2",
+          "text": "Thoroughly analyzed the financial scope of MIP-12."
+        },
+        {
+          "id": "social-3",
+          "text": "At 400K USDC (2.0% treasury), with transparent milestones and clear deliverables, this is a model grant proposal."
+        }
+      ]
+    },
+    {
+      "id": "disclosure",
+      "label": "Disclosure",
+      "statements": [
+        {
+          "id": "disclosure-1",
+          "text": "MIP-12 complete disclosure: Primary proposer index 8 and dev studio execution recipient index 9."
+        }
+      ]
+    }
+  ],
+  "rulings": {
+    "forum-8": {
+      "verdict": "supported",
+      "score": 0.994,
+      "evidence": "fact-4"
+    },
+    "forum-9": {
+      "verdict": "unclear",
+      "score": 0.009
+    },
+    "forum-6": {
+      "verdict": "supported",
+      "score": 0.964,
+      "evidence": "fact-4"
+    },
+    "forum-1": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "forum-2": {
+      "verdict": "supported",
+      "score": 0.964,
+      "evidence": "fact-3"
+    },
+    "forum-3": {
+      "verdict": "unclear",
+      "score": 0.009
+    },
+    "pdf-4": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "pdf-1": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "pdf-2": {
+      "verdict": "unclear",
+      "score": 0.698
+    },
+    "pdf-3": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-4": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-1": {
+      "verdict": "unclear",
+      "score": 0.009
+    },
+    "social-2": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-3": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "disclosure-1": {
+      "verdict": "unclear",
+      "score": 0.056
+    }
+  }
+}

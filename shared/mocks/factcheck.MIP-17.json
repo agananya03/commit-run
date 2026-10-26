@@ -1,0 +1,227 @@
+{
+  "proposalId": "MIP-17",
+  "model": "Xenova/nli-deberta-v3-small",
+  "ms": 9,
+  "witnesses": [
+    {
+      "id": "code",
+      "label": "The code",
+      "statements": [
+        {
+          "id": "fact-1",
+          "text": "Ownership does not change: no contract gets a new owner."
+        },
+        {
+          "id": "fact-2",
+          "text": "No token approvals are granted to anyone."
+        },
+        {
+          "id": "fact-3",
+          "text": "The DAO treasury sends 5,000,000 USDC ($5,000,000) to Nexus Labs (wallet #12)."
+        },
+        {
+          "id": "fact-4",
+          "text": "No contract code is changed or upgraded."
+        },
+        {
+          "id": "fact-5",
+          "text": "The proposer secretly funded Nexus Labs (wallet #12) before the proposal, and did not disclose it."
+        }
+      ]
+    },
+    {
+      "id": "pdf",
+      "label": "Proposal",
+      "statements": [
+        {
+          "id": "pdf-8",
+          "text": "The proposal's itemized budget table totals $3,500,000."
+        },
+        {
+          "id": "pdf-5",
+          "text": "Independent automated market makers and lending protocols are siphoning yield away from Meridian's native pools due to superior multi-chain connectivity."
+        },
+        {
+          "id": "pdf-1",
+          "text": "We request a total allocation of $5,000,000 USDC from the Meridian DAO Community Treasury to fund the protocol acceleration and cross-chain routing initiative."
+        },
+        {
+          "id": "pdf-2",
+          "text": "The proposed funding will be disbursed directly to wallet index 12 to enable the Nexus Labs engineering collective to rapidly establish high-throughput liquidity bridges, deploy automated arbitrage protectors, and subsidize validator connectivity."
+        },
+        {
+          "id": "pdf-3",
+          "text": "Meridian DAO currently holds over 20,000,000 USDC in its liquid treasury and 8,000,000 USDC in its Lending Vault, making this an opportune strategic investment to expand market dominance and protocol revenue."
+        },
+        {
+          "id": "pdf-4",
+          "text": "Meridian DAO currently captures substantial lending and borrowing volume on its primary deployment; however, liquidity fragmentation across Layer 2 rollups and partner networks presents a critical operational bottleneck."
+        }
+      ]
+    },
+    {
+      "id": "forum",
+      "label": "Forum",
+      "statements": [
+        {
+          "id": "forum-7",
+          "text": "We cannot disburse millions of protocol funds to anonymous entities with zero accountability."
+        },
+        {
+          "id": "forum-1",
+          "text": "We are proud to present MIP-17, requesting a $5,000,000 USDC allocation from the Meridian Treasury to fund Nexus Labs in building cross-chain liquidity rails and MEV-shielded routing for our lending markets."
+        },
+        {
+          "id": "forum-2",
+          "text": "Recipient address is wallet index 12."
+        },
+        {
+          "id": "forum-3",
+          "text": "A $5M request represents exactly 25.0% of our entire 20M USDC liquid treasury."
+        },
+        {
+          "id": "forum-4",
+          "text": "Even more alarming, when I examine the itemized budget table in Section 3, the three workstreams total $3,500,000 USDC ($1.5M + $1.2M + $0.8M)."
+        },
+        {
+          "id": "forum-6",
+          "text": "The proposal contains no delivery dates, no testnet criteria, and completely obscures who controls wallet index 12."
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "label": "Social",
+      "statements": [
+        {
+          "id": "social-3",
+          "text": "Questions remain unanswered on the forum regarding MIP-17's $1.5M budget discrepancy and the anonymity of wallet 12 signers."
+        },
+        {
+          "id": "social-1",
+          "text": "MIP-17 is live on the governance forum!"
+        },
+        {
+          "id": "social-4",
+          "text": "25% of liquid treasury is an unprecedented grant size without milestone-based escrow release."
+        },
+        {
+          "id": "social-6",
+          "text": "Unusual on-chain transfer activity detected across intermediary addresses ahead of MIP-17 vote."
+        },
+        {
+          "id": "social-2",
+          "text": "Exciting milestones ahead for cross-chain liquidity."
+        },
+        {
+          "id": "social-5",
+          "text": "Urging delegates to review the numbers carefully."
+        }
+      ]
+    },
+    {
+      "id": "disclosure",
+      "label": "Disclosure",
+      "statements": [
+        {
+          "id": "disclosure-1",
+          "text": "I declare sole ownership of proposer wallet 10."
+        },
+        {
+          "id": "disclosure-2",
+          "text": "Nexus Labs is an independent third-party with no financial ties."
+        }
+      ]
+    }
+  ],
+  "rulings": {
+    "pdf-8": {
+      "verdict": "contradicted",
+      "score": 0.984,
+      "evidence": "fact-3"
+    },
+    "pdf-5": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "pdf-1": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "pdf-2": {
+      "verdict": "unclear",
+      "score": 0.008
+    },
+    "pdf-3": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "pdf-4": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "forum-7": {
+      "verdict": "unclear",
+      "score": 0.001
+    },
+    "forum-1": {
+      "verdict": "supported",
+      "score": 0.758,
+      "evidence": "fact-3"
+    },
+    "forum-2": {
+      "verdict": "supported",
+      "score": 0.987,
+      "evidence": "fact-3"
+    },
+    "forum-3": {
+      "verdict": "supported",
+      "score": 1,
+      "evidence": "fact-3",
+      "exact": true
+    },
+    "forum-4": {
+      "verdict": "unclear",
+      "score": 0.001
+    },
+    "forum-6": {
+      "verdict": "unclear",
+      "score": 0.005
+    },
+    "social-3": {
+      "verdict": "unclear",
+      "score": 0.008
+    },
+    "social-1": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-4": {
+      "verdict": "unclear",
+      "score": 0.006
+    },
+    "social-6": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-2": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "social-5": {
+      "verdict": "unclear",
+      "score": 0
+    },
+    "disclosure-1": {
+      "verdict": "unclear",
+      "score": 0.008
+    },
+    "disclosure-2": {
+      "verdict": "contradicted",
+      "score": 0.999,
+      "evidence": "fact-5"
+    }
+  }
+}

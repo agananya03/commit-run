@@ -243,6 +243,7 @@ Full: [`mocks/deployments.json`](mocks/deployments.json). `decimals` appears onl
 | POST | `/proposals/:id/run` | | `202 RunResult` |
 | POST | `/proposals/:id/disclosure` | `DisclosureRequest` | `201 CoiReport` |
 | POST | `/proposals/:id/reverify` | | `ReverifyResult` |
+| GET | `/proposals/:id/assessment?simHash=` | | `text/markdown` technical assessment (header `X-Report-Hash`) |
 
 `:id` accepts the slug (`MIP-21`) or the database id.
 
@@ -374,6 +375,10 @@ Rebuilds every version's canonical JSON and evidence root from the stored files,
 }
 ```
 
+### `GET /proposals/:id/assessment?simHash=0x…` → `text/markdown`
+
+The technical assessment of one simulation run (the latest when `simHash` is omitted): every call, state change and said-vs-does finding, Seatbelt-style. It is deterministic, and its sha256 (also in the `X-Report-Hash` header) is what the backend attests in `ProposalRegistry.attest` after the verdict step, and again for the exact queued payload after the watchdog's decision. Anyone can fetch it and re-hash it against the `AssessmentAttested` event in the bundle's `chainEvents`.
+
 ### Findings and risk (inside the bundle)
 
 `findings` for MIP-21:
@@ -453,11 +458,17 @@ Each event goes to room `proposal:<slug>` and to `proposal:*`. A `chain:event` w
 | Contract | Call | Who |
 |---|---|---|
 | ProposalRegistry | `commit(uint256 proposalId, bytes32 versionHash, bytes32 prevHash, bytes32 evidenceRoot, string uri)`, which emits `ProposalCommitted` and reverts if `prevHash` isn't the latest | backend (PROPOSER key) |
+| ProposalRegistry | `attest(uint256 proposalId, bytes32 reportHash, bytes32 simHash, string uri)`, which emits `AssessmentAttested(proposalId, index, reportHash, simHash, uri, attester)`; the proposal must have a committed version | backend (PROPOSER key), after the verdict step and after the watchdog decision |
+| MeridianGovernor | `proposeWithEvidence(targets, values, calldatas, description, bytes32 evidenceRoot, address[] disclosedWallets, string disclosureUri)`, which emits `ProposalCreated` (description = `description + "
+
+evidence: " + evidenceRoot`) and `EvidenceBound(proposalId, proposer, evidenceRoot, disclosedWallets, disclosureUri)`. Plain `propose` reverts `EvidenceRequired()` | proposers (`npm run gov -- propose`) |
 | GovernanceGuard | `flag(bytes32 operationId, bytes32 findingsHash)`, which emits `Flagged`; only `WATCHDOG_ROLE` | backend watchdog (Hardhat #1) |
 | GovernanceGuard | `clear(bytes32 operationId)`, which emits `Cleared`; only the timelock (i.e. a passed override vote) | governance |
 | GuardedTimelock | `execute` / `executeBatch` revert `GuardFlagged` while `guard.isFlagged(id)` | anyone |
 
-`operationId = hashOperationBatch(targets, values, calldatas, 0x0, salt)`, where `salt = bytes20(governor) ^ descriptionHash` (OpenZeppelin `GovernorTimelockControl`).
+`operationId = hashOperationBatch(targets, values, calldatas, 0x0, salt)`, where `salt = bytes20(governor) ^ descriptionHash` (OpenZeppelin `GovernorTimelockControl`). `descriptionHash` is the keccak256 of the bound description (with the `evidence:` line), which `MeridianGovernor.boundDescription(description, evidenceRoot)` returns.
+
+`evidenceRoot` is the same Merkle root the backend commits: leaves `[fileType, sha256]` of the scenario's evidence files, OpenZeppelin `StandardMerkleTree` (`contracts/scripts/lib/evidence.ts` = `backend/src/integrity/merkle.ts`).
 
 ## Demo addresses (default Hardhat mnemonic)
 
